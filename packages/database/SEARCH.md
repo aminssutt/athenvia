@@ -32,4 +32,3 @@ Get-Content -Raw packages/database/tests/search-indexes.sql |
 ```
 
 The test runs inside a transaction and rolls back all fixtures.
-
