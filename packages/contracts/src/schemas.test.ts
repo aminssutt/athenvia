@@ -3,6 +3,8 @@ import { describe, expect, it } from "vitest";
 import { mockSearchResponse, mockWatchlistResponse } from "./mocks";
 import {
   NotificationPayloadSchema,
+  SearchErrorResponseSchema,
+  SearchRequestSchema,
   SearchResponseSchema,
   WatchlistResponseSchema,
 } from "./schemas";
@@ -10,6 +12,43 @@ import {
 describe("Athenvia contracts", () => {
   it("accepts the phase-zero mock search response", () => {
     expect(SearchResponseSchema.parse(mockSearchResponse)).toEqual(mockSearchResponse);
+  });
+
+  it("normalizes and validates catalogue search input", () => {
+    expect(
+      SearchRequestSchema.parse({
+        query: "  NUS  ",
+        domain: "  entrepreneurship  ",
+        cursor: "eyJvZmZzZXQiOjIwfQ",
+      }),
+    ).toEqual({
+      query: "NUS",
+      domain: "entrepreneurship",
+      cursor: "eyJvZmZzZXQiOjIwfQ",
+    });
+
+    expect(SearchRequestSchema.safeParse({ query: "N" }).success).toBe(false);
+    expect(SearchRequestSchema.safeParse({ query: "NUS", cursor: "x".repeat(257) }).success).toBe(
+      false,
+    );
+  });
+
+  it("documents structured search errors", () => {
+    expect(
+      SearchErrorResponseSchema.parse({
+        error: {
+          code: "RATE_LIMITED",
+          message: "Too many searches. Please wait a moment and try again.",
+          retryAfterSeconds: 30,
+        },
+      }),
+    ).toEqual({
+      error: {
+        code: "RATE_LIMITED",
+        message: "Too many searches. Please wait a moment and try again.",
+        retryAfterSeconds: 30,
+      },
+    });
   });
 
   it("accepts the phase-zero mock watchlist response", () => {
