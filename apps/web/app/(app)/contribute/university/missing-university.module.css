@@ -1,0 +1,259 @@
+.appFrame {
+  display: grid;
+  width: min(100%, 30rem);
+  min-height: 100dvh;
+  grid-template-rows: 1fr auto;
+  margin: 0 auto;
+}
+
+.main {
+  width: 100%;
+  min-height: 0;
+  padding: max(1.25rem, env(safe-area-inset-top)) 1.25rem 2rem;
+}
+
+.siteHeader {
+  padding: 1rem 0 2.5rem;
+}
+
+.heading {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.heading h1,
+.heading p {
+  margin: 0;
+}
+
+.heading h1 {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(2.3rem, 11vw, 3.2rem);
+  font-weight: 500;
+  letter-spacing: -0.05em;
+  line-height: 0.98;
+}
+
+.heading > p:last-child {
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.eyebrow {
+  color: var(--chocolate);
+  font-size: 0.75rem;
+  font-weight: 750;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.reviewNote {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.8rem;
+  margin-top: 1.5rem;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+  padding: 1rem;
+  background: var(--surface-soft);
+}
+
+.reviewIcon {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--success-soft);
+  color: var(--chocolate-dark);
+  font-weight: 800;
+}
+
+.reviewNote h2,
+.reviewNote p {
+  margin: 0;
+}
+
+.reviewNote h2 {
+  font-size: 0.9rem;
+}
+
+.reviewNote p {
+  margin-top: 0.25rem;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.form {
+  display: grid;
+  gap: 1.2rem;
+  margin-top: 1.5rem;
+}
+
+.field {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.field label {
+  font-size: 0.9rem;
+  font-weight: 750;
+}
+
+.field label span {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.field input {
+  width: 100%;
+  min-height: 3.25rem;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 0.9rem;
+  background: var(--surface);
+  color: var(--text-primary);
+  font: inherit;
+}
+
+.field input::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.8;
+}
+
+.field input[aria-invalid="true"] {
+  border-color: var(--chocolate-dark);
+}
+
+.fieldHelp,
+.fieldError {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.fieldHelp {
+  color: var(--text-secondary);
+}
+
+.fieldError {
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+.unavailable {
+  border-radius: var(--radius-md);
+  padding: 0.9rem;
+  background: var(--danger-soft);
+}
+
+.unavailable h2,
+.unavailable p {
+  margin: 0;
+}
+
+.unavailable h2 {
+  font-size: 0.9rem;
+}
+
+.unavailable p {
+  margin-top: 0.25rem;
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.actions {
+  display: grid;
+  gap: 0.55rem;
+  padding-top: 0.35rem;
+}
+
+.primaryButton,
+.secondaryLink {
+  display: inline-flex;
+  min-height: 3.25rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-pill);
+  padding: 0.65rem 1rem;
+  font: inherit;
+  font-weight: 750;
+}
+
+.primaryButton {
+  border: 1px solid var(--chocolate-dark);
+  background: var(--chocolate-dark);
+  color: var(--surface);
+  cursor: pointer;
+}
+
+.primaryButton:hover:not(:disabled) {
+  background: var(--chocolate);
+}
+
+.primaryButton:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.secondaryLink {
+  color: var(--text-secondary);
+  text-underline-offset: 0.2rem;
+}
+
+.confirmation {
+  display: grid;
+  min-height: 65dvh;
+  align-content: center;
+  justify-items: center;
+  gap: 0.8rem;
+  text-align: center;
+}
+
+.confirmation > span {
+  display: grid;
+  width: 3.5rem;
+  height: 3.5rem;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--success-soft);
+  color: var(--chocolate-dark);
+  font-size: 1.3rem;
+  font-weight: 800;
+}
+
+.confirmation h1,
+.confirmation p {
+  margin: 0;
+}
+
+.confirmation h1 {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 2.4rem;
+  font-weight: 500;
+  letter-spacing: -0.045em;
+}
+
+.confirmation p {
+  max-width: 24rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.confirmation a {
+  display: inline-flex;
+  min-height: var(--touch-target-min);
+  align-items: center;
+  color: var(--chocolate-dark);
+  font-weight: 750;
+  text-underline-offset: 0.2rem;
+}
+
+@media (min-width: 40rem) {
+  .main {
+    padding-right: 1.5rem;
+    padding-left: 1.5rem;
+  }
+}
