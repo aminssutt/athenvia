@@ -28,3 +28,8 @@ export const radiusTokens = {
   lg: "1.5rem",
   pill: "999px",
 } as const;
+
+export const accessibilityTokens = {
+  touchTargetMin: "2.75rem",
+  focusRingWidth: "3px",
+} as const;
