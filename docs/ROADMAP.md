@@ -82,5 +82,6 @@ Scaffold
 - Each issue declares its allowed file paths.
 - User-facing content never exposes confidence numbers, scraping, workers or AI terms.
 
-The complete implementation backlog is maintained as GitHub issues and organized in the
-Athenvia Roadmap GitHub Project.
+The complete implementation backlog is maintained in
+[GitHub issues](https://github.com/aminssutt/athenvia/issues) and organized in the
+[Athenvia Roadmap GitHub Project](https://github.com/users/aminssutt/projects/5).
