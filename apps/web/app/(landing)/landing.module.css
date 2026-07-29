@@ -6,6 +6,12 @@
     radial-gradient(circle at 100% 0%, rgb(200 168 146 / 16%), transparent 30rem), var(--background);
 }
 
+@media (display-mode: standalone) {
+  .page {
+    visibility: hidden;
+  }
+}
+
 .header,
 .mainContent,
 .footer {
