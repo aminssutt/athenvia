@@ -2,6 +2,7 @@ import "@athenvia/ui/tokens.css";
 import "./globals.css";
 
 import type { Metadata, Viewport } from "next";
+import Script from "next/script";
 
 import { ServiceWorkerRegistration } from "@/components/service-worker-registration";
 
@@ -34,6 +35,18 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="en">
       <body>
+        <Script id="standalone-route-gate" strategy="beforeInteractive">
+          {`if (
+            window.location.pathname === "/" &&
+            (
+              (typeof window.matchMedia === "function" &&
+                window.matchMedia("(display-mode: standalone)").matches) ||
+              window.navigator.standalone === true
+            )
+          ) {
+            window.location.replace("/home");
+          }`}
+        </Script>
         {children}
         <ServiceWorkerRegistration />
       </body>
