@@ -1,0 +1,4 @@
+{
+  "extends": "@athenvia/config/typescript/base.json",
+  "include": ["src/**/*.ts"]
+}

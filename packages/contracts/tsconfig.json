@@ -1,0 +1,7 @@
+{
+  "extends": "@athenvia/config/typescript/base.json",
+  "compilerOptions": {
+    "types": ["vitest/globals"]
+  },
+  "include": ["src/**/*.ts"]
+}

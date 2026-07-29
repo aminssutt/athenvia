@@ -1,0 +1,8 @@
+{
+  "extends": "@athenvia/config/typescript/library.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src"
+  },
+  "include": ["src/**/*.ts"]
+}

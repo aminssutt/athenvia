@@ -1,0 +1,41 @@
+{
+  "$schema": "./seed.schema.json",
+  "domains": [
+    { "slug": "entrepreneurship", "name": "Entrepreneurship" },
+    { "slug": "applied-ai", "name": "Applied AI" },
+    { "slug": "physical-ai", "name": "Physical AI" },
+    { "slug": "robotics", "name": "Robotics" },
+    { "slug": "computer-science", "name": "Computer Science" },
+    { "slug": "data-science", "name": "Data Science" },
+    { "slug": "management", "name": "Management" },
+    { "slug": "mba", "name": "MBA" },
+    { "slug": "phd", "name": "PhD" }
+  ],
+  "universities": [
+    {
+      "name": "National University of Singapore",
+      "normalizedName": "national university of singapore",
+      "countryCode": "SG",
+      "city": "Singapore",
+      "officialDomain": "nus.edu.sg",
+      "officialWebsite": "https://nus.edu.sg/",
+      "aliases": ["NUS"],
+      "programs": [
+        {
+          "name": "MSc Venture Creation",
+          "normalizedName": "msc venture creation",
+          "degreeType": "MASTER",
+          "durationMonths": 12,
+          "officialUrl": "https://mscventurecreation.nus.edu.sg/",
+          "domains": ["entrepreneurship", "management"],
+          "intake": { "year": 2027, "month": 8 },
+          "source": {
+            "url": "https://mscventurecreation.nus.edu.sg/",
+            "sourceType": "PROGRAM_PAGE",
+            "isOfficial": true
+          }
+        }
+      ]
+    }
+  ]
+}

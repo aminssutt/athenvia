@@ -1,0 +1,374 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum EntityStatus {
+  PENDING
+  ACTIVE
+  REJECTED
+  ARCHIVED
+}
+
+enum DegreeType {
+  MASTER
+  MBA
+  PHD
+  OTHER
+}
+
+enum IntakeStatus {
+  PLANNED
+  OPEN
+  CLOSED
+  COMPLETED
+  UNKNOWN
+}
+
+enum PublicDateStatus {
+  CONFIRMED
+  EXPECTED
+  NOT_PUBLISHED
+}
+
+enum InternalVerificationStatus {
+  OFFICIAL
+  VERIFIED
+  EXPECTED
+  COMMUNITY_SUBMITTED
+  CONFLICTING
+  OUTDATED
+  UNKNOWN
+}
+
+enum ChangeStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SUPERSEDED
+}
+
+enum TrackingStatus {
+  WATCHING
+  OPEN_NOW
+  APPLIED
+}
+
+enum SubmissionStatus {
+  PENDING
+  IN_REVIEW
+  APPROVED
+  REJECTED
+  DUPLICATE
+}
+
+enum NotificationType {
+  APPLICATION_OPENING
+  APPLICATION_DEADLINE
+  DATE_CHANGED
+  SUBMISSION_APPROVED
+}
+
+enum DeliveryStatus {
+  SCHEDULED
+  PROCESSING
+  SENT
+  FAILED
+  CANCELLED
+}
+
+model User {
+  id                    String                 @id @default(uuid()) @db.Uuid
+  email                 String                 @unique
+  name                  String?
+  createdAt             DateTime               @default(now()) @map("created_at")
+  updatedAt             DateTime               @updatedAt @map("updated_at")
+  universitiesCreated   University[]           @relation("UniversityCreator")
+  programsCreated       Program[]              @relation("ProgramCreator")
+  revisionsCreated      DataRevision[]         @relation("RevisionCreator")
+  watchlists            UserWatchlist[]
+  pushSubscriptions     PushSubscription[]
+  notificationDeliveries NotificationDelivery[]
+  universitySubmissions UniversitySubmission[]
+  programSubmissions    ProgramSubmission[]
+
+  @@map("users")
+}
+
+model University {
+  id                    String                 @id @default(uuid()) @db.Uuid
+  name                  String
+  normalizedName        String                 @map("normalized_name")
+  countryCode           String                 @db.Char(2) @map("country_code")
+  city                  String?
+  officialDomain        String?                @map("official_domain")
+  officialWebsite       String?                @map("official_website")
+  logoAssetId           String?                @map("logo_asset_id")
+  status                EntityStatus           @default(PENDING)
+  createdByUserId       String?                @db.Uuid @map("created_by_user_id")
+  createdAt             DateTime               @default(now()) @map("created_at")
+  updatedAt             DateTime               @updatedAt @map("updated_at")
+  createdBy             User?                  @relation("UniversityCreator", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  aliases               UniversityAlias[]
+  programs              Program[]
+  sources               Source[]
+  programSubmissions    ProgramSubmission[]
+
+  @@unique([normalizedName, countryCode])
+  @@index([countryCode])
+  @@map("universities")
+}
+
+model UniversityAlias {
+  id              String     @id @default(uuid()) @db.Uuid
+  universityId    String     @db.Uuid @map("university_id")
+  alias           String
+  normalizedAlias String     @map("normalized_alias")
+  university      University @relation(fields: [universityId], references: [id], onDelete: Cascade)
+
+  @@unique([universityId, normalizedAlias])
+  @@index([normalizedAlias])
+  @@map("university_aliases")
+}
+
+model Program {
+  id              String            @id @default(uuid()) @db.Uuid
+  universityId    String            @db.Uuid @map("university_id")
+  name            String
+  normalizedName  String            @map("normalized_name")
+  degreeType      DegreeType        @map("degree_type")
+  durationMonths  Int?              @map("duration_months")
+  campus          String?
+  language        String?
+  officialUrl     String?           @map("official_url")
+  status          EntityStatus      @default(PENDING)
+  createdByUserId String?           @db.Uuid @map("created_by_user_id")
+  createdAt       DateTime          @default(now()) @map("created_at")
+  updatedAt       DateTime          @updatedAt @map("updated_at")
+  university      University        @relation(fields: [universityId], references: [id], onDelete: Cascade)
+  createdBy       User?             @relation("ProgramCreator", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  domains         ProgramDomain[]
+  intakes         Intake[]
+  sources         Source[]
+  watchlists      UserWatchlist[]
+
+  @@unique([universityId, normalizedName, degreeType])
+  @@index([normalizedName])
+  @@map("programs")
+}
+
+model Domain {
+  id       String          @id @default(uuid()) @db.Uuid
+  slug     String          @unique
+  name     String
+  programs ProgramDomain[]
+
+  @@map("domains")
+}
+
+model ProgramDomain {
+  programId String  @db.Uuid @map("program_id")
+  domainId  String  @db.Uuid @map("domain_id")
+  program   Program @relation(fields: [programId], references: [id], onDelete: Cascade)
+  domain    Domain  @relation(fields: [domainId], references: [id], onDelete: Cascade)
+
+  @@id([programId, domainId])
+  @@map("program_domains")
+}
+
+model Intake {
+  id                 String             @id @default(uuid()) @db.Uuid
+  programId          String             @db.Uuid @map("program_id")
+  year               Int
+  month              Int?
+  startDate          DateTime?          @db.Date @map("start_date")
+  status             IntakeStatus       @default(UNKNOWN)
+  createdAt          DateTime           @default(now()) @map("created_at")
+  updatedAt          DateTime           @updatedAt @map("updated_at")
+  program            Program            @relation(fields: [programId], references: [id], onDelete: Cascade)
+  applicationWindows ApplicationWindow[]
+  watchlists         UserWatchlist[]
+
+  @@unique([programId, year, month])
+  @@map("intakes")
+}
+
+model ApplicationWindow {
+  id              String                     @id @default(uuid()) @db.Uuid
+  intakeId        String                     @db.Uuid @map("intake_id")
+  roundName       String?                    @map("round_name")
+  opensAt         DateTime?                  @map("opens_at")
+  closesAt        DateTime?                  @map("closes_at")
+  publicStatus    PublicDateStatus           @default(NOT_PUBLISHED) @map("public_status")
+  confidenceScore Decimal?                   @db.Decimal(5, 4) @map("confidence_score")
+  verification    InternalVerificationStatus @default(UNKNOWN)
+  lastVerifiedAt  DateTime?                  @map("last_verified_at")
+  createdAt       DateTime                   @default(now()) @map("created_at")
+  updatedAt       DateTime                   @updatedAt @map("updated_at")
+  intake          Intake                     @relation(fields: [intakeId], references: [id], onDelete: Cascade)
+
+  @@index([opensAt])
+  @@index([closesAt])
+  @@map("application_windows")
+}
+
+model Source {
+  id            String           @id @default(uuid()) @db.Uuid
+  universityId  String?          @db.Uuid @map("university_id")
+  programId     String?          @db.Uuid @map("program_id")
+  url           String           @db.Text
+  sourceType    String           @map("source_type")
+  isOfficial    Boolean          @default(false) @map("is_official")
+  lastCheckedAt DateTime?        @map("last_checked_at")
+  httpStatus    Int?             @map("http_status")
+  contentHash   String?          @map("content_hash")
+  createdAt     DateTime         @default(now()) @map("created_at")
+  updatedAt     DateTime         @updatedAt @map("updated_at")
+  university    University?      @relation(fields: [universityId], references: [id], onDelete: Cascade)
+  program       Program?         @relation(fields: [programId], references: [id], onDelete: Cascade)
+  snapshots     SourceSnapshot[]
+  revisions     DataRevision[]
+
+  @@index([universityId])
+  @@index([programId])
+  @@map("sources")
+}
+
+model SourceSnapshot {
+  id          String   @id @default(uuid()) @db.Uuid
+  sourceId    String   @db.Uuid @map("source_id")
+  storageKey  String   @map("storage_key")
+  contentHash String   @map("content_hash")
+  capturedAt  DateTime @default(now()) @map("captured_at")
+  source      Source   @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+
+  @@index([sourceId, capturedAt])
+  @@map("source_snapshots")
+}
+
+model DataRevision {
+  id                String       @id @default(uuid()) @db.Uuid
+  entityType        String       @map("entity_type")
+  entityId          String       @db.Uuid @map("entity_id")
+  fieldName         String       @map("field_name")
+  oldValue          Json?        @map("old_value")
+  newValue          Json?        @map("new_value")
+  sourceId          String?      @db.Uuid @map("source_id")
+  changeStatus      ChangeStatus @default(PENDING) @map("change_status")
+  confidenceScore   Decimal?     @db.Decimal(5, 4) @map("confidence_score")
+  createdByUserId   String?      @db.Uuid @map("created_by_user_id")
+  createdByWorker   Boolean      @default(false) @map("created_by_worker")
+  createdAt         DateTime     @default(now()) @map("created_at")
+  reviewedAt        DateTime?    @map("reviewed_at")
+  source            Source?      @relation(fields: [sourceId], references: [id], onDelete: SetNull)
+  createdBy         User?        @relation("RevisionCreator", fields: [createdByUserId], references: [id], onDelete: SetNull)
+
+  @@index([entityType, entityId])
+  @@map("data_revisions")
+}
+
+model UserWatchlist {
+  id                      String                  @id @default(uuid()) @db.Uuid
+  userId                  String                  @db.Uuid @map("user_id")
+  programId               String                  @db.Uuid @map("program_id")
+  intakeId                String                  @db.Uuid @map("intake_id")
+  trackingStatus          TrackingStatus          @default(WATCHING) @map("tracking_status")
+  priority                Int                     @default(0)
+  privateNotes            String?                 @db.Text @map("private_notes")
+  createdAt               DateTime                @default(now()) @map("created_at")
+  updatedAt               DateTime                @updatedAt @map("updated_at")
+  user                    User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  program                 Program                 @relation(fields: [programId], references: [id], onDelete: Cascade)
+  intake                  Intake                  @relation(fields: [intakeId], references: [id], onDelete: Cascade)
+  notificationPreference  NotificationPreference?
+  notificationDeliveries  NotificationDelivery[]
+
+  @@unique([userId, programId, intakeId])
+  @@index([userId, trackingStatus])
+  @@map("user_watchlists")
+}
+
+model NotificationPreference {
+  id                 String        @id @default(uuid()) @db.Uuid
+  watchlistId        String        @unique @db.Uuid @map("watchlist_id")
+  beforeOpenDays     Int[]         @default([30, 7]) @map("before_open_days")
+  beforeDeadlineDays Int[]         @default([30, 14, 7, 2]) @map("before_deadline_days")
+  notifyOnOpen       Boolean       @default(true) @map("notify_on_open")
+  notifyOnDateChange Boolean       @default(true) @map("notify_on_date_change")
+  pushEnabled        Boolean       @default(false) @map("push_enabled")
+  createdAt          DateTime      @default(now()) @map("created_at")
+  updatedAt          DateTime      @updatedAt @map("updated_at")
+  watchlist          UserWatchlist @relation(fields: [watchlistId], references: [id], onDelete: Cascade)
+
+  @@map("notification_preferences")
+}
+
+model PushSubscription {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @db.Uuid @map("user_id")
+  endpoint  String    @unique @db.Text
+  p256dh    String
+  auth      String
+  userAgent String?   @map("user_agent")
+  createdAt DateTime  @default(now()) @map("created_at")
+  revokedAt DateTime? @map("revoked_at")
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("push_subscriptions")
+}
+
+model NotificationDelivery {
+  id               String             @id @default(uuid()) @db.Uuid
+  userId           String             @db.Uuid @map("user_id")
+  watchlistId      String             @db.Uuid @map("watchlist_id")
+  notificationType NotificationType   @map("notification_type")
+  scheduledFor     DateTime           @map("scheduled_for")
+  sentAt           DateTime?          @map("sent_at")
+  status           DeliveryStatus     @default(SCHEDULED)
+  dedupeKey        String             @unique @map("dedupe_key")
+  errorMessage     String?            @db.Text @map("error_message")
+  user             User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  watchlist        UserWatchlist      @relation(fields: [watchlistId], references: [id], onDelete: Cascade)
+
+  @@index([status, scheduledFor])
+  @@map("notification_deliveries")
+}
+
+model UniversitySubmission {
+  id                String           @id @default(uuid()) @db.Uuid
+  submittedByUserId String           @db.Uuid @map("submitted_by_user_id")
+  name              String
+  countryCode       String           @db.Char(2) @map("country_code")
+  officialWebsite   String?          @map("official_website")
+  status            SubmissionStatus @default(PENDING)
+  createdAt         DateTime         @default(now()) @map("created_at")
+  reviewedAt        DateTime?        @map("reviewed_at")
+  submittedBy       User             @relation(fields: [submittedByUserId], references: [id], onDelete: Cascade)
+
+  @@index([status, createdAt])
+  @@map("university_submissions")
+}
+
+model ProgramSubmission {
+  id                String           @id @default(uuid()) @db.Uuid
+  submittedByUserId String           @db.Uuid @map("submitted_by_user_id")
+  universityId      String           @db.Uuid @map("university_id")
+  name              String
+  degreeType        DegreeType       @map("degree_type")
+  domain             String
+  officialUrl       String?          @map("official_url")
+  status            SubmissionStatus @default(PENDING)
+  createdAt         DateTime         @default(now()) @map("created_at")
+  reviewedAt        DateTime?        @map("reviewed_at")
+  submittedBy       User             @relation(fields: [submittedByUserId], references: [id], onDelete: Cascade)
+  university        University       @relation(fields: [universityId], references: [id], onDelete: Cascade)
+
+  @@index([status, createdAt])
+  @@map("program_submissions")
+}
+

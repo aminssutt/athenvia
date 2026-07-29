@@ -1,0 +1,253 @@
+@import "tailwindcss";
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--background);
+  color: var(--text-primary);
+  font-family:
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--background);
+}
+
+a {
+  color: inherit;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 3px;
+}
+
+.shell {
+  width: min(100%, 30rem);
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: max(1.25rem, env(safe-area-inset-top)) 1.25rem max(2rem, env(safe-area-inset-bottom));
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  font-weight: 750;
+  letter-spacing: -0.03em;
+}
+
+.brand-mark {
+  width: 2.25rem;
+  height: 2.25rem;
+}
+
+.eyebrow {
+  color: var(--chocolate);
+  font-size: 0.78rem;
+  font-weight: 750;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.hero {
+  display: grid;
+  gap: 1.5rem;
+  padding: clamp(3.5rem, 12vh, 7rem) 0 2.25rem;
+}
+
+.hero h1 {
+  max-width: 11ch;
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(2.8rem, 13vw, 4.5rem);
+  font-weight: 500;
+  letter-spacing: -0.055em;
+  line-height: 0.96;
+}
+
+.hero p,
+.muted {
+  color: var(--text-secondary);
+  line-height: 1.65;
+}
+
+.primary-button {
+  display: inline-flex;
+  min-height: 3.5rem;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--chocolate-dark);
+  color: white;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.preview,
+.card,
+.install-card {
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: 0 18px 50px rgb(95 64 50 / 8%);
+}
+
+.preview {
+  padding: 1rem;
+}
+
+.preview-top,
+.card-row,
+.section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.university-mark {
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 0.85rem;
+  background: var(--surface-soft);
+  color: var(--chocolate-dark);
+  font-weight: 800;
+}
+
+.status {
+  display: inline-flex;
+  width: fit-content;
+  border-radius: var(--radius-pill);
+  padding: 0.4rem 0.65rem;
+  background: var(--warning-soft);
+  color: var(--chocolate-dark);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.install-card {
+  margin-top: 2.5rem;
+  padding: 1.35rem;
+}
+
+.steps {
+  display: grid;
+  gap: 1rem;
+  margin: 1.25rem 0 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: install;
+}
+
+.steps li {
+  display: grid;
+  grid-template-columns: 2rem 1fr;
+  gap: 0.75rem;
+  align-items: start;
+  counter-increment: install;
+}
+
+.steps li::before {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--surface-soft);
+  color: var(--chocolate-dark);
+  content: counter(install);
+  font-weight: 800;
+}
+
+.landing-footer {
+  display: flex;
+  justify-content: center;
+  padding-top: 2rem;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.app-header {
+  padding: 1rem 0 2.5rem;
+}
+
+.app-header h1 {
+  margin: 2.5rem 0 0.5rem;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 2.5rem;
+  font-weight: 500;
+  letter-spacing: -0.045em;
+}
+
+.section {
+  margin: 2rem 0;
+}
+
+.section-heading h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.section-heading span {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.card {
+  display: grid;
+  gap: 1rem;
+  margin-top: 0.85rem;
+  padding: 1rem;
+}
+
+.card h3,
+.card p {
+  margin: 0;
+}
+
+.card h3 {
+  font-size: 1rem;
+}
+
+.card p {
+  margin-top: 0.25rem;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.empty-card {
+  margin-top: 0.85rem;
+  border: 1px dashed var(--border-soft);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  color: var(--text-secondary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}

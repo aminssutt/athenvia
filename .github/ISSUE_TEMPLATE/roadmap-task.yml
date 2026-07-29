@@ -1,0 +1,43 @@
+name: Roadmap task
+description: A scoped Athenvia implementation task
+title: ""
+labels: []
+body:
+  - type: textarea
+    id: goal
+    attributes:
+      label: Goal
+      description: Describe the outcome and implementation boundary.
+    validations:
+      required: true
+  - type: textarea
+    id: criteria
+    attributes:
+      label: Acceptance criteria
+      placeholder: |
+        - [ ] Criterion one
+        - [ ] Criterion two
+    validations:
+      required: true
+  - type: input
+    id: dependencies
+    attributes:
+      label: Dependencies
+      placeholder: None, or issue numbers
+    validations:
+      required: true
+  - type: textarea
+    id: paths
+    attributes:
+      label: Allowed paths
+      description: List every file or directory this issue may modify.
+    validations:
+      required: true
+  - type: checkboxes
+    id: review
+    attributes:
+      label: Review gates
+      options:
+        - label: This changes a shared contract.
+        - label: This includes a database migration.
+        - label: This changes security-sensitive behavior.

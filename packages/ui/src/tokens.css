@@ -1,0 +1,19 @@
+:root {
+  --background: #fbf8f4;
+  --surface: #ffffff;
+  --surface-soft: #f5eee8;
+  --chocolate: #8b624a;
+  --chocolate-dark: #5f4032;
+  --chocolate-light: #c8a892;
+  --text-primary: #2a211d;
+  --text-secondary: #74645b;
+  --border-soft: #e9ded6;
+  --success-soft: #e7f1e8;
+  --warning-soft: #f5ebd8;
+  --danger-soft: #f5e2df;
+  --focus-ring: #5f4032;
+  --radius-sm: 0.75rem;
+  --radius-md: 1rem;
+  --radius-lg: 1.5rem;
+  --radius-pill: 999px;
+}

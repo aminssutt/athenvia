@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["domains", "universities"],
+  "properties": {
+    "domains": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["slug", "name"],
+        "properties": {
+          "slug": { "type": "string", "minLength": 1 },
+          "name": { "type": "string", "minLength": 1 }
+        },
+        "additionalProperties": false
+      }
+    },
+    "universities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "normalizedName",
+          "countryCode",
+          "officialDomain",
+          "officialWebsite",
+          "aliases",
+          "programs"
+        ],
+        "properties": {
+          "name": { "type": "string", "minLength": 1 },
+          "normalizedName": { "type": "string", "minLength": 1 },
+          "countryCode": { "type": "string", "pattern": "^[A-Z]{2}$" },
+          "city": { "type": "string" },
+          "officialDomain": { "type": "string", "minLength": 3 },
+          "officialWebsite": { "type": "string", "format": "uri" },
+          "aliases": { "type": "array", "items": { "type": "string" } },
+          "programs": { "type": "array", "minItems": 1 }
+        }
+      }
+    }
+  }
+}
