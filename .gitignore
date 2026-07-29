@@ -6,6 +6,7 @@ coverage/
 playwright-report/
 test-results/
 .turbo/
+*.tsbuildinfo
 
 .env
 .env.local
@@ -17,4 +18,3 @@ test-results/
 Thumbs.db
 
 packages/database/src/generated/
-
