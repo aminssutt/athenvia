@@ -1,6 +1,16 @@
 import type { NextConfig } from "next";
+import { randomUUID } from "node:crypto";
+
+const deploymentId =
+  process.env.NEXT_PUBLIC_ATHENVIA_DEPLOYMENT_ID ??
+  process.env.GITHUB_SHA ??
+  process.env.VERCEL_GIT_COMMIT_SHA ??
+  randomUUID();
 
 const nextConfig: NextConfig = {
+  env: {
+    NEXT_PUBLIC_ATHENVIA_DEPLOYMENT_ID: deploymentId,
+  },
   poweredByHeader: false,
   reactStrictMode: true,
   transpilePackages: ["@athenvia/contracts", "@athenvia/ui"],
