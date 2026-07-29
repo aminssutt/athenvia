@@ -137,6 +137,17 @@ $targetMilestones = @{
   "5" = "Phase 5 launch"
 }
 
+$readyIssueCodes = @(
+  "P1-01",
+  "P1-04",
+  "P1-06",
+  "P1-08",
+  "P1-10",
+  "P1-11",
+  "P1-14",
+  "P1-15"
+)
+
 $updateOperations = [System.Collections.Generic.List[string]]::new()
 $updateAlias = 0
 $updatedItems = 0
@@ -159,7 +170,16 @@ foreach ($issue in $issues) {
   $priorityName = $priorityLabel.Substring("priority:".Length)
   $phaseNumber = [regex]::Match($phaseLabel, "phase:(\d)").Groups[1].Value
   $workstreamKey = $workstreamLabel.Substring("workstream:".Length)
-  $statusName = if ($issue.state -eq "CLOSED") { "Done" } else { "Backlog" }
+  $issueCode = [regex]::Match($issue.title, "^\[([A-Z0-9-]+)\]").Groups[1].Value
+  $statusName = if ($issue.state -eq "CLOSED") {
+    "Done"
+  }
+  elseif ($readyIssueCodes -contains $issueCode) {
+    "Ready"
+  }
+  else {
+    "Backlog"
+  }
   $dependencyMatch = [regex]::Match($issue.body, "(?m)^- Dependencies: (.+)$")
   $dependencyNote = if ($dependencyMatch.Success) { $dependencyMatch.Groups[1].Value.Trim() } else { "Not specified" }
 
