@@ -1,0 +1,230 @@
+.search {
+  padding-bottom: 2rem;
+}
+
+.form {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.label {
+  font-size: 0.82rem;
+  font-weight: 750;
+}
+
+.inputRow {
+  position: relative;
+  display: grid;
+  grid-template-columns: 2.9rem minmax(0, 1fr) auto auto;
+  align-items: center;
+  min-height: 3.75rem;
+  border: 1px solid var(--border-soft);
+  border-radius: 1.15rem;
+  background: var(--surface);
+  box-shadow: 0 1rem 3rem rgb(95 64 50 / 7%);
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease;
+}
+
+.inputRow:focus-within {
+  border-color: var(--chocolate);
+  box-shadow:
+    0 0 0 3px rgb(139 98 74 / 13%),
+    0 1rem 3rem rgb(95 64 50 / 8%);
+}
+
+.searchIcon {
+  display: grid;
+  place-items: center;
+  color: var(--text-secondary);
+}
+
+.searchIcon svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-width: 1.8;
+}
+
+.inputRow input {
+  min-width: 0;
+  height: 3.65rem;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 1rem;
+}
+
+.inputRow input::placeholder {
+  color: #97877e;
+  opacity: 1;
+}
+
+.inputRow input::-webkit-search-cancel-button {
+  display: none;
+  width: 0;
+  height: 0;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.clearButton {
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 0;
+  place-items: center;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 1.5rem;
+}
+
+.clearButton:hover {
+  background: var(--surface-soft);
+  color: var(--text-primary);
+}
+
+.submitButton {
+  min-height: 2.75rem;
+  margin-right: 0.45rem;
+  border: 0;
+  border-radius: 0.85rem;
+  padding-inline: 1rem;
+  background: var(--chocolate-dark);
+  color: white;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 750;
+}
+
+.submitButton:disabled {
+  cursor: wait;
+  opacity: 0.68;
+}
+
+.help {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+}
+
+.suggestions {
+  margin-top: 2.5rem;
+}
+
+.suggestions > p {
+  margin: 0 0 0.75rem;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  font-weight: 650;
+}
+
+.suggestionList {
+  overflow: hidden;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+}
+
+.suggestionList button {
+  display: grid;
+  width: 100%;
+  min-height: 3.75rem;
+  grid-template-columns: minmax(0, 1fr) 1.25rem;
+  gap: 0.75rem;
+  align-items: center;
+  border: 0;
+  border-top: 1px solid var(--border-soft);
+  padding: 0.75rem 1rem;
+  background: transparent;
+  color: var(--text-primary);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.suggestionList button:first-child {
+  border-top: 0;
+}
+
+.suggestionList button:hover {
+  background: var(--surface-soft);
+}
+
+.suggestionList svg {
+  width: 1.15rem;
+  height: 1.15rem;
+  color: var(--chocolate);
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.7;
+}
+
+.results {
+  margin-top: 2.5rem;
+}
+
+.resultsHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.resultsHeading h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.resultsHeading > span {
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+}
+
+.results ul {
+  display: grid;
+  gap: 0.85rem;
+  margin: 0.85rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.statePanel {
+  margin-top: 2.5rem;
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  margin: -1px;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  clip-path: inset(50%);
+}
+
+@media (max-width: 28rem) {
+  .inputRow {
+    grid-template-columns: 2.75rem minmax(0, 1fr) auto;
+  }
+
+  .submitButton {
+    grid-column: 1 / -1;
+    width: calc(100% - 0.8rem);
+    margin: 0 0.4rem 0.4rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .inputRow {
+    transition: none;
+  }
+}
