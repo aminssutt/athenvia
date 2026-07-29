@@ -9,6 +9,7 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
+    "test": "tsc -p tsconfig.build.json && node --test tests/*.test.mjs",
     "typecheck": "tsc -p tsconfig.json"
   },
   "devDependencies": {

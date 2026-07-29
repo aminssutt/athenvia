@@ -12,6 +12,7 @@
   --warning-soft: #f5ebd8;
   --danger-soft: #f5e2df;
   --focus-ring: #5f4032;
+  --touch-target-min: 2.75rem;
   --radius-sm: 0.75rem;
   --radius-md: 1rem;
   --radius-lg: 1.5rem;
