@@ -1,66 +1,125 @@
-import { publicDateCopy } from "@athenvia/contracts";
-import { mockWatchlistResponse } from "@athenvia/contracts/mocks";
+import type { Metadata } from "next";
+import Link from "next/link";
+
+import type { WatchlistItem } from "@athenvia/contracts";
 
 import { Brand } from "@/components/brand";
+import { EmptyState } from "@/components/interface-state";
+import { MobileNavigation } from "@/components/mobile-navigation";
+import { ProgramCard } from "@/components/program-card";
 
-export const metadata = {
+import styles from "./home.module.css";
+import { loadWatchlist } from "./watchlist-data";
+
+export const metadata: Metadata = {
   title: "My programs",
 };
 
-export default function HomePage() {
-  const [watchingItem] = mockWatchlistResponse.watching;
+type WatchlistSectionProps = {
+  emptyDescription: string;
+  emptyTitle: string;
+  items: WatchlistItem[];
+  title: string;
+};
+
+const nextDateFormatter = new Intl.DateTimeFormat("en", {
+  dateStyle: "medium",
+  timeZone: "UTC",
+});
+
+function formatProgramCount(count: number): string {
+  return `${count} ${count === 1 ? "program" : "programs"}`;
+}
+
+function NextUsefulDate({ value }: { value: string | null }) {
+  return (
+    <dl className={styles.nextUsefulDate}>
+      <div>
+        <dt>Next useful date</dt>
+        <dd>
+          {value ? (
+            <time dateTime={value}>{nextDateFormatter.format(new Date(value))}</time>
+          ) : (
+            "To be announced"
+          )}
+        </dd>
+      </div>
+    </dl>
+  );
+}
+
+function WatchlistSection({ emptyDescription, emptyTitle, items, title }: WatchlistSectionProps) {
+  const sectionId = `watchlist-${title.toLocaleLowerCase().replace(/\s+/gu, "-")}`;
 
   return (
-    <main className="shell">
-      <header className="app-header">
-        <Brand />
-        <h1>Your programs</h1>
-        <p className="muted">The next useful dates, without the noise.</p>
-      </header>
+    <section className={styles.section} aria-labelledby={sectionId}>
+      <div className={styles.sectionHeading}>
+        <h2 id={sectionId}>{title}</h2>
+        <span aria-label={formatProgramCount(items.length)}>{items.length}</span>
+      </div>
 
-      <section className="section">
-        <div className="section-heading">
-          <h2>Watching</h2>
-          <span>{mockWatchlistResponse.watching.length}</span>
+      {items.length > 0 ? (
+        <div className={styles.programList}>
+          {items.map((item) => (
+            <ProgramCard
+              key={item.id}
+              action={<NextUsefulDate value={item.nextUsefulDate} />}
+              href={`/programs/${item.program.id}`}
+              locale="en"
+              program={item.program}
+            />
+          ))}
         </div>
-        {watchingItem ? (
-          <article className="card">
-            <div className="card-row">
-              <span className="university-mark" aria-hidden="true">
-                {watchingItem.program.university.name.charAt(0)}
-              </span>
-              <div>
-                <h3>{watchingItem.program.name}</h3>
-                <p>{watchingItem.program.university.name}</p>
-              </div>
-            </div>
-            <span className="status">
-              {
-                publicDateCopy[watchingItem.program.nextWindow?.publicStatus ?? "NOT_PUBLISHED"]
-                  .title
-              }
-            </span>
-          </article>
-        ) : (
-          <div className="empty-card">Add a program to start watching it.</div>
-        )}
-      </section>
+      ) : (
+        <EmptyState
+          action={
+            <Link className={styles.addProgramLink} href="/search">
+              Add a program
+            </Link>
+          }
+          description={emptyDescription}
+          title={emptyTitle}
+        />
+      )}
+    </section>
+  );
+}
 
-      <section className="section">
-        <div className="section-heading">
-          <h2>Open now</h2>
-          <span>{mockWatchlistResponse.openNow.length}</span>
-        </div>
-        <div className="empty-card">Nothing is open right now.</div>
-      </section>
+export default async function HomePage() {
+  const watchlist = await loadWatchlist();
 
-      <section className="section">
-        <div className="section-heading">
-          <h2>Applied</h2>
-          <span>{mockWatchlistResponse.applied.length}</span>
+  return (
+    <div className={styles.appFrame}>
+      <main className={styles.main}>
+        <header className={styles.header}>
+          <Brand />
+          <p className={styles.eyebrow}>My watchlist</p>
+          <h1>Your programs</h1>
+          <p className={styles.intro}>The next useful dates, without the noise.</p>
+        </header>
+
+        <div className={styles.sections}>
+          <WatchlistSection
+            emptyDescription="Add a program to start watching its application dates."
+            emptyTitle="No programs yet"
+            items={watchlist.watching}
+            title="Watching"
+          />
+          <WatchlistSection
+            emptyDescription="Add a program and we’ll show it here when applications open."
+            emptyTitle="Nothing is open right now"
+            items={watchlist.openNow}
+            title="Open now"
+          />
+          <WatchlistSection
+            emptyDescription="Add a program, then mark it applied after you submit."
+            emptyTitle="No applications marked yet"
+            items={watchlist.applied}
+            title="Applied"
+          />
         </div>
-        <div className="empty-card">Programs you mark as submitted will appear here.</div>
-      </section>
-    </main>
+      </main>
+      <MobileNavigation />
+    </div>
   );
 }
