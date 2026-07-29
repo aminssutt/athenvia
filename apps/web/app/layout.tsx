@@ -3,6 +3,8 @@ import "./globals.css";
 
 import type { Metadata, Viewport } from "next";
 
+import { ServiceWorkerRegistration } from "@/components/service-worker-registration";
+
 export const metadata: Metadata = {
   title: {
     default: "Athenvia",
@@ -31,7 +33,10 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        {children}
+        <ServiceWorkerRegistration />
+      </body>
     </html>
   );
 }
