@@ -1,0 +1,47 @@
+.appFrame {
+  display: grid;
+  width: min(100%, 34rem);
+  min-height: 100dvh;
+  grid-template-rows: 1fr auto;
+  margin-inline: auto;
+}
+
+.page {
+  width: 100%;
+  min-height: 0;
+  padding: max(1.25rem, env(safe-area-inset-top)) 1.25rem max(3rem, env(safe-area-inset-bottom));
+}
+
+.header :global(.brand) {
+  text-decoration: none;
+}
+
+.heading {
+  padding: clamp(2.75rem, 10vh, 5.5rem) 0 1.5rem;
+}
+
+.heading p {
+  margin: 0 0 0.65rem;
+  color: var(--chocolate);
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.heading h1 {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(3.25rem, 14vw, 4.75rem);
+  font-weight: 500;
+  letter-spacing: -0.06em;
+  line-height: 0.95;
+}
+
+.heading span {
+  display: block;
+  max-width: 28rem;
+  margin-top: 1rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
