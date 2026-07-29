@@ -1,0 +1,283 @@
+.page,
+.loading {
+  width: min(100%, 30rem);
+  min-height: 100dvh;
+  margin: 0 auto;
+  padding: max(1.25rem, env(safe-area-inset-top)) 1.25rem max(1.25rem, env(safe-area-inset-bottom));
+}
+
+.page {
+  display: grid;
+  grid-template-rows: auto 1fr;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 0;
+}
+
+.progress {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin: 0;
+}
+
+.progress > span:not(.progressText) {
+  width: 1.35rem;
+  height: 0.28rem;
+  border-radius: var(--radius-pill);
+  background: var(--border-soft);
+}
+
+.progress > span[data-current] {
+  background: var(--chocolate-dark);
+}
+
+.progressText {
+  overflow: hidden;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.visuallyHidden {
+  overflow: hidden;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.screen {
+  display: grid;
+  min-height: 0;
+  align-content: center;
+  gap: clamp(2rem, 7vh, 3.5rem);
+  padding: 1.5rem 0;
+}
+
+.introIllustration {
+  position: relative;
+  display: grid;
+  width: min(72vw, 17rem);
+  aspect-ratio: 1.25;
+  place-items: center;
+  justify-self: center;
+  border-radius: 42% 58% 52% 48% / 46% 40% 60% 54%;
+  background: var(--surface-soft);
+}
+
+.calendar {
+  display: grid;
+  overflow: hidden;
+  width: 6rem;
+  height: 6.5rem;
+  place-items: center;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  box-shadow: 0 16px 36px rgb(95 64 50 / 10%);
+}
+
+.calendar span {
+  width: 100%;
+  height: 1.4rem;
+  align-self: start;
+  background: var(--chocolate);
+}
+
+.calendar strong {
+  padding-bottom: 1.15rem;
+  color: var(--chocolate-dark);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 2rem;
+}
+
+.reminderDot {
+  position: absolute;
+  right: 18%;
+  bottom: 18%;
+  display: grid;
+  width: 2.8rem;
+  height: 2.8rem;
+  place-items: center;
+  border: 0.3rem solid var(--surface-soft);
+  border-radius: 50%;
+  background: var(--success-soft);
+  color: var(--chocolate-dark);
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.copy {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.copy p,
+.copy h1 {
+  margin: 0;
+}
+
+.eyebrow {
+  color: var(--chocolate);
+  font-size: 0.75rem;
+  font-weight: 750;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.copy h1 {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(2.25rem, 11vw, 3.2rem);
+  font-weight: 500;
+  letter-spacing: -0.05em;
+  line-height: 0.98;
+}
+
+.copy h1:focus {
+  outline: 0;
+}
+
+.copy p:last-child {
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.form {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.field {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.field label {
+  font-size: 0.9rem;
+  font-weight: 750;
+}
+
+.field label span,
+.field p {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.field select {
+  width: 100%;
+  min-height: 3.5rem;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  padding: 0 2.75rem 0 0.9rem;
+  background: var(--surface);
+  color: var(--text-primary);
+  font: inherit;
+}
+
+.field select[aria-invalid="true"] {
+  border-color: var(--chocolate-dark);
+}
+
+.field p,
+.validationMessage {
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.validationMessage {
+  border-radius: var(--radius-sm);
+  padding: 0.75rem;
+  background: var(--danger-soft);
+  color: var(--text-primary);
+}
+
+.actions {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.primaryButton,
+.secondaryButton,
+.backButton {
+  min-height: 3.25rem;
+  border-radius: var(--radius-pill);
+  padding: 0.65rem 1rem;
+  font: inherit;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.primaryButton {
+  border: 1px solid var(--chocolate-dark);
+  background: var(--chocolate-dark);
+  color: var(--surface);
+}
+
+.primaryButton:hover {
+  background: var(--chocolate);
+}
+
+.secondaryButton {
+  border: 1px solid var(--border-soft);
+  background: var(--surface);
+  color: var(--text-primary);
+}
+
+.secondaryButton:hover {
+  background: var(--surface-soft);
+}
+
+.backButton {
+  border: 0;
+  background: transparent;
+  color: var(--text-secondary);
+  text-decoration: underline;
+  text-underline-offset: 0.2rem;
+}
+
+.loading {
+  display: grid;
+  place-items: center;
+}
+
+.loading span {
+  width: 2rem;
+  height: 2rem;
+  border: 0.25rem solid var(--border-soft);
+  border-top-color: var(--chocolate-dark);
+  border-radius: 50%;
+  animation: onboarding-loading 0.8s linear infinite;
+}
+
+@keyframes onboarding-loading {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loading span {
+    border-top-color: var(--border-soft);
+    animation: none;
+  }
+}
+
+@media (min-width: 40rem) {
+  .page,
+  .loading {
+    padding-right: 1.5rem;
+    padding-left: 1.5rem;
+  }
+}

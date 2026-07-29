@@ -49,7 +49,7 @@ test("prepares the essential shell and plain-language fallback for offline use",
   });
 
   expect(cachedShell.cachedUrls).toEqual(
-    expect.arrayContaining(["/", "/home", "/offline", "/manifest.webmanifest"]),
+    expect.arrayContaining(["/", "/home", "/offline", "/onboarding", "/manifest.webmanifest"]),
   );
   expect(cachedShell.offlineHtml).toContain("You are offline right now.");
   expect(cachedShell.offlineHtml).toContain("Try again");

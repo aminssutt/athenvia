@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: "Athenvia",
     short_name: "Athenvia",
     description: "Follow programs and never miss an application date.",
-    start_url: "/home",
+    start_url: "/",
     scope: "/",
     display: "standalone",
     background_color: "#FBF8F4",

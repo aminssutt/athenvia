@@ -44,7 +44,17 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
               window.navigator.standalone === true
             )
           ) {
-            window.location.replace("/home");
+            var nextPath = "/home";
+            try {
+              var serializedOnboarding = window.localStorage.getItem("athenvia:onboarding:v1");
+              var onboarding = serializedOnboarding ? JSON.parse(serializedOnboarding) : null;
+              if (!onboarding || onboarding.completed !== true || onboarding.version !== 1) {
+                nextPath = "/onboarding";
+              }
+            } catch {
+              // Storage can be unavailable in strict privacy modes; the app remains reachable.
+            }
+            window.location.replace(nextPath);
           }`}
         </Script>
         {children}

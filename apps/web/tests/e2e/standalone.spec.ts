@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test("opens the app when CSS display-mode reports standalone", async ({ context, page }) => {
+test("opens onboarding on a first CSS standalone launch", async ({ context, page }) => {
   await context.addInitScript(() => {
     const browserMatchMedia = window.matchMedia.bind(window);
 
@@ -23,15 +23,48 @@ test("opens the app when CSS display-mode reports standalone", async ({ context,
 
   await page.goto("/");
 
-  await expect(page).toHaveURL(/\/home$/);
-  await expect(page.getByRole("heading", { name: "Your programs" })).toBeVisible();
+  await expect(page).toHaveURL(/\/onboarding$/);
+  await expect(
+    page.getByRole("heading", { name: "Keep application dates within reach." }),
+  ).toBeVisible();
 });
 
-test("opens the app when iOS navigator.standalone is true", async ({ context, page }) => {
+test("opens onboarding when iOS navigator.standalone is true", async ({ context, page }) => {
   await context.addInitScript(() => {
     Object.defineProperty(Navigator.prototype, "standalone", {
       configurable: true,
       get: () => true,
+    });
+  });
+
+  await page.goto("/");
+
+  await expect(page).toHaveURL(/\/onboarding$/);
+  await expect(
+    page.getByRole("heading", { name: "Keep application dates within reach." }),
+  ).toBeVisible();
+});
+
+test("opens home after standalone onboarding is complete", async ({ context, page }) => {
+  await context.addInitScript(() => {
+    window.localStorage.setItem(
+      "athenvia:onboarding:v1",
+      JSON.stringify({ completed: true, targetIntake: null, version: 1 }),
+    );
+
+    const browserMatchMedia = window.matchMedia.bind(window);
+    Object.defineProperty(window, "matchMedia", {
+      configurable: true,
+      value: (query: string) => {
+        const result = browserMatchMedia(query);
+        if (query === "(display-mode: standalone)") {
+          Object.defineProperty(result, "matches", {
+            configurable: true,
+            value: true,
+          });
+        }
+        return result;
+      },
     });
   });
 
