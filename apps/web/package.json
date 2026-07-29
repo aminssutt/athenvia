@@ -11,8 +11,10 @@
   },
   "dependencies": {
     "@athenvia/contracts": "workspace:*",
+    "@athenvia/database": "workspace:*",
     "@athenvia/ui": "workspace:*",
     "@tailwindcss/postcss": "^4.0.0",
+    "ioredis": "^5.8.2",
     "next": "^16.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

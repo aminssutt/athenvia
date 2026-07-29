@@ -34,12 +34,18 @@ importers:
       "@athenvia/contracts":
         specifier: workspace:*
         version: link:../../packages/contracts
+      "@athenvia/database":
+        specifier: workspace:*
+        version: link:../../packages/database
       "@athenvia/ui":
         specifier: workspace:*
         version: link:../../packages/ui
       "@tailwindcss/postcss":
         specifier: ^4.0.0
         version: 4.3.3
+      ioredis:
+        specifier: ^5.8.2
+        version: 5.11.1(supports-color@7.2.0)
       next:
         specifier: ^16.0.0
         version: 16.2.12(@playwright/test@1.62.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)

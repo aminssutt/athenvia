@@ -39,12 +39,35 @@ export const ProgramSummarySchema = z.object({
 export const SearchRequestSchema = z.object({
   query: z.string().trim().min(2).max(120),
   domain: z.string().trim().min(1).max(80).optional(),
-  cursor: z.string().optional(),
+  cursor: z.string().trim().min(1).max(256).optional(),
 });
 
 export const SearchResponseSchema = z.object({
   programs: z.array(ProgramSummarySchema),
   nextCursor: z.string().nullable(),
+});
+
+export const SearchErrorCodeSchema = z.enum([
+  "INVALID_REQUEST",
+  "INVALID_CURSOR",
+  "RATE_LIMITED",
+  "SEARCH_UNAVAILABLE",
+]);
+
+export const SearchErrorResponseSchema = z.object({
+  error: z.object({
+    code: SearchErrorCodeSchema,
+    message: z.string().min(1),
+    issues: z
+      .array(
+        z.object({
+          path: z.array(z.union([z.string(), z.number()])),
+          message: z.string().min(1),
+        }),
+      )
+      .optional(),
+    retryAfterSeconds: z.number().int().positive().optional(),
+  }),
 });
 
 export const WatchlistItemSchema = z.object({
@@ -81,6 +104,8 @@ export type UniversitySummary = z.infer<typeof UniversitySummarySchema>;
 export type ProgramSummary = z.infer<typeof ProgramSummarySchema>;
 export type SearchRequest = z.infer<typeof SearchRequestSchema>;
 export type SearchResponse = z.infer<typeof SearchResponseSchema>;
+export type SearchErrorCode = z.infer<typeof SearchErrorCodeSchema>;
+export type SearchErrorResponse = z.infer<typeof SearchErrorResponseSchema>;
 export type WatchlistItem = z.infer<typeof WatchlistItemSchema>;
 export type WatchlistResponse = z.infer<typeof WatchlistResponseSchema>;
 export type FollowProgramRequest = z.infer<typeof FollowProgramRequestSchema>;
