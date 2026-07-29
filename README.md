@@ -49,4 +49,5 @@ The web application runs at <http://localhost:3000>. See
 ## Roadmap
 
 The implementation plan is maintained in [`docs/ROADMAP.md`](docs/ROADMAP.md) and mirrored
-to the GitHub Project and issues.
+to the [Athenvia Roadmap Project](https://github.com/users/aminssutt/projects/5) and
+[GitHub issues](https://github.com/aminssutt/athenvia/issues).
