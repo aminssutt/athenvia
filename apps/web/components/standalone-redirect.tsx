@@ -7,9 +7,36 @@ type NavigatorWithStandalone = Navigator & {
 };
 
 const STANDALONE_MEDIA_QUERY = "(display-mode: standalone)";
+const ONBOARDING_STORAGE_KEY = "athenvia:onboarding:v1";
 
 function isIosStandalone(navigator: Navigator): boolean {
   return (navigator as NavigatorWithStandalone).standalone === true;
+}
+
+function installedStartPath(storage: Storage): "/home" | "/onboarding" {
+  try {
+    const serialized = storage.getItem(ONBOARDING_STORAGE_KEY);
+    if (!serialized) {
+      return "/onboarding";
+    }
+
+    const onboarding: unknown = JSON.parse(serialized);
+    if (
+      onboarding &&
+      typeof onboarding === "object" &&
+      "completed" in onboarding &&
+      onboarding.completed === true &&
+      "version" in onboarding &&
+      onboarding.version === 1
+    ) {
+      return "/home";
+    }
+
+    return "/onboarding";
+  } catch {
+    // If device storage is unavailable, avoid trapping the user in onboarding.
+    return "/home";
+  }
 }
 
 export function StandaloneRedirect() {
@@ -19,7 +46,7 @@ export function StandaloneRedirect() {
 
     const openInstalledApp = () => {
       if (displayMode?.matches || isIosStandalone(window.navigator)) {
-        window.location.replace("/home");
+        window.location.replace(installedStartPath(window.localStorage));
       }
     };
 
