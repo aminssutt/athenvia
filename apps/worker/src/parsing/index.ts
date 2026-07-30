@@ -186,4 +186,12 @@ export function extractSafeText(
 }
 
 export { SafeTextExtractionError } from "./errors";
+export { extractDateCandidates } from "./dates";
+export type {
+  DateCandidate,
+  DateCandidateKind,
+  DateCandidateOptions,
+  DateCandidatePrecision,
+  DateReviewReason,
+} from "./dates";
 export { DEFAULT_SAFE_TEXT_LIMITS, type SafeTextLimits } from "./limits";

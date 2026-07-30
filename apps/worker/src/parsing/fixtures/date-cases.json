@@ -1,0 +1,51 @@
+[
+  {
+    "name": "day month year",
+    "text": "Applications open on 1 September 2026.",
+    "date": "2026-09-01",
+    "kind": "APPLICATION_OPEN",
+    "automatic": true
+  },
+  {
+    "name": "month day year and time",
+    "text": "The application deadline is January 15, 2027 at 11:59 p.m.",
+    "date": "2027-01-15",
+    "time": "23:59",
+    "kind": "APPLICATION_DEADLINE",
+    "automatic": true
+  },
+  {
+    "name": "ISO date",
+    "text": "The portal opens 2027-08-04.",
+    "date": "2027-08-04",
+    "kind": "APPLICATION_OPEN",
+    "automatic": true
+  },
+  {
+    "name": "unambiguous numeric DMY",
+    "text": "Applications close 31/01/2027.",
+    "date": "2027-01-31",
+    "kind": "APPLICATION_DEADLINE",
+    "automatic": true
+  },
+  {
+    "name": "ambiguous numeric",
+    "text": "Applications close 03/04/2027.",
+    "kind": "APPLICATION_DEADLINE",
+    "automatic": false
+  },
+  {
+    "name": "month precision",
+    "text": "Applications open in September 2027.",
+    "date": "2027-09",
+    "kind": "APPLICATION_OPEN",
+    "automatic": false
+  },
+  {
+    "name": "season precision",
+    "text": "The programme starts Fall 2027.",
+    "date": "2027-FALL",
+    "kind": "INTAKE_START",
+    "automatic": false
+  }
+]
