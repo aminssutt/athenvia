@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import { randomUUID } from "node:crypto";
+import { resolve } from "node:path";
 
 const deploymentId =
   process.env.NEXT_PUBLIC_ATHENVIA_DEPLOYMENT_ID ??
@@ -8,6 +9,8 @@ const deploymentId =
   randomUUID();
 
 const nextConfig: NextConfig = {
+  output: "standalone",
+  outputFileTracingRoot: resolve(process.cwd(), "../.."),
   env: {
     NEXT_PUBLIC_ATHENVIA_DEPLOYMENT_ID: deploymentId,
   },

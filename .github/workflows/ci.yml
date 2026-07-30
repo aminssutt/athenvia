@@ -75,3 +75,31 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @athenvia/web exec playwright install --with-deps webkit
       - run: pnpm --filter @athenvia/web test:e2e
+
+  container:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker compose --env-file .env.example -f docker-compose.prod.yml config --quiet
+      - run: >-
+          docker build
+          --build-arg NEXT_PUBLIC_APP_URL=http://localhost:3000
+          --build-arg NEXT_PUBLIC_ATHENVIA_DEPLOYMENT_ID=ci
+          --target web
+          --tag athenvia-web:ci
+          .
+      - run: >-
+          docker build
+          --build-arg NEXT_PUBLIC_APP_URL=http://localhost:3000
+          --build-arg NEXT_PUBLIC_ATHENVIA_DEPLOYMENT_ID=ci
+          --target worker
+          --tag athenvia-worker:ci
+          .
+      - run: >-
+          docker build
+          --build-arg NEXT_PUBLIC_APP_URL=http://localhost:3000
+          --build-arg NEXT_PUBLIC_ATHENVIA_DEPLOYMENT_ID=ci
+          --target migrate
+          --tag athenvia-migrate:ci
+          .

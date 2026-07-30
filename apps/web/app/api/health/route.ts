@@ -1,0 +1,53 @@
+import { database } from "@athenvia/database";
+import Redis from "ioredis";
+import { NextResponse } from "next/server";
+
+import { checkHealth } from "./check";
+
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
+const responseHeaders = {
+  "Cache-Control": "no-store",
+};
+
+async function checkRedis(): Promise<void> {
+  const redisUrl = process.env.REDIS_URL;
+  if (!redisUrl) {
+    throw new Error("REDIS_URL is not configured.");
+  }
+
+  const redis = new Redis(redisUrl, {
+    connectTimeout: 1_500,
+    enableOfflineQueue: false,
+    lazyConnect: true,
+    maxRetriesPerRequest: 0,
+    retryStrategy: () => null,
+  });
+
+  try {
+    await redis.connect();
+    await redis.ping();
+  } finally {
+    redis.disconnect();
+  }
+}
+
+export async function GET() {
+  try {
+    await checkHealth({
+      checkDatabase: () => database.$queryRaw`SELECT 1`,
+      checkRedis,
+    });
+
+    return NextResponse.json({ status: "ok" }, { headers: responseHeaders });
+  } catch {
+    return NextResponse.json(
+      { status: "unavailable" },
+      {
+        headers: responseHeaders,
+        status: 503,
+      },
+    );
+  }
+}
