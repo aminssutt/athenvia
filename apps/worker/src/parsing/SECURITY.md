@@ -24,7 +24,7 @@ Default guards apply before or during allocation:
 - 5 MiB HTML/plain input and 8 MiB PDF input
 - 1,000,000 output characters
 - bounded HTML tags and nesting
-- bounded PDF objects, streams, decoded bytes, CMap entries and parser operations
+- bounded PDF objects, streams, decoded bytes, CMap count/entries, text strings and parser operations
 - `zlib.inflateSync` uses `maxOutputLength`, preventing compressed streams from allocating beyond
   the per-stream budget
 - image and unsupported streams are skipped without decoding
@@ -39,4 +39,3 @@ Deterministic input failures are non-retryable; unexpected infrastructure/parser
 or failure events suitable for metrics/logging. Observer failures cannot change extraction.
 
 Error messages and events never contain extracted text or source bytes.
-

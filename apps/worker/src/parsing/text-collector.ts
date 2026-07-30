@@ -1,6 +1,8 @@
 import { SafeTextExtractionError } from "./errors";
 
+// The extractor deliberately removes C0/C1 controls and bidi format controls.
 const DANGEROUS_FORMAT_CONTROLS =
+  // eslint-disable-next-line no-control-regex
   /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f-\u009f\u200b\u200e\u200f\u202a-\u202e\u2060\u2066-\u2069\ufeff]/gu;
 const INLINE_WHITESPACE = /[^\S\r\n]+/gu;
 const MANY_NEWLINES = /\n{3,}/gu;
@@ -94,4 +96,3 @@ export class TextCollector {
     this.pendingSeparator = null;
   }
 }
-

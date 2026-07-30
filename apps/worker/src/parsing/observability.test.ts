@@ -1,11 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import {
-  extractSafeText,
-  SafeTextExtractionError,
-  type SafeTextExtractionEvent,
-} from "./index";
+import { extractSafeText, SafeTextExtractionError, type SafeTextExtractionEvent } from "./index";
 
 test("emits content-free deterministic success and failure events", () => {
   const events: SafeTextExtractionEvent[] = [];
@@ -71,4 +67,3 @@ test("observer failures never alter extraction", () => {
 
   assert.equal(result.text, "Admissions remain open.");
 });
-

@@ -42,6 +42,15 @@ test("discards hidden and embedded HTML subtrees while keeping visible siblings"
   assert.equal(result.text, "Visible first\nVisible last 🎓");
 });
 
+test("decodes canonical named entities without mojibake", () => {
+  const result = extractSafeText({
+    body: "<p>&copy; &euro; &ldquo;Admissions&rdquo; &mdash; 2027</p>",
+    contentType: "text/html",
+  });
+
+  assert.equal(result.text, "© € “Admissions” — 2027");
+});
+
 test("enforces deterministic HTML resource budgets", () => {
   assert.throws(
     () =>
@@ -61,8 +70,6 @@ test("enforces deterministic HTML resource budgets", () => {
         { body: "<div><span>nested</span></div>", contentType: "text/html" },
         { limits: { maximumNestingDepth: 1 } },
       ),
-    (error) =>
-      error instanceof SafeTextExtractionError && error.code === "HTML_LIMIT_EXCEEDED",
+    (error) => error instanceof SafeTextExtractionError && error.code === "HTML_LIMIT_EXCEEDED",
   );
 });
-

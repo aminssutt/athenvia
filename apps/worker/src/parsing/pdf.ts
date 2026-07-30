@@ -7,11 +7,15 @@ import { TextCollector } from "./text-collector";
 type DecodedStream = {
   body: Buffer;
   dictionary: string;
+  objectId: string | null;
 };
 
-type PdfArrayPart =
-  | { kind: "number"; value: number }
-  | { bytes: Buffer; kind: "string" };
+type PdfCharacterMap = {
+  map: Map<string, string>;
+  objectId: string | null;
+};
+
+type PdfArrayPart = { kind: "number"; value: number } | { bytes: Buffer; kind: "string" };
 
 type PdfToken =
   | { kind: "array"; value: PdfArrayPart[] }
@@ -37,8 +41,10 @@ function isWhitespace(byte: number | undefined): boolean {
 function isTokenBoundary(source: string, start: number, length: number): boolean {
   const before = start > 0 ? source.charCodeAt(start - 1) : 0x20;
   const after = source.charCodeAt(start + length);
-  return (PDF_WHITESPACE.has(before) || PDF_DELIMITERS.has(before)) &&
-    (Number.isNaN(after) || PDF_WHITESPACE.has(after) || PDF_DELIMITERS.has(after));
+  return (
+    (PDF_WHITESPACE.has(before) || PDF_DELIMITERS.has(before)) &&
+    (Number.isNaN(after) || PDF_WHITESPACE.has(after) || PDF_DELIMITERS.has(after))
+  );
 }
 
 function countPdfObjects(source: string, maximumObjects: number): number {
@@ -61,19 +67,26 @@ function countPdfObjects(source: string, maximumObjects: number): number {
 
 function findDictionaryStart(source: string, streamIndex: number): number {
   const lowerBound = Math.max(0, streamIndex - 65_536);
-  let nestedDictionaries = 0;
+  const dictionaryEnd = source.lastIndexOf(">>", streamIndex);
+  if (dictionaryEnd < lowerBound || !/^\s*$/u.test(source.slice(dictionaryEnd + 2, streamIndex))) {
+    return -1;
+  }
 
-  for (let index = streamIndex - 2; index >= lowerBound; index -= 1) {
+  let nestedDictionaries = 0;
+  for (let index = dictionaryEnd; index >= lowerBound; index -= 1) {
     const pair = source.slice(index, index + 2);
 
     if (pair === ">>") {
       nestedDictionaries += 1;
       index -= 1;
     } else if (pair === "<<") {
+      nestedDictionaries -= 1;
       if (nestedDictionaries === 0) {
         return index;
       }
-      nestedDictionaries -= 1;
+      if (nestedDictionaries < 0) {
+        return -1;
+      }
       index -= 1;
     }
   }
@@ -82,13 +95,54 @@ function findDictionaryStart(source: string, streamIndex: number): number {
 }
 
 function parseFilters(dictionary: string): string[] {
-  const arrayMatch = /\/Filter\s*\[([^\]]{0,2_048})\]/u.exec(dictionary);
+  const arrayMatch = /\/Filter\s*\[([^\]]{0,2048})\]/u.exec(dictionary);
   if (arrayMatch) {
     return [...arrayMatch[1].matchAll(/\/([A-Za-z0-9]+)/gu)].map((match) => match[1]);
   }
 
   const singleMatch = /\/Filter\s*\/([A-Za-z0-9]+)/u.exec(dictionary);
   return singleMatch ? [singleMatch[1]] : [];
+}
+
+function resolveStreamLength(dictionary: string, source: string): number | null {
+  const match = /\/Length\s+(\d+)(?:\s+(\d+)\s+R)?(?=\s|\/|>>)/u.exec(dictionary);
+  if (!match?.[1]) {
+    return null;
+  }
+  if (!match[2]) {
+    return Number.parseInt(match[1], 10);
+  }
+
+  const objectNumber = match[1];
+  const generationNumber = match[2];
+  const referencedLength = new RegExp(
+    `(?:^|[\\r\\n])\\s*${objectNumber}\\s+${generationNumber}\\s+obj\\s+(\\d+)\\s+endobj\\b`,
+    "u",
+  ).exec(source)?.[1];
+
+  return referencedLength ? Number.parseInt(referencedLength, 10) : null;
+}
+
+function findEndStream(source: string, streamStart: number): number {
+  let candidate = source.indexOf("endstream", streamStart);
+  while (candidate >= 0) {
+    if (isTokenBoundary(source, candidate, 9)) {
+      return candidate;
+    }
+    candidate = source.indexOf("endstream", candidate + 9);
+  }
+  return -1;
+}
+
+function objectIdAt(source: string, position: number): string | null {
+  const previousObjectEnd = source.lastIndexOf("endobj", position);
+  const segment = source.slice(Math.max(0, previousObjectEnd + 6, position - 65_536), position);
+  let objectId: string | null = null;
+
+  for (const match of segment.matchAll(/(?:^|[\r\n])\s*(\d+)\s+(\d+)\s+obj\b/gu)) {
+    objectId = `${match[1]} ${match[2]}`;
+  }
+  return objectId;
 }
 
 function decodeAsciiHex(input: Buffer, maximumBytes: number): Buffer {
@@ -196,11 +250,7 @@ function decodeAscii85(input: Buffer, maximumBytes: number): Buffer {
   return Buffer.from(output);
 }
 
-function decodeStream(
-  stream: Buffer,
-  dictionary: string,
-  limits: SafeTextLimits,
-): Buffer | null {
+function decodeStream(stream: Buffer, dictionary: string, limits: SafeTextLimits): Buffer | null {
   let decoded = stream;
 
   for (const filter of parseFilters(dictionary)) {
@@ -292,12 +342,12 @@ function readStreams(
       throw new SafeTextExtractionError("INVALID_PDF", "PDF stream separator is malformed.");
     }
 
-    const directLength = /\/Length\s+(\d+)\b/u.exec(dictionary)?.[1];
+    const resolvedLength = resolveStreamLength(dictionary, source);
     let streamEnd: number;
     let endKeyword: number;
 
-    if (directLength) {
-      const length = Number.parseInt(directLength, 10);
+    if (resolvedLength !== null) {
+      const length = resolvedLength;
       if (!Number.isSafeInteger(length) || length > limits.maximumPdfStreamBytes) {
         throw new SafeTextExtractionError(
           "PDF_LIMIT_EXCEEDED",
@@ -306,12 +356,16 @@ function readStreams(
         );
       }
       streamEnd = streamStart + length;
-      endKeyword = source.indexOf("endstream", streamEnd);
-      if (streamEnd > body.length || endKeyword < 0 || endKeyword - streamEnd > 2) {
+      let markerStart = streamEnd;
+      while (markerStart - streamEnd <= 16 && isWhitespace(body[markerStart])) {
+        markerStart += 1;
+      }
+      endKeyword = source.startsWith("endstream", markerStart) ? markerStart : -1;
+      if (streamEnd > body.length || endKeyword < 0) {
         throw new SafeTextExtractionError("INVALID_PDF", "PDF stream length is inconsistent.");
       }
     } else {
-      endKeyword = source.indexOf("endstream", streamStart);
+      endKeyword = findEndStream(source, streamStart);
       if (endKeyword < 0) {
         throw new SafeTextExtractionError("INVALID_PDF", "PDF stream is not terminated.");
       }
@@ -354,7 +408,11 @@ function readStreams(
       );
     }
 
-    decoded.push({ body: result, dictionary });
+    decoded.push({
+      body: result,
+      dictionary,
+      objectId: objectIdAt(source, dictionaryStart),
+    });
   }
 
   return { decoded, skipped };
@@ -394,8 +452,9 @@ function incrementBigEndian(bytes: Buffer, increment: number): Buffer {
 function readCMaps(
   streams: readonly DecodedStream[],
   maximumEntries: number,
-): Array<Map<string, string>> {
-  const maps: Array<Map<string, string>> = [];
+  maximumMaps: number,
+): PdfCharacterMap[] {
+  const maps: PdfCharacterMap[] = [];
   let totalEntries = 0;
 
   function addEntry(map: Map<string, string>, source: string, destination: string): void {
@@ -415,20 +474,23 @@ function readCMaps(
     if (!content.includes("begincmap") && !content.includes("beginbf")) {
       continue;
     }
+    if (maps.length >= maximumMaps) {
+      throw new SafeTextExtractionError(
+        "PDF_LIMIT_EXCEEDED",
+        "PDF exceeded the configured character-map count.",
+        { maximumCMaps: maximumMaps },
+      );
+    }
 
     const map = new Map<string, string>();
     for (const block of content.matchAll(/beginbfchar([\s\S]*?)endbfchar/gu)) {
-      for (const pair of block[1].matchAll(
-        /<([0-9a-f]+)>\s*<([0-9a-f]+)>/giu,
-      )) {
+      for (const pair of block[1].matchAll(/<([0-9a-f]+)>\s*<([0-9a-f]+)>/giu)) {
         addEntry(map, pair[1], pair[2]);
       }
     }
 
     for (const block of content.matchAll(/beginbfrange([\s\S]*?)endbfrange/gu)) {
-      for (const range of block[1].matchAll(
-        /<([0-9a-f]+)>\s*<([0-9a-f]+)>\s*<([0-9a-f]+)>/giu,
-      )) {
+      for (const range of block[1].matchAll(/<([0-9a-f]+)>\s*<([0-9a-f]+)>\s*<([0-9a-f]+)>/giu)) {
         const first = bufferFromHex(range[1]);
         const last = bufferFromHex(range[2]);
         const destination = bufferFromHex(range[3]);
@@ -459,17 +521,82 @@ function readCMaps(
     }
 
     if (map.size > 0) {
-      maps.push(map);
+      maps.push({ map, objectId: stream.objectId });
     }
   }
 
   return maps;
 }
 
-function decodeWithCMap(bytes: Buffer, map: Map<string, string>): { coverage: number; text: string } {
+function fontCharacterMaps(
+  source: string,
+  characterMaps: readonly PdfCharacterMap[],
+): Map<string, Map<string, string>> {
+  const mapByObjectId = new Map(
+    characterMaps
+      .filter((entry): entry is PdfCharacterMap & { objectId: string } => entry.objectId !== null)
+      .map((entry) => [entry.objectId, entry.map] as const),
+  );
+  const mapByFontObjectId = new Map<string, Map<string, string>>();
+
+  for (const object of source.matchAll(
+    /(?:^|[\r\n])\s*(\d+)\s+(\d+)\s+obj\b([\s\S]*?)endobj\b/gu,
+  )) {
+    const body = object[3];
+    if (!body || !/\/Type\s*\/Font\b/u.test(body)) {
+      continue;
+    }
+    const toUnicode = /\/ToUnicode\s+(\d+)\s+(\d+)\s+R\b/u.exec(body);
+    if (!toUnicode) {
+      continue;
+    }
+    const map = mapByObjectId.get(`${toUnicode[1]} ${toUnicode[2]}`);
+    if (map) {
+      mapByFontObjectId.set(`${object[1]} ${object[2]}`, map);
+    }
+  }
+
+  const result = new Map<string, Map<string, string>>();
+  const ambiguousNames = new Set<string>();
+  for (const reference of source.matchAll(
+    /\/([A-Za-z][A-Za-z0-9._-]{0,127})\s+(\d+)\s+(\d+)\s+R\b/gu,
+  )) {
+    const name = reference[1];
+    const map = mapByFontObjectId.get(`${reference[2]} ${reference[3]}`);
+    if (!name || !map || ambiguousNames.has(name)) {
+      continue;
+    }
+    const existing = result.get(name);
+    if (existing && existing !== map) {
+      result.delete(name);
+      ambiguousNames.add(name);
+    } else {
+      result.set(name, map);
+    }
+  }
+
+  return result;
+}
+
+const characterMapLengthCache = new WeakMap<Map<string, string>, readonly number[]>();
+
+function characterMapKeyLengths(map: Map<string, string>): readonly number[] {
+  const cached = characterMapLengthCache.get(map);
+  if (cached) {
+    return cached;
+  }
   const lengths = [...new Set([...map.keys()].map((key) => key.length / 2))].sort(
     (left, right) => right - left,
   );
+  characterMapLengthCache.set(map, lengths);
+  return lengths;
+}
+
+function decodeWithCMap(
+  bytes: Buffer,
+  map: Map<string, string>,
+): { coverage: number; text: string } {
+  const lengths = characterMapKeyLengths(map);
   const output: string[] = [];
   let coverage = 0;
   let cursor = 0;
@@ -480,7 +607,10 @@ function decodeWithCMap(bytes: Buffer, map: Map<string, string>): { coverage: nu
       if (cursor + length > bytes.length) {
         continue;
       }
-      const key = bytes.subarray(cursor, cursor + length).toString("hex").toUpperCase();
+      const key = bytes
+        .subarray(cursor, cursor + length)
+        .toString("hex")
+        .toUpperCase();
       const value = map.get(key);
       if (value !== undefined) {
         output.push(value);
@@ -505,6 +635,9 @@ function decodePdfString(bytes: Buffer, maps: readonly Map<string, string>[]): s
 
   for (const map of maps) {
     const candidate = decodeWithCMap(bytes, map);
+    if (candidate.coverage === bytes.length) {
+      return candidate.text;
+    }
     if (!bestMapped || candidate.coverage > bestMapped.coverage) {
       bestMapped = candidate;
     }
@@ -531,7 +664,11 @@ function decodePdfString(bytes: Buffer, maps: readonly Map<string, string>[]): s
     : new TextDecoder("windows-1252").decode(bytes);
 }
 
-function readLiteralString(body: Buffer, start: number): { bytes: Buffer; next: number } {
+function readLiteralString(
+  body: Buffer,
+  start: number,
+  maximumBytes: number,
+): { bytes: Buffer; next: number } {
   const output: number[] = [];
   let depth = 1;
   let cursor = start + 1;
@@ -583,6 +720,13 @@ function readLiteralString(body: Buffer, start: number): { bytes: Buffer; next: 
     } else if (byte !== undefined) {
       output.push(byte);
     }
+    if (output.length > maximumBytes) {
+      throw new SafeTextExtractionError(
+        "PDF_LIMIT_EXCEEDED",
+        "PDF text string exceeded its byte limit.",
+        { maximumStringBytes: maximumBytes },
+      );
+    }
   }
 
   if (depth !== 0) {
@@ -592,7 +736,11 @@ function readLiteralString(body: Buffer, start: number): { bytes: Buffer; next: 
   return { bytes: Buffer.from(output), next: cursor };
 }
 
-function readHexString(body: Buffer, start: number): { bytes: Buffer; next: number } {
+function readHexString(
+  body: Buffer,
+  start: number,
+  maximumBytes: number,
+): { bytes: Buffer; next: number } {
   let cursor = start + 1;
   const digits: number[] = [];
 
@@ -613,6 +761,13 @@ function readHexString(body: Buffer, start: number): { bytes: Buffer; next: numb
       throw new SafeTextExtractionError("INVALID_PDF", "PDF hexadecimal string is malformed.");
     }
     digits.push(byte);
+    if (Math.ceil(digits.length / 2) > maximumBytes) {
+      throw new SafeTextExtractionError(
+        "PDF_LIMIT_EXCEEDED",
+        "PDF text string exceeded its byte limit.",
+        { maximumStringBytes: maximumBytes },
+      );
+    }
   }
 
   if (body[cursor] !== 0x3e) {
@@ -629,7 +784,11 @@ function readHexString(body: Buffer, start: number): { bytes: Buffer; next: numb
   };
 }
 
-function readPdfToken(body: Buffer, start: number): { next: number; token: PdfToken | null } {
+function readPdfToken(
+  body: Buffer,
+  start: number,
+  maximumStringBytes: number,
+): { next: number; token: PdfToken | null } {
   let cursor = start;
   while (cursor < body.length && isWhitespace(body[cursor])) {
     cursor += 1;
@@ -643,18 +802,18 @@ function readPdfToken(body: Buffer, start: number): { next: number; token: PdfTo
   }
 
   if (body[cursor] === 0x28) {
-    const result = readLiteralString(body, cursor);
+    const result = readLiteralString(body, cursor, maximumStringBytes);
     return { next: result.next, token: { bytes: result.bytes, kind: "string" } };
   }
   if (body[cursor] === 0x3c && body[cursor + 1] !== 0x3c) {
-    const result = readHexString(body, cursor);
+    const result = readHexString(body, cursor, maximumStringBytes);
     return { next: result.next, token: { bytes: result.bytes, kind: "string" } };
   }
   if (body[cursor] === 0x5b) {
     const parts: PdfArrayPart[] = [];
     cursor += 1;
     while (cursor < body.length && body[cursor] !== 0x5d) {
-      const result = readPdfToken(body, cursor);
+      const result = readPdfToken(body, cursor, maximumStringBytes);
       cursor = result.next;
       if (!result.token) {
         continue;
@@ -667,6 +826,24 @@ function readPdfToken(body: Buffer, start: number): { next: number; token: PdfTo
       throw new SafeTextExtractionError("INVALID_PDF", "PDF text array is not terminated.");
     }
     return { next: cursor + 1, token: { kind: "array", value: parts } };
+  }
+  if (body[cursor] === 0x2f) {
+    const nameStart = cursor;
+    cursor += 1;
+    while (
+      cursor < body.length &&
+      !isWhitespace(body[cursor]) &&
+      !PDF_DELIMITERS.has(body[cursor] ?? 0)
+    ) {
+      cursor += 1;
+    }
+    return {
+      next: cursor,
+      token: {
+        kind: "word",
+        value: body.subarray(nameStart, cursor).toString("ascii"),
+      },
+    };
   }
 
   const tokenStart = cursor;
@@ -689,25 +866,51 @@ function readPdfToken(body: Buffer, start: number): { next: number; token: PdfTo
   const number = Number(value);
   return {
     next: cursor,
-    token: Number.isFinite(number)
-      ? { kind: "number", value: number }
-      : { kind: "word", value },
+    token: Number.isFinite(number) ? { kind: "number", value: number } : { kind: "word", value },
   };
+}
+
+function findTextObjectStart(body: Buffer, start: number): number {
+  for (let index = start; index + 1 < body.length; index += 1) {
+    if (
+      body[index] === 0x42 &&
+      body[index + 1] === 0x54 &&
+      (index === 0 || isWhitespace(body[index - 1]) || PDF_DELIMITERS.has(body[index - 1] ?? 0)) &&
+      (index + 2 >= body.length ||
+        isWhitespace(body[index + 2]) ||
+        PDF_DELIMITERS.has(body[index + 2] ?? 0))
+    ) {
+      return index;
+    }
+  }
+  return -1;
 }
 
 function extractContentStreamText(
   stream: Buffer,
   maps: readonly Map<string, string>[],
+  mapsByFontName: ReadonlyMap<string, Map<string, string>>,
   collector: TextCollector,
   budget: { operations: number },
   maximumOperations: number,
+  maximumStringBytes: number,
 ): boolean {
   const operands: PdfToken[] = [];
-  let cursor = 0;
+  let cursor = findTextObjectStart(stream, 0);
   let insideText = false;
   let foundText = false;
+  let activeMaps = maps;
+  let textX: number | null = null;
+  let textY: number | null = null;
 
-  while (cursor < stream.length) {
+  while (cursor >= 0 && cursor < stream.length) {
+    if (!insideText) {
+      insideText = true;
+      operands.length = 0;
+      cursor += 2;
+      continue;
+    }
+
     budget.operations += 1;
     if (budget.operations > maximumOperations) {
       throw new SafeTextExtractionError(
@@ -717,7 +920,7 @@ function extractContentStreamText(
       );
     }
 
-    const result = readPdfToken(stream, cursor);
+    const result = readPdfToken(stream, cursor, maximumStringBytes);
     cursor = result.next;
     const token = result.token;
     if (!token) {
@@ -730,31 +933,43 @@ function extractContentStreamText(
       }
       continue;
     }
+    if (token.value.startsWith("/")) {
+      if (operands.length < 64) {
+        operands.push(token);
+      }
+      continue;
+    }
 
     if (token.value === "BT") {
-      insideText = true;
       operands.length = 0;
       continue;
     }
     if (token.value === "ET") {
       insideText = false;
-      collector.line();
       operands.length = 0;
-      continue;
-    }
-    if (!insideText) {
-      operands.length = 0;
+      cursor = findTextObjectStart(stream, cursor);
       continue;
     }
 
     const last = operands.at(-1);
-    if (token.value === "Tj" && last?.kind === "string") {
-      collector.text(decodePdfString(last.bytes, maps));
+    if (token.value === "Tf") {
+      let fontName: string | null = null;
+      for (let index = operands.length - 1; index >= 0; index -= 1) {
+        const operand = operands[index];
+        if (operand?.kind === "word" && operand.value.startsWith("/")) {
+          fontName = operand.value.slice(1);
+          break;
+        }
+      }
+      const fontMap = fontName ? mapsByFontName.get(fontName) : undefined;
+      activeMaps = fontMap ? [fontMap] : maps;
+    } else if (token.value === "Tj" && last?.kind === "string") {
+      collector.text(decodePdfString(last.bytes, activeMaps));
       foundText = true;
     } else if (token.value === "TJ" && last?.kind === "array") {
       for (const part of last.value) {
         if (part.kind === "string") {
-          collector.text(decodePdfString(part.bytes, maps));
+          collector.text(decodePdfString(part.bytes, activeMaps));
           foundText = true;
         } else if (part.value <= -120) {
           collector.space();
@@ -762,10 +977,38 @@ function extractContentStreamText(
       }
     } else if ((token.value === "'" || token.value === '"') && last?.kind === "string") {
       collector.line();
-      collector.text(decodePdfString(last.bytes, maps));
+      collector.text(decodePdfString(last.bytes, activeMaps));
       foundText = true;
-    } else if (token.value === "Td" || token.value === "TD" || token.value === "T*") {
+    } else if (token.value === "Tm") {
+      const matrix = operands
+        .filter(
+          (operand): operand is Extract<PdfToken, { kind: "number" }> => operand.kind === "number",
+        )
+        .map((operand) => operand.value);
+      if (matrix.length >= 6) {
+        const nextX = matrix.at(-2) ?? 0;
+        const nextY = matrix.at(-1) ?? 0;
+        if (textY !== null && Math.abs(nextY - textY) > 0.01) {
+          collector.line();
+        }
+        textX = nextX;
+        textY = nextY;
+      }
+    } else if (token.value === "Td" || token.value === "TD") {
+      const horizontalOperand = operands.at(-2);
+      const verticalOperand = operands.at(-1);
+      const horizontalOffset = horizontalOperand?.kind === "number" ? horizontalOperand.value : 0;
+      const verticalOffset =
+        operands.length >= 2 && verticalOperand?.kind === "number" ? verticalOperand.value : 0;
+      if (verticalOffset !== 0) {
+        collector.line();
+      }
+      textX = (textX ?? 0) + horizontalOffset;
+      textY = (textY ?? 0) + verticalOffset;
+    } else if (token.value === "T*") {
       collector.line();
+      textX = null;
+      textY = null;
     }
 
     operands.length = 0;
@@ -801,34 +1044,39 @@ export function extractPdfText(
 
   const objectsVisited = countPdfObjects(source, limits.maximumPdfObjects);
   const { decoded, skipped } = readStreams(body, source, limits);
-  const maps = readCMaps(decoded, limits.maximumPdfCMapEntries);
+  const characterMaps = readCMaps(decoded, limits.maximumPdfCMapEntries, limits.maximumPdfCMaps);
+  const maps = characterMaps.map((entry) => entry.map);
+  const mapsByFontName = fontCharacterMaps(source, characterMaps);
   const collector = new TextCollector(limits.maximumOutputCharacters);
   const budget = { operations: 0 };
   let contentStreams = 0;
 
   for (const stream of decoded) {
-    if (extractContentStreamText(
-      stream.body,
-      maps,
-      collector,
-      budget,
-      limits.maximumPdfOperations,
-    )) {
+    if (
+      extractContentStreamText(
+        stream.body,
+        maps,
+        mapsByFontName,
+        collector,
+        budget,
+        limits.maximumPdfOperations,
+        limits.maximumPdfStringBytes,
+      )
+    ) {
       contentStreams += 1;
     }
   }
 
   const text = collector.finish();
   if (!text) {
-    throw new SafeTextExtractionError(
-      "UNSUPPORTED_PDF",
-      "PDF contains no supported text layer.",
-      { decodedStreams: decoded.length, skippedStreams: skipped },
-    );
+    throw new SafeTextExtractionError("UNSUPPORTED_PDF", "PDF contains no supported text layer.", {
+      decodedStreams: decoded.length,
+      skippedStreams: skipped,
+    });
   }
 
   const pageCount = [...source.matchAll(/\/Type\s*\/Page\b/gu)].length;
-  const cmapEntries = maps.reduce((count, map) => count + map.size, 0);
+  const cmapEntries = characterMaps.reduce((count, entry) => count + entry.map.size, 0);
 
   return {
     stats: {
@@ -845,4 +1093,3 @@ export function extractPdfText(
     ],
   };
 }
-

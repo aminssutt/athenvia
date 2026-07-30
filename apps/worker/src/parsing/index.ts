@@ -71,9 +71,7 @@ function bodyBuffer(body: SafeTextInput["body"]): Buffer {
   if (typeof body === "string") {
     return Buffer.from(body, "utf8");
   }
-  return Buffer.isBuffer(body)
-    ? body
-    : Buffer.from(body.buffer, body.byteOffset, body.byteLength);
+  return Buffer.isBuffer(body) ? body : Buffer.from(body.buffer, body.byteOffset, body.byteLength);
 }
 
 function notify(
@@ -189,4 +187,3 @@ export function extractSafeText(
 
 export { SafeTextExtractionError } from "./errors";
 export { DEFAULT_SAFE_TEXT_LIMITS, type SafeTextLimits } from "./limits";
-

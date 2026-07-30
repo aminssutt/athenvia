@@ -13,16 +13,15 @@ type TestStream = {
 };
 
 function pdfWithStreams(streams: readonly TestStream[], extra = ""): Buffer {
-  const objects = streams.map(
-    ({ body, filter }, index) =>
-      Buffer.concat([
-        Buffer.from(
-          `${index + 1} 0 obj\n<< /Length ${body.length}${filter ? ` /Filter /${filter}` : ""} >>\nstream\n`,
-          "ascii",
-        ),
-        body,
-        Buffer.from("\nendstream\nendobj\n", "ascii"),
-      ]),
+  const objects = streams.map(({ body, filter }, index) =>
+    Buffer.concat([
+      Buffer.from(
+        `${index + 1} 0 obj\n<< /Length ${body.length}${filter ? ` /Filter /${filter}` : ""} >>\nstream\n`,
+        "ascii",
+      ),
+      body,
+      Buffer.from("\nendstream\nendobj\n", "ascii"),
+    ]),
   );
 
   return Buffer.concat([
@@ -45,21 +44,61 @@ test("extracts deterministic text from an official admissions PDF fixture", asyn
 });
 
 test("supports bounded Flate streams and ToUnicode character maps", () => {
-  const cmap = Buffer.from(
-    "begincmap\n1 beginbfchar\n<01> <0041>\nendbfchar\nendcmap",
-    "ascii",
-  );
+  const cmap = Buffer.from("begincmap\n1 beginbfchar\n<01> <0041>\nendbfchar\nendcmap", "ascii");
   const content = deflateSync(Buffer.from("BT\n<01> Tj\nET", "ascii"));
-  const fixture = pdfWithStreams([
-    { body: cmap },
-    { body: content, filter: "FlateDecode" },
-  ]);
+  const fixture = pdfWithStreams([{ body: cmap }, { body: content, filter: "FlateDecode" }]);
 
   const result = extractSafeText({ body: fixture, contentType: "application/pdf" });
 
   assert.equal(result.text, "A");
   assert.equal(result.stats.cmapEntries, 1);
   assert.equal(result.stats.streamsDecoded, 2);
+});
+
+test("uses the active font's character map and preserves text-matrix line breaks", () => {
+  const firstMap = Buffer.from(
+    "begincmap\n1 beginbfchar\n<01> <0041>\nendbfchar\nendcmap",
+    "ascii",
+  );
+  const activeMap = Buffer.from(
+    "begincmap\n1 beginbfchar\n<01> <0042>\nendbfchar\nendcmap",
+    "ascii",
+  );
+  const content = Buffer.from(
+    "BT\n/FRight 12 Tf\n1 0 0 1 0 0 Tm\n<01> Tj\n1 0 0 1 0 10 Tm\n<01> Tj\nET",
+    "ascii",
+  );
+  const fixture = pdfWithStreams(
+    [{ body: firstMap }, { body: activeMap }, { body: content }],
+    `
+10 0 obj
+<< /Type /Font /Subtype /Type0 /ToUnicode 2 0 R >>
+endobj
+11 0 obj
+<< /Font << /FRight 10 0 R >> >>
+endobj`,
+  );
+
+  const result = extractSafeText({ body: fixture, contentType: "application/pdf" });
+
+  assert.equal(result.text, "B\nB");
+});
+
+test("resolves indirect stream lengths used by generated university PDFs", () => {
+  const content = Buffer.from("BT\n(Indirect length text) Tj\nET", "ascii");
+  const fixture = Buffer.concat([
+    Buffer.from("%PDF-1.4\n1 0 obj\n<< /Length 9 0 R >>\nstream\n", "ascii"),
+    content,
+    Buffer.from(
+      `\nendstream\nendobj\n9 0 obj\n${content.length}\nendobj\ntrailer\n<<>>\n%%EOF`,
+      "ascii",
+    ),
+  ]);
+
+  assert.equal(
+    extractSafeText({ body: fixture, contentType: "application/pdf" }).text,
+    "Indirect length text",
+  );
 });
 
 test("rejects decompression bombs before oversized output allocation", () => {
@@ -72,8 +111,22 @@ test("rejects decompression bombs before oversized output allocation", () => {
         { body: fixture, contentType: "application/pdf" },
         { limits: { maximumPdfStreamBytes: 1_024 } },
       ),
-    (error) =>
-      error instanceof SafeTextExtractionError && error.code === "PDF_LIMIT_EXCEEDED",
+    (error) => error instanceof SafeTextExtractionError && error.code === "PDF_LIMIT_EXCEEDED",
+  );
+});
+
+test("bounds individual PDF text strings before character-map expansion", () => {
+  const fixture = pdfWithStreams([
+    { body: Buffer.from("BT\n(oversized text string) Tj\nET", "ascii") },
+  ]);
+
+  assert.throws(
+    () =>
+      extractSafeText(
+        { body: fixture, contentType: "application/pdf" },
+        { limits: { maximumPdfStringBytes: 8 } },
+      ),
+    (error) => error instanceof SafeTextExtractionError && error.code === "PDF_LIMIT_EXCEEDED",
   );
 });
 
@@ -96,8 +149,7 @@ test("does not execute PDF actions and rejects encrypted or image-only inputs", 
         body: Buffer.from("%PDF-1.4\ntrailer\n<< /Encrypt 1 0 R >>\n%%EOF"),
         contentType: "application/pdf",
       }),
-    (error) =>
-      error instanceof SafeTextExtractionError && error.code === "ENCRYPTED_PDF",
+    (error) => error instanceof SafeTextExtractionError && error.code === "ENCRYPTED_PDF",
   );
 
   const imageOnly = Buffer.concat([
@@ -107,8 +159,6 @@ test("does not execute PDF actions and rejects encrypted or image-only inputs", 
   ]);
   assert.throws(
     () => extractSafeText({ body: imageOnly, contentType: "application/pdf" }),
-    (error) =>
-      error instanceof SafeTextExtractionError && error.code === "UNSUPPORTED_PDF",
+    (error) => error instanceof SafeTextExtractionError && error.code === "UNSUPPORTED_PDF",
   );
 });
-

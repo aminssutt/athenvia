@@ -43,6 +43,7 @@ const BLOCK_TAGS = new Set([
 const HIDDEN_CONTENT_TAGS = new Set([
   "canvas",
   "embed",
+  "head",
   "iframe",
   "math",
   "noscript",
@@ -161,8 +162,8 @@ function decodeHtmlBuffer(body: Buffer): string {
 
 function hasHiddenAttribute(tagSource: string): boolean {
   return (
-    /(?:^|\s)hidden(?:\s|=|\/|$)/iu.test(tagSource) ||
-    /\baria-hidden\s*=\s*(?:"true"|'true'|true)(?:\s|\/|$)/iu.test(tagSource) ||
+    /(?:^|\s)hidden(?:\s|=|\/|>|$)/iu.test(tagSource) ||
+    /\baria-hidden\s*=\s*(?:"true"|'true'|true)(?:\s|\/|>|$)/iu.test(tagSource) ||
     /\bstyle\s*=\s*(?:"[^"]*(?:display\s*:\s*none|visibility\s*:\s*hidden)[^"]*"|'[^']*(?:display\s*:\s*none|visibility\s*:\s*hidden)[^']*')/iu.test(
       tagSource,
     )
@@ -171,11 +172,19 @@ function hasHiddenAttribute(tagSource: string): boolean {
 
 function tagName(tagSource: string, closing: boolean): string | null {
   const offset = closing ? 2 : 1;
-  return /^[a-z][a-z0-9:-]*/iu.exec(tagSource.slice(offset).trimStart())?.[0]?.toLowerCase() ?? null;
+  return (
+    /^[a-z][a-z0-9:-]*/iu.exec(tagSource.slice(offset).trimStart())?.[0]?.toLowerCase() ?? null
+  );
 }
 
 function closeFrame(stack: HtmlFrame[], name: string): number {
-  const matchingIndex = stack.findLastIndex((frame) => frame.name === name);
+  let matchingIndex = -1;
+  for (let index = stack.length - 1; index >= 0; index -= 1) {
+    if (stack[index]?.name === name) {
+      matchingIndex = index;
+      break;
+    }
+  }
   if (matchingIndex < 0) {
     return 0;
   }
