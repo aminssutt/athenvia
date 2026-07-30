@@ -2,7 +2,10 @@ import { NotificationPayloadSchema } from "@athenvia/contracts";
 import { Worker } from "bullmq";
 import pino from "pino";
 
-import { redisConnection } from "./queues";
+import type { VerificationJobData } from "./queue-contracts";
+import { VERIFICATION_DEAD_LETTER_QUEUE_NAME } from "./queue-contracts";
+import { attachVerificationDeadLetterRouting, createDeadLetterProcessor } from "./dead-letter";
+import { allQueues, redisConnection } from "./queues";
 
 const logger = pino({ name: "athenvia-worker" });
 
@@ -31,9 +34,29 @@ notificationWorker.on("failed", (job, error) => {
   logger.error({ jobId: job?.id, error }, "Notification job failed");
 });
 
+const deadLetterWorker = new Worker<VerificationJobData>(
+  VERIFICATION_DEAD_LETTER_QUEUE_NAME,
+  createDeadLetterProcessor(logger),
+  {
+    connection: redisConnection,
+    concurrency: 1,
+  },
+);
+
+deadLetterWorker.on("failed", (job, error) => {
+  logger.error({ jobId: job?.id, error }, "Dead-letter retention job failed");
+});
+
+const deadLetterRouting = attachVerificationDeadLetterRouting(logger);
+
 const shutdown = async (signal: string) => {
   logger.info({ signal }, "Worker shutdown requested");
-  await notificationWorker.close();
+  await Promise.all([
+    notificationWorker.close(),
+    deadLetterWorker.close(),
+    deadLetterRouting.close(),
+  ]);
+  await Promise.all(allQueues.map((queue) => queue.close()));
   await redisConnection.quit();
   process.exit(0);
 };
@@ -41,4 +64,9 @@ const shutdown = async (signal: string) => {
 process.on("SIGINT", () => void shutdown("SIGINT"));
 process.on("SIGTERM", () => void shutdown("SIGTERM"));
 
-logger.info("Athenvia worker is ready");
+logger.info(
+  {
+    queues: ["discovery", "fetch", "parse", "review", "notifications"],
+  },
+  "Athenvia worker is ready",
+);
