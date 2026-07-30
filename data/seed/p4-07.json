@@ -1,0 +1,72 @@
+{
+  "$schema": "./seed.schema.json",
+  "schemaVersion": 1,
+  "domains": [
+    { "slug": "applied-ai", "name": "Applied AI" },
+    { "slug": "computer-science", "name": "Computer Science" },
+    { "slug": "machine-learning", "name": "Machine Learning" }
+  ],
+  "universities": [
+    {
+      "key": "hkust",
+      "name": "The Hong Kong University of Science and Technology",
+      "countryCode": "HK",
+      "city": "Hong Kong",
+      "officialDomain": "hkust.edu.hk",
+      "officialWebsite": "https://hkust.edu.hk/",
+      "aliases": ["HKUST"],
+      "programs": [
+        {
+          "key": "msc-artificial-intelligence",
+          "name": "Master of Science in Artificial Intelligence",
+          "degreeType": "MASTER",
+          "summary": {
+            "text": "A 30-credit master's programme combining core artificial intelligence foundations with advanced study in machine learning, deep learning, computer vision, natural language processing and responsible AI.",
+            "sourceKey": "programme-catalog"
+          },
+          "durationMonths": 12,
+          "campus": null,
+          "language": "English",
+          "officialUrl": "https://prog-crs.hkust.edu.hk/pgprog/2026-27/msc-ai",
+          "domains": ["applied-ai", "computer-science", "machine-learning"],
+          "sources": [
+            {
+              "key": "programme-catalog",
+              "url": "https://prog-crs.hkust.edu.hk/pgprog/2026-27/msc-ai",
+              "sourceType": "PROGRAM_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-30T13:46:55.825Z"
+            },
+            {
+              "key": "english-medium",
+              "url": "https://registry.hkust.edu.hk/resource-library/proof-english-medium-instruction",
+              "sourceType": "UNIVERSITY_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-30T13:46:55.825Z"
+            }
+          ],
+          "intakes": [
+            {
+              "key": "2026-september",
+              "year": 2026,
+              "month": 9,
+              "status": "PLANNED",
+              "applicationWindows": [
+                {
+                  "key": "main-round",
+                  "roundName": null,
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "NOT_PUBLISHED",
+                  "verification": "OFFICIAL",
+                  "sourceKey": "programme-catalog",
+                  "lastVerifiedAt": "2026-07-30T13:46:55.825Z"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
