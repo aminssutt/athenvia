@@ -1,4 +1,4 @@
-import type { ProgramSummary, SearchResponse, WatchlistResponse } from "./schemas";
+import type { ProgramDetail, ProgramSummary, SearchResponse, WatchlistResponse } from "./schemas";
 
 export const mockProgram: ProgramSummary = {
   id: "0f043d91-d700-4ee1-8f66-9a65c7e59301",
@@ -23,6 +23,20 @@ export const mockProgram: ProgramSummary = {
     publicStatus: "NOT_PUBLISHED",
     officialSourceUrl: "https://nus.edu.sg/",
   },
+};
+
+export const mockProgramDetail: ProgramDetail = {
+  ...mockProgram,
+  summary: {
+    text: "A graduate programme focused on building and launching new ventures through multidisciplinary coursework, practical projects and structured mentorship.",
+    officialSourceUrl: "https://nus.edu.sg/",
+  },
+  intakes: [
+    {
+      id: "6a3828b7-4852-4f29-90cd-99b74348f652",
+      label: mockProgram.intakeLabel,
+    },
+  ],
 };
 
 export const mockSearchResponse: SearchResponse = {

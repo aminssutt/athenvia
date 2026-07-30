@@ -7,13 +7,16 @@ import { Brand } from "@/components/brand";
 import { EmptyState } from "@/components/interface-state";
 import { MobileNavigation } from "@/components/mobile-navigation";
 import { ProgramCard } from "@/components/program-card";
+import { getAuthenticatedUser } from "@/app/api/settings/authenticated-user";
 
 import styles from "./home.module.css";
-import { loadWatchlist } from "./watchlist-data";
+import { loadAuthenticatedHomeWatchlist } from "./home-data";
 
 export const metadata: Metadata = {
   title: "My programs",
 };
+
+export const dynamic = "force-dynamic";
 
 type WatchlistSectionProps = {
   emptyDescription: string;
@@ -86,7 +89,8 @@ function WatchlistSection({ emptyDescription, emptyTitle, items, title }: Watchl
 }
 
 export default async function HomePage() {
-  const watchlist = await loadWatchlist();
+  const user = await getAuthenticatedUser();
+  const watchlist = await loadAuthenticatedHomeWatchlist(user);
 
   return (
     <div className={styles.appFrame}>
@@ -94,8 +98,8 @@ export default async function HomePage() {
         <header className={styles.header}>
           <div className={styles.headerBar}>
             <Brand />
-            <Link className={styles.authLink} href="/sign-in">
-              Sign in to sync
+            <Link className={styles.authLink} href={user ? "/settings" : "/sign-in"}>
+              {user ? "Settings" : "Sign in to sync"}
             </Link>
           </div>
           <p className={styles.eyebrow}>My watchlist</p>
@@ -103,26 +107,40 @@ export default async function HomePage() {
           <p className={styles.intro}>The next useful dates, without the noise.</p>
         </header>
 
-        <div className={styles.sections}>
-          <WatchlistSection
-            emptyDescription="Add a program to start watching its application dates."
-            emptyTitle="No programs yet"
-            items={watchlist.watching}
-            title="Watching"
-          />
-          <WatchlistSection
-            emptyDescription="Add a program and we’ll show it here when applications open."
-            emptyTitle="Nothing is open right now"
-            items={watchlist.openNow}
-            title="Open now"
-          />
-          <WatchlistSection
-            emptyDescription="Add a program, then mark it applied after you submit."
-            emptyTitle="No applications marked yet"
-            items={watchlist.applied}
-            title="Applied"
-          />
-        </div>
+        {watchlist ? (
+          <div className={styles.sections}>
+            <WatchlistSection
+              emptyDescription="Add a program to start watching its application dates."
+              emptyTitle="No programs yet"
+              items={watchlist.watching}
+              title="Watching"
+            />
+            <WatchlistSection
+              emptyDescription="Add a program and we’ll show it here when applications open."
+              emptyTitle="Nothing is open right now"
+              items={watchlist.openNow}
+              title="Open now"
+            />
+            <WatchlistSection
+              emptyDescription="Add a program, then mark it applied after you submit."
+              emptyTitle="No applications marked yet"
+              items={watchlist.applied}
+              title="Applied"
+            />
+          </div>
+        ) : (
+          <div className={styles.sections}>
+            <EmptyState
+              action={
+                <Link className={styles.addProgramLink} href="/sign-in?callbackUrl=/home">
+                  Sign in
+                </Link>
+              }
+              description="Your watchlist belongs to your account and stays private."
+              title="Sign in to access your watchlist"
+            />
+          </div>
+        )}
       </main>
       <MobileNavigation />
     </div>

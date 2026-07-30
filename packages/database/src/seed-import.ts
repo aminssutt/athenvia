@@ -26,13 +26,20 @@ type SourceWrite = SeedSource & {
   programId: string;
   universityId: string;
 };
+type ProgramSummaryWrite = {
+  lastVerifiedAt: string;
+  programId: string;
+  sourceId: string;
+  text: string;
+};
 type IntakeWrite = Omit<SeedIntake, "applicationWindows"> & {
   id: string;
   programId: string;
 };
-type ApplicationWindowWrite = SeedApplicationWindow & {
+type ApplicationWindowWrite = Omit<SeedApplicationWindow, "sourceKey"> & {
   id: string;
   intakeId: string;
+  sourceId: string;
 };
 
 export type SeedImportCounts = {
@@ -40,6 +47,7 @@ export type SeedImportCounts = {
   domains: number;
   intakes: number;
   programs: number;
+  summaries: number;
   sources: number;
   universities: number;
 };
@@ -51,8 +59,23 @@ export interface SeedWriter {
   upsertProgram(input: ProgramWrite): Promise<string>;
   connectProgramDomain(input: { domainId: string; programId: string }): Promise<void>;
   upsertSource(input: SourceWrite): Promise<string>;
+  upsertProgramSummary(input: ProgramSummaryWrite): Promise<void>;
   upsertIntake(input: IntakeWrite): Promise<string>;
   upsertApplicationWindow(input: ApplicationWindowWrite): Promise<void>;
+}
+
+export class SeedSummaryConflictError extends Error {
+  constructor() {
+    super("A programme summary has conflicting evidence at the same verification instant.");
+    this.name = "SeedSummaryConflictError";
+  }
+}
+
+export class SeedApplicationWindowConflictError extends Error {
+  constructor() {
+    super("An application window has conflicting evidence at the same verification instant.");
+    this.name = "SeedApplicationWindowConflictError";
+  }
 }
 
 function uuidBytes(uuid: string): Buffer {
@@ -139,20 +162,28 @@ export async function applySeedFile(
         });
       }
 
+      const sourceIds = new Map<string, string>();
       for (const sourceSeed of programSeed.sources) {
-        await writer.upsertSource({
+        const sourceId = await writer.upsertSource({
           ...sourceSeed,
           id: stableSeedUuid(`${programIdentity}:source:${sourceSeed.key}`),
           programId,
           universityId,
         });
+        sourceIds.set(sourceSeed.key, sourceId);
         increment(counts, "sources");
       }
 
-      // Summary text and its sourceKey are deliberately validated and retained
-      // in the seed file, but persistence is deferred to #148. Silently putting
-      // canonical product copy in DataRevision would misuse the audit log.
-      void programSeed.summary;
+      const summarySource = programSeed.sources.find(
+        ({ key }) => key === programSeed.summary.sourceKey,
+      )!;
+      await writer.upsertProgramSummary({
+        lastVerifiedAt: summarySource.lastCheckedAt,
+        programId,
+        sourceId: sourceIds.get(summarySource.key)!,
+        text: programSeed.summary.text,
+      });
+      increment(counts, "summaries");
 
       for (const intakeSeed of programSeed.intakes) {
         const intakeIdentity = `${programIdentity}:intake:${intakeSeed.key}`;
@@ -168,9 +199,16 @@ export async function applySeedFile(
 
         for (const windowSeed of intakeSeed.applicationWindows) {
           await writer.upsertApplicationWindow({
-            ...windowSeed,
+            closesAt: windowSeed.closesAt,
             id: stableSeedUuid(`${intakeIdentity}:window:${windowSeed.key}`),
             intakeId,
+            key: windowSeed.key,
+            lastVerifiedAt: windowSeed.lastVerifiedAt,
+            opensAt: windowSeed.opensAt,
+            publicStatus: windowSeed.publicStatus,
+            roundName: windowSeed.roundName,
+            sourceId: sourceIds.get(windowSeed.sourceKey)!,
+            verification: windowSeed.verification,
           });
           increment(counts, "applicationWindows");
         }
@@ -187,6 +225,7 @@ export function emptySeedImportCounts(): SeedImportCounts {
     domains: 0,
     intakes: 0,
     programs: 0,
+    summaries: 0,
     sources: 0,
     universities: 0,
   };
@@ -199,6 +238,7 @@ export function countSeedFiles(seeds: readonly SeedFile[]): SeedImportCounts {
     counts.universities += seed.universities.length;
     for (const university of seed.universities) {
       counts.programs += university.programs.length;
+      counts.summaries += university.programs.length;
       for (const program of university.programs) {
         counts.sources += program.sources.length;
         counts.intakes += program.intakes.length;
@@ -381,6 +421,45 @@ class PrismaSeedWriter implements SeedWriter {
     return created.id;
   }
 
+  async upsertProgramSummary(input: ProgramSummaryWrite): Promise<void> {
+    const existing = await this.transaction.programSummary.findUnique({
+      where: { programId: input.programId },
+      select: {
+        lastVerifiedAt: true,
+        sourceId: true,
+        text: true,
+      },
+    });
+    const proposedVerification = new Date(input.lastVerifiedAt);
+    if (existing && existing.lastVerifiedAt > proposedVerification) {
+      return;
+    }
+    if (
+      existing &&
+      existing.lastVerifiedAt.getTime() === proposedVerification.getTime() &&
+      (existing.text !== input.text || existing.sourceId !== input.sourceId)
+    ) {
+      throw new SeedSummaryConflictError();
+    }
+    if (existing && existing.lastVerifiedAt.getTime() === proposedVerification.getTime()) {
+      return;
+    }
+
+    const data = {
+      lastVerifiedAt: proposedVerification,
+      sourceId: input.sourceId,
+      text: input.text,
+    };
+    await this.transaction.programSummary.upsert({
+      where: { programId: input.programId },
+      update: data,
+      create: {
+        programId: input.programId,
+        ...data,
+      },
+    });
+  }
+
   async upsertIntake(input: IntakeWrite): Promise<string> {
     const naturalIdentity = {
       programId: input.programId,
@@ -420,7 +499,15 @@ class PrismaSeedWriter implements SeedWriter {
   async upsertApplicationWindow(input: ApplicationWindowWrite): Promise<void> {
     const existing = await this.transaction.applicationWindow.findUnique({
       where: { id: input.id },
-      select: { lastVerifiedAt: true },
+      select: {
+        closesAt: true,
+        lastVerifiedAt: true,
+        opensAt: true,
+        publicStatus: true,
+        roundName: true,
+        sourceId: true,
+        verification: true,
+      },
     });
     const proposedVerification = new Date(input.lastVerifiedAt);
     if (
@@ -429,6 +516,25 @@ class PrismaSeedWriter implements SeedWriter {
     ) {
       return;
     }
+    if (
+      existing?.lastVerifiedAt &&
+      existing.lastVerifiedAt.getTime() === proposedVerification.getTime()
+    ) {
+      const sameCanonicalValue =
+        existing.roundName === input.roundName &&
+        (existing.opensAt?.getTime() ?? null) ===
+          (input.opensAt ? new Date(input.opensAt).getTime() : null) &&
+        (existing.closesAt?.getTime() ?? null) ===
+          (input.closesAt ? new Date(input.closesAt).getTime() : null) &&
+        existing.publicStatus === input.publicStatus &&
+        existing.verification === input.verification;
+      if (sameCanonicalValue && existing.sourceId === input.sourceId) {
+        return;
+      }
+      if (!(sameCanonicalValue && existing.sourceId === null)) {
+        throw new SeedApplicationWindowConflictError();
+      }
+    }
     const data = {
       roundName: input.roundName,
       opensAt: input.opensAt ? new Date(input.opensAt) : null,
@@ -436,6 +542,7 @@ class PrismaSeedWriter implements SeedWriter {
       publicStatus: input.publicStatus,
       verification: input.verification,
       lastVerifiedAt: proposedVerification,
+      sourceId: input.sourceId,
     };
     if (existing) {
       await this.transaction.applicationWindow.update({
@@ -454,6 +561,7 @@ class PrismaSeedWriter implements SeedWriter {
         publicStatus: input.publicStatus,
         verification: input.verification,
         lastVerifiedAt: proposedVerification,
+        sourceId: input.sourceId,
       },
     });
   }

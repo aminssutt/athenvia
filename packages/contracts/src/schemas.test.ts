@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { mockSearchResponse, mockWatchlistResponse } from "./mocks";
+import { mockProgramDetail, mockSearchResponse, mockWatchlistResponse } from "./mocks";
 import {
   NotificationPayloadSchema,
   NotificationSettingsResponseSchema,
+  ProgramDetailSchema,
+  ProgramSummarySchema,
   ReminderPreferencesSchema,
   SearchErrorResponseSchema,
   SearchRequestSchema,
@@ -14,6 +16,58 @@ import {
 describe("Athenvia contracts", () => {
   it("accepts the phase-zero mock search response", () => {
     expect(SearchResponseSchema.parse(mockSearchResponse)).toEqual(mockSearchResponse);
+  });
+
+  it("keeps sourced programme details separate from catalogue summaries", () => {
+    expect(ProgramDetailSchema.parse(mockProgramDetail)).toEqual(mockProgramDetail);
+
+    expect(ProgramSummarySchema.parse(mockProgramDetail)).toEqual(mockSearchResponse.programs[0]);
+  });
+
+  it("does not expose internal source or verification fields in programme details", () => {
+    const detail = {
+      ...mockProgramDetail,
+      summary: {
+        ...mockProgramDetail.summary,
+        sourceId: "private-source-id",
+        lastCheckedAt: "2026-07-30T13:36:05.893Z",
+      },
+      nextWindow: {
+        ...mockProgramDetail.nextWindow!,
+        verification: "OFFICIAL",
+        confidenceScore: 1,
+      },
+    };
+
+    expect(ProgramDetailSchema.parse(detail)).toEqual(mockProgramDetail);
+  });
+
+  it("requires concise HTTPS summary evidence without embedded credentials", () => {
+    for (const officialSourceUrl of [
+      "not-a-url",
+      "javascript:alert(1)",
+      "ftp://nus.edu.sg/programme",
+      "https://user:secret@nus.edu.sg/programme",
+    ]) {
+      expect(
+        ProgramDetailSchema.safeParse({
+          ...mockProgramDetail,
+          summary: {
+            ...mockProgramDetail.summary,
+            officialSourceUrl,
+          },
+        }).success,
+      ).toBe(false);
+    }
+    expect(
+      ProgramDetailSchema.safeParse({
+        ...mockProgramDetail,
+        summary: {
+          ...mockProgramDetail.summary,
+          text: "Too short.",
+        },
+      }).success,
+    ).toBe(false);
   });
 
   it("normalizes and validates catalogue search input", () => {

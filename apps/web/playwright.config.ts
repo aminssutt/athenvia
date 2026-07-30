@@ -6,6 +6,7 @@ export default defineConfig({
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 2 : 0,
   reporter: process.env.CI ? "github" : "list",
+  workers: process.env.CI ? 1 : undefined,
   use: {
     baseURL: "http://127.0.0.1:3100",
     trace: "on-first-retry",
@@ -17,7 +18,12 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: "npm run dev -- --hostname 127.0.0.1 --port 3100",
+    command:
+      "pnpm --filter @athenvia/database db:generate && npm run dev -- --hostname 127.0.0.1 --port 3100",
+    env: {
+      AUTH_SECRET: process.env.AUTH_SECRET ?? "athenvia-e2e-only-secret-not-for-production",
+      NEXTAUTH_URL: "http://127.0.0.1:3100",
+    },
     url: "http://127.0.0.1:3100",
     reuseExistingServer: false,
     timeout: 120_000,

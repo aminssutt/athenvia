@@ -73,6 +73,20 @@
   font-size: 1rem;
 }
 
+.summaryText {
+  margin: 0;
+  color: var(--text-muted);
+  line-height: 1.65;
+}
+
+.inlineSourceLink {
+  width: fit-content;
+  color: var(--brand-strong);
+  font-size: 0.88rem;
+  font-weight: 750;
+  text-underline-offset: 0.18em;
+}
+
 .details,
 .dateDetails {
   display: grid;

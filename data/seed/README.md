@@ -12,8 +12,7 @@ cannot silently disappear during import.
   official page was actually checked.
 - Give every program a factual 80–800 character `summary` and point
   `summary.sourceKey` at the source supporting that description. The importer
-  validates and preserves this copy in JSON; database and UI persistence is
-  intentionally deferred to issue #148.
+  persists the copy and its official source as one canonical programme summary.
 - An application window has one `publicStatus` and one `verification` value for
   both dates because that is the canonical database model.
 - `CONFIRMED` therefore requires both exact UTC instants and `OFFICIAL` or
@@ -48,3 +47,7 @@ database transaction. A real import validates every selected file first, then
 applies all writes in one transaction under a PostgreSQL advisory lock.
 Deterministic UUID v5 identities and natural-key adoption make repeated and
 serialized concurrent imports idempotent.
+
+On a new deployment, apply the Prisma migrations before running `pnpm db:seed`.
+The live search, programme detail and watchlist views intentionally hide records
+until their source-backed summaries have been imported.

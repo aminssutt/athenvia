@@ -53,7 +53,6 @@ try {
         mode: command.dryRun ? "dry-run" : "import",
         files: fileNames,
         records: counts,
-        summaryPersistence: "deferred-to-issue-148",
       },
       null,
       2,
