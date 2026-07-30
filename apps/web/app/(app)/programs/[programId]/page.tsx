@@ -8,8 +8,9 @@ import { DateStatus } from "@/components/date-status";
 import { MobileNavigation } from "@/components/mobile-navigation";
 import { UniversityLogo } from "@/components/university-logo";
 
+import { FollowProgram } from "./follow-program";
 import styles from "./program-detail.module.css";
-import { getMockProgramId, loadProgram } from "./program-data";
+import { getMockProgramId, loadProgram, loadProgramIntakes } from "./program-data";
 
 type ProgramPageProps = {
   params: Promise<{ programId: string }>;
@@ -76,7 +77,10 @@ export async function generateMetadata({ params }: ProgramPageProps): Promise<Me
 
 export default async function ProgramPage({ params }: ProgramPageProps) {
   const { programId } = await params;
-  const program = await loadProgram(programId);
+  const [program, intakes] = await Promise.all([
+    loadProgram(programId),
+    loadProgramIntakes(programId),
+  ]);
 
   if (!program) {
     notFound();
@@ -187,7 +191,7 @@ export default async function ProgramPage({ params }: ProgramPageProps) {
           </section>
 
           <div className={styles.primaryAction}>
-            <button type="button">Follow this program</button>
+            <FollowProgram intakes={intakes} programId={program.id} />
           </div>
         </article>
       </main>
