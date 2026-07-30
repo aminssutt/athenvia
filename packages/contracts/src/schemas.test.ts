@@ -3,6 +3,8 @@ import { describe, expect, it } from "vitest";
 import { mockSearchResponse, mockWatchlistResponse } from "./mocks";
 import {
   NotificationPayloadSchema,
+  NotificationSettingsResponseSchema,
+  ReminderPreferencesSchema,
   SearchErrorResponseSchema,
   SearchRequestSchema,
   SearchResponseSchema,
@@ -69,5 +71,41 @@ describe("Athenvia contracts", () => {
     });
 
     expect(result.success).toBe(false);
+  });
+
+  it("accepts, sorts and validates the approved reminder offsets", () => {
+    expect(
+      ReminderPreferencesSchema.parse({
+        dateChangeAlerts: true,
+        deadlineReminderDays: [2, 30, 14],
+        openingReminderDays: [0, 30],
+      }),
+    ).toEqual({
+      dateChangeAlerts: true,
+      deadlineReminderDays: [30, 14, 2],
+      openingReminderDays: [30, 0],
+    });
+
+    expect(
+      ReminderPreferencesSchema.safeParse({
+        dateChangeAlerts: true,
+        deadlineReminderDays: [30, 30],
+        openingReminderDays: [30, 1],
+      }).success,
+    ).toBe(false);
+  });
+
+  it("keeps the notification settings response additive and count-safe", () => {
+    expect(
+      NotificationSettingsResponseSchema.safeParse({
+        activePushSubscriptions: 1,
+        dateChangeAlerts: true,
+        deadlineReminderDays: [30, 14, 7, 2],
+        deadlineReminders: true,
+        openingReminderDays: [30, 7, 0],
+        openingReminders: true,
+        trackedPrograms: 2,
+      }).success,
+    ).toBe(true);
   });
 });

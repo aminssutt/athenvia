@@ -26,7 +26,8 @@ describe("notification settings services", () => {
           { notificationPreference: null },
           {
             notificationPreference: {
-              beforeDeadlineDays: [14, 2],
+              beforeOpenDays: [30, 7],
+              beforeDeadlineDays: [30, 14, 7, 2],
               notifyOnDateChange: true,
               notifyOnOpen: true,
             },
@@ -38,9 +39,79 @@ describe("notification settings services", () => {
     await expect(loadNotificationSettings("user-1", client as never)).resolves.toEqual({
       activePushSubscriptions: 2,
       dateChangeAlerts: true,
+      deadlineReminderDays: [30, 14, 7, 2],
       deadlineReminders: true,
+      openingReminderDays: [30, 7, 0],
       openingReminders: true,
       trackedPrograms: 2,
+    });
+  });
+
+  it("checks a global offset only when every tracked program uses it", async () => {
+    const client = {
+      pushSubscription: {
+        count: vi.fn().mockResolvedValue(1),
+      },
+      userWatchlist: {
+        findMany: vi.fn().mockResolvedValue([
+          {
+            notificationPreference: {
+              beforeDeadlineDays: [30, 14, 7, 2],
+              beforeOpenDays: [30, 7],
+              notifyOnDateChange: true,
+              notifyOnOpen: true,
+            },
+          },
+          {
+            notificationPreference: {
+              beforeDeadlineDays: [14, 2],
+              beforeOpenDays: [],
+              notifyOnDateChange: false,
+              notifyOnOpen: false,
+            },
+          },
+        ]),
+      },
+    };
+
+    await expect(loadNotificationSettings("user-1", client as never)).resolves.toEqual({
+      activePushSubscriptions: 1,
+      dateChangeAlerts: false,
+      deadlineReminderDays: [14, 2],
+      deadlineReminders: true,
+      openingReminderDays: [],
+      openingReminders: false,
+      trackedPrograms: 2,
+    });
+  });
+
+  it("keeps a backfilled legacy opening opt-out fully disabled", async () => {
+    const client = {
+      pushSubscription: {
+        count: vi.fn().mockResolvedValue(0),
+      },
+      userWatchlist: {
+        findMany: vi.fn().mockResolvedValue([
+          {
+            notificationPreference: {
+              beforeDeadlineDays: [30, 14, 7, 2],
+              beforeOpenDays: [],
+              notifyOnDateChange: true,
+              notifyOnOpen: false,
+            },
+          },
+        ]),
+      },
+    };
+
+    await expect(loadNotificationSettings("user-1", client as never)).resolves.toEqual({
+      activePushSubscriptions: 0,
+      dateChangeAlerts: true,
+      deadlineReminderDays: [30, 14, 7, 2],
+      deadlineReminders: true,
+      openingReminderDays: [],
+      openingReminders: false,
+      trackedPrograms: 1,
     });
   });
 
@@ -60,8 +131,8 @@ describe("notification settings services", () => {
       "user-1",
       {
         dateChangeAlerts: false,
-        deadlineReminders: false,
-        openingReminders: true,
+        deadlineReminderDays: [],
+        openingReminderDays: [30, 0],
       },
       client as never,
     );
@@ -69,8 +140,18 @@ describe("notification settings services", () => {
     expect(transaction.notificationPreference.createMany).toHaveBeenCalledWith(
       expect.objectContaining({
         data: [
-          expect.objectContaining({ beforeDeadlineDays: [], watchlistId: "watch-1" }),
-          expect.objectContaining({ beforeDeadlineDays: [], watchlistId: "watch-2" }),
+          expect.objectContaining({
+            beforeDeadlineDays: [],
+            beforeOpenDays: [30],
+            notifyOnOpen: true,
+            watchlistId: "watch-1",
+          }),
+          expect.objectContaining({
+            beforeDeadlineDays: [],
+            beforeOpenDays: [30],
+            notifyOnOpen: true,
+            watchlistId: "watch-2",
+          }),
         ],
         skipDuplicates: true,
       }),
@@ -78,8 +159,41 @@ describe("notification settings services", () => {
     expect(transaction.notificationPreference.updateMany).toHaveBeenCalledWith({
       data: {
         beforeDeadlineDays: [],
+        beforeOpenDays: [30],
         notifyOnDateChange: false,
         notifyOnOpen: true,
+      },
+      where: { watchlist: { userId: "user-1" } },
+    });
+  });
+
+  it("clears both opening storage fields when opening reminders are disabled", async () => {
+    const transaction = {
+      notificationPreference: {
+        createMany: vi.fn().mockResolvedValue({ count: 0 }),
+        updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+      },
+      userWatchlist: {
+        findMany: vi.fn().mockResolvedValue([{ id: "watch-1" }]),
+      },
+    };
+
+    await saveNotificationSettings(
+      "user-1",
+      {
+        dateChangeAlerts: true,
+        deadlineReminderDays: [30, 14, 7, 2],
+        openingReminderDays: [],
+      },
+      transactionHost(transaction) as never,
+    );
+
+    expect(transaction.notificationPreference.updateMany).toHaveBeenCalledWith({
+      data: {
+        beforeDeadlineDays: [30, 14, 7, 2],
+        beforeOpenDays: [],
+        notifyOnDateChange: true,
+        notifyOnOpen: false,
       },
       where: { watchlist: { userId: "user-1" } },
     });

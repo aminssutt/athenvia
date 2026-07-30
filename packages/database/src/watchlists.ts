@@ -82,7 +82,13 @@ export async function followProgram(input: FollowProgramInput): Promise<FollowPr
           programId: input.programId,
           intakeId: input.intakeId,
           notificationPreference: {
-            create: {},
+            create: {
+              beforeDeadlineDays: [30, 14, 7, 2],
+              beforeOpenDays: [30, 7],
+              notifyOnDateChange: true,
+              notifyOnOpen: true,
+              pushEnabled: false,
+            },
           },
         },
         select: publicWatchlistSelection,

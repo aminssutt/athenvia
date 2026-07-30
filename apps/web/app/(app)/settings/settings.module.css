@@ -156,6 +156,72 @@
   border-top: 1px solid var(--border-soft);
 }
 
+.scheduleGroup {
+  display: grid;
+  gap: 0.8rem;
+  min-width: 0;
+  margin: 0;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  padding: 0.9rem;
+}
+
+.scheduleGroup legend {
+  padding: 0 0.35rem;
+  color: var(--text-primary);
+  font-size: 0.94rem;
+  font-weight: 750;
+}
+
+.scheduleHeading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: center;
+}
+
+.scheduleHeading p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.offsetOptions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+
+.offsetOptions label {
+  display: flex;
+  min-height: var(--touch-target-min);
+  align-items: center;
+  gap: 0.55rem;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  padding: 0.55rem 0.65rem;
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.offsetOptions input {
+  width: 1.1rem;
+  height: 1.1rem;
+  margin: 0;
+  accent-color: var(--chocolate-dark);
+}
+
+.scheduleGroup:disabled {
+  opacity: 0.6;
+}
+
+.scheduleGroup:disabled .offsetOptions label {
+  cursor: not-allowed;
+}
+
 .preferenceRow,
 .unsubscribeRow {
   display: grid;

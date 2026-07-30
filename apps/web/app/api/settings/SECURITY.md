@@ -45,7 +45,14 @@ The original email can later create a fresh, unrelated account.
 ## Residual considerations
 
 - Notification choices are stored per watchlist because the current schema has no account-level
-  preference row. A user with no tracked programs sees disabled switches; no misleading global
-  preference is persisted.
+  preference row. A global offset is shown as selected only when every owned watchlist uses it;
+  saving replaces the schedule on every owned watchlist in one transaction. A user with no tracked
+  programs sees disabled controls; no misleading global preference is persisted.
+- Opening day (`0`) is stored in `notify_on_open`; positive opening offsets remain in
+  `before_open_days`. An empty opening selection clears both fields so disabling the category cannot
+  leave pre-opening reminders active.
+- The data-only `backfill_disabled_opening_reminders` migration clears positive opening offsets on
+  rows where the former global opening switch was off. This runs before the new split controls are
+  used, preserving existing opt-outs without changing the Prisma schema.
 - Operational backups and infrastructure log retention are outside this application transaction
   and must follow the deployment's documented retention policy.

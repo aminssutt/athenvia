@@ -1,17 +1,32 @@
 import { database, type PrismaClient } from "@athenvia/database";
+import { DEFAULT_DEADLINE_REMINDER_DAYS, DEFAULT_OPENING_REMINDER_DAYS } from "@athenvia/contracts";
 
 import type { AuthenticatedUser } from "./authenticated-user";
 import type { NotificationSettingsInput } from "./schemas";
-
-const DEFAULT_BEFORE_OPEN_DAYS = [30, 7];
-const DEFAULT_BEFORE_DEADLINE_DAYS = [30, 14, 7, 2];
+import type {
+  DeadlineReminderDay,
+  NotificationSettingsResponse,
+  OpeningReminderDay,
+} from "@athenvia/contracts";
 
 type TransactionDatabase = Pick<PrismaClient, "$transaction">;
 
-export type NotificationSettings = NotificationSettingsInput & {
-  activePushSubscriptions: number;
-  trackedPrograms: number;
-};
+export type NotificationSettings = NotificationSettingsResponse;
+
+function canonicalStoredDays<T extends number>(
+  storedDays: number[],
+  allowedDays: readonly T[],
+): T[] {
+  return allowedDays.filter((day) => storedDays.includes(day));
+}
+
+function commonScheduleDays<T extends number>(schedules: T[][], allowedDays: readonly T[]): T[] {
+  if (schedules.length === 0) {
+    return [...allowedDays];
+  }
+
+  return allowedDays.filter((day) => schedules.every((schedule) => schedule.includes(day)));
+}
 
 export async function loadNotificationSettings(
   userId: string,
@@ -23,6 +38,7 @@ export async function loadNotificationSettings(
       select: {
         notificationPreference: {
           select: {
+            beforeOpenDays: true,
             beforeDeadlineDays: true,
             notifyOnDateChange: true,
             notifyOnOpen: true,
@@ -38,19 +54,43 @@ export async function loadNotificationSettings(
     }),
   ]);
 
+  const openingSchedules = watchlists.map(({ notificationPreference }) => {
+    if (!notificationPreference) {
+      return [...DEFAULT_OPENING_REMINDER_DAYS];
+    }
+
+    const positiveDays = canonicalStoredDays(
+      notificationPreference.beforeOpenDays,
+      DEFAULT_OPENING_REMINDER_DAYS.filter((day) => day > 0),
+    );
+    return notificationPreference.notifyOnOpen ? [...positiveDays, 0 as const] : positiveDays;
+  });
+  const deadlineSchedules = watchlists.map(({ notificationPreference }) =>
+    notificationPreference
+      ? canonicalStoredDays(
+          notificationPreference.beforeDeadlineDays,
+          DEFAULT_DEADLINE_REMINDER_DAYS,
+        )
+      : [...DEFAULT_DEADLINE_REMINDER_DAYS],
+  );
+  const openingReminderDays = commonScheduleDays<OpeningReminderDay>(
+    openingSchedules,
+    DEFAULT_OPENING_REMINDER_DAYS,
+  );
+  const deadlineReminderDays = commonScheduleDays<DeadlineReminderDay>(
+    deadlineSchedules,
+    DEFAULT_DEADLINE_REMINDER_DAYS,
+  );
+
   return {
     activePushSubscriptions,
     dateChangeAlerts: watchlists.every(
       ({ notificationPreference }) => notificationPreference?.notifyOnDateChange ?? true,
     ),
-    deadlineReminders: watchlists.every(
-      ({ notificationPreference }) =>
-        (notificationPreference?.beforeDeadlineDays.length ?? DEFAULT_BEFORE_DEADLINE_DAYS.length) >
-        0,
-    ),
-    openingReminders: watchlists.every(
-      ({ notificationPreference }) => notificationPreference?.notifyOnOpen ?? true,
-    ),
+    deadlineReminderDays,
+    deadlineReminders: deadlineReminderDays.length > 0,
+    openingReminderDays,
+    openingReminders: openingReminderDays.length > 0,
     trackedPrograms: watchlists.length,
   };
 }
@@ -61,6 +101,8 @@ export async function saveNotificationSettings(
   client: TransactionDatabase = database,
 ): Promise<void> {
   await client.$transaction(async (transaction) => {
+    const beforeOpenDays = settings.openingReminderDays.filter((day) => day > 0);
+    const notifyOnOpen = settings.openingReminderDays.includes(0);
     const watchlists = await transaction.userWatchlist.findMany({
       where: { userId },
       select: { id: true },
@@ -72,10 +114,10 @@ export async function saveNotificationSettings(
 
     await transaction.notificationPreference.createMany({
       data: watchlists.map(({ id }) => ({
-        beforeDeadlineDays: settings.deadlineReminders ? DEFAULT_BEFORE_DEADLINE_DAYS : [],
-        beforeOpenDays: DEFAULT_BEFORE_OPEN_DAYS,
+        beforeDeadlineDays: settings.deadlineReminderDays,
+        beforeOpenDays,
         notifyOnDateChange: settings.dateChangeAlerts,
-        notifyOnOpen: settings.openingReminders,
+        notifyOnOpen,
         watchlistId: id,
       })),
       skipDuplicates: true,
@@ -83,9 +125,10 @@ export async function saveNotificationSettings(
 
     await transaction.notificationPreference.updateMany({
       data: {
-        beforeDeadlineDays: settings.deadlineReminders ? DEFAULT_BEFORE_DEADLINE_DAYS : [],
+        beforeDeadlineDays: settings.deadlineReminderDays,
+        beforeOpenDays,
         notifyOnDateChange: settings.dateChangeAlerts,
-        notifyOnOpen: settings.openingReminders,
+        notifyOnOpen,
       },
       where: {
         watchlist: { userId },

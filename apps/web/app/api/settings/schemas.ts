@@ -1,12 +1,28 @@
 import { z } from "zod";
 
-export const notificationSettingsSchema = z
+import {
+  DEFAULT_DEADLINE_REMINDER_DAYS,
+  DEFAULT_OPENING_REMINDER_DAYS,
+  ReminderPreferencesSchema,
+} from "@athenvia/contracts";
+
+const legacyNotificationSettingsSchema = z
   .object({
     dateChangeAlerts: z.boolean(),
     deadlineReminders: z.boolean(),
     openingReminders: z.boolean(),
   })
-  .strict();
+  .strict()
+  .transform((settings) => ({
+    dateChangeAlerts: settings.dateChangeAlerts,
+    deadlineReminderDays: settings.deadlineReminders ? [...DEFAULT_DEADLINE_REMINDER_DAYS] : [],
+    openingReminderDays: settings.openingReminders ? [...DEFAULT_OPENING_REMINDER_DAYS] : [],
+  }));
+
+export const notificationSettingsSchema = z.union([
+  ReminderPreferencesSchema,
+  legacyNotificationSettingsSchema,
+]);
 
 export const deleteAccountSchema = z
   .object({

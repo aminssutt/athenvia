@@ -14,8 +14,8 @@ describe("settings payload validation", () => {
   it("accepts only the supported notification switches", () => {
     const valid = {
       dateChangeAlerts: true,
-      deadlineReminders: false,
-      openingReminders: true,
+      deadlineReminderDays: [30, 7],
+      openingReminderDays: [7, 0],
     };
 
     expect(notificationSettingsSchema.safeParse(valid).success).toBe(true);
@@ -23,5 +23,25 @@ describe("settings payload validation", () => {
       notificationSettingsSchema.safeParse({ ...valid, pushEndpoint: "https://evil.example" })
         .success,
     ).toBe(false);
+    expect(
+      notificationSettingsSchema.safeParse({
+        ...valid,
+        openingReminderDays: [7, 1],
+      }).success,
+    ).toBe(false);
+  });
+
+  it("normalizes the legacy switches without keeping partially enabled rows", () => {
+    expect(
+      notificationSettingsSchema.parse({
+        dateChangeAlerts: false,
+        deadlineReminders: false,
+        openingReminders: false,
+      }),
+    ).toEqual({
+      dateChangeAlerts: false,
+      deadlineReminderDays: [],
+      openingReminderDays: [],
+    });
   });
 });
