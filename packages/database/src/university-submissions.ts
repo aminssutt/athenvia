@@ -1,5 +1,6 @@
 import { database } from "./client";
 import { createDuplicateReview, findUniversityDuplicateCandidates } from "./duplicate-detection";
+import { createSubmissionReview } from "./submission-reviews";
 
 export type PendingUniversitySubmissionInput = {
   submittedByUserId: string;
@@ -32,6 +33,17 @@ const defaultInsertUniversitySubmission: InsertUniversitySubmission = (input) =>
       },
     });
     const candidates = await findUniversityDuplicateCandidates(input, transaction);
+    await createSubmissionReview(
+      transaction,
+      "UNIVERSITY_SUBMISSION",
+      submission.id,
+      input.submittedByUserId,
+      {
+        countryCode: input.countryCode,
+        name: input.name,
+        officialWebsite: input.officialWebsite,
+      },
+    );
     await createDuplicateReview(transaction, "UNIVERSITY_SUBMISSION", submission.id, candidates);
 
     return { id: submission.id, status: "PENDING" };
