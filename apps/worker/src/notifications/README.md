@@ -94,6 +94,74 @@ Preparation does not claim a delivery, mutate lifecycle state or make a network
 request. Atomic `SCHEDULED -> PROCESSING` claims, queue paging and Web Push
 delivery remain sender responsibilities.
 
+## Application-date change notifications
+
+`planDateChangeNotifications` consumes one approved `DataRevision` for an
+`APPLICATION_WINDOW.opensAt` or `APPLICATION_WINDOW.closesAt` field. Planning
+runs in a transaction under the exact canonical revision conflict-key advisory
+lock (`APPLICATION_WINDOW:<entityId>:<fieldName>`). The stored nullable
+`conflictKey` must equal that derived value, while pending-conflict reads always
+use the derived value so a missing or mismatched stored key cannot bypass
+conflict handling. The planner inserts `DATE_CHANGED` deliveries with the
+stable unique key
+`athenvia:date-change:v1:<watchlistId>:<revisionId>`. Repeating the same call is
+idempotent because insertion uses the schema's unique `dedupeKey`.
+
+Recipient planning uses deletion-safe keyset pages of 250 watchlists rather
+than hydrating an unbounded intake relation. Before creating each latest
+revision page, it cancels only still-`SCHEDULED` date-change deliveries whose
+strict dedupe key points to an older revision for the same application window,
+entity type, and field. Cancellation reads are themselves paged in bounded
+chunks. This prevents an obsolete revision rejected during preparation from
+permanently filling the due batch; ignored or otherwise invalid latest
+revisions still cancel those now-undeliverable older rows but create nothing.
+No delivery for another window or field is cancelled.
+
+The revision must be approved, have a non-future `reviewedAt`, be the latest
+approved revision for its entity and field, and have neither its conflict flag
+nor a competing pending revision. Its evidence must be an official HTTPS
+source with a snapshot that belongs to that exact source. A programme-specific
+source must belong to the changed programme; only a source without a programme
+may fall back to the programme's university. Only the canonical HTTPS origin
+and hostname leave persistence, never credentials, ports, paths, queries or
+fragments.
+
+Revision values accept only `null`, an ISO `YYYY-MM-DD` date, or a complete
+RFC3339 instant with a timezone. They are normalized to UTC date keys because
+the notification copy displays a calendar date. The current canonical
+application-window value must match the approved `newValue` by that normalized
+UTC date (or both must be null), otherwise the revision is stale and produces
+nothing.
+
+The material cases are a newly published date, a removed date with no
+replacement published, or a move to another UTC calendar day. Same-day
+representation/time changes and `null -> null` are ignored. Historical-only
+changes are also ignored: at least one non-null old/new date must be on or
+after the revision's UTC `reviewedAt` day. This retains future-to-past and
+past-to-future corrections while suppressing corrections whose affected dates
+were already historical when reviewed.
+
+Eligible recipients must have followed the exact programme and intake before
+the revision was reviewed, must not be `APPLIED`, must still have an active
+push subscription, and must have active programme/university catalogue
+entities. `notifyOnDateChange` defaults to true when no preference row exists.
+Preparation revalidates the revision, canonical value, latest-approved status,
+evidence, recipient ownership and eligibility. Confirmed and expected copy
+shows old/new dates clearly; expected copy explicitly says expected, not
+confirmed. Removal copy states that no new date is published. Preparation is
+read-only and performs neither lifecycle mutation nor network delivery.
+The due-reader runs one transaction per batch and memoizes hydration by
+revision ID, so several deliveries from one revision cause one revision
+revalidation read rather than one transaction per recipient.
+
+There is an intentional integration gap outside this directory: the current
+admin approval path marks `DataRevision` approved but does not apply
+`newValue` to the canonical `ApplicationWindow`, and it does not call or queue
+this planner. Until a follow-up change atomically applies the canonical value
+and invokes this branch from the approval/publication flow, planning correctly
+rejects the revision as stale. Delivery claiming and Web Push sending likewise
+remain sender-worker responsibilities.
+
 ## PostgreSQL integration test
 
 The repository integration test is opt-in so the ordinary test suite can run
