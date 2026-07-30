@@ -1,0 +1,65 @@
+{
+  "$schema": "./seed.schema.json",
+  "schemaVersion": 1,
+  "domains": [
+    { "slug": "artificial-intelligence", "name": "Artificial Intelligence" },
+    { "slug": "computer-science", "name": "Computer Science" },
+    { "slug": "cybersecurity", "name": "Cybersecurity" }
+  ],
+  "universities": [
+    {
+      "key": "hku",
+      "name": "The University of Hong Kong",
+      "countryCode": "HK",
+      "city": "Hong Kong",
+      "officialDomain": "hku.hk",
+      "officialWebsite": "https://www.hku.hk/",
+      "aliases": ["HKU", "University of Hong Kong"],
+      "programs": [
+        {
+          "key": "msc-computer-science",
+          "name": "MSc in Computer Science",
+          "degreeType": "MASTER",
+          "summary": {
+            "text": "A coursework master's offering advanced computer science study through general, cyber security, financial computing, multimedia, and AI and decentralized technologies streams. Its 72-credit curriculum combines discipline courses, electives and a capstone.",
+            "sourceKey": "programme-details"
+          },
+          "durationMonths": 12,
+          "campus": null,
+          "language": null,
+          "officialUrl": "https://master.cds.hku.hk/msccs/",
+          "domains": ["artificial-intelligence", "computer-science", "cybersecurity"],
+          "sources": [
+            {
+              "key": "programme-details",
+              "url": "https://master.cds.hku.hk/msccs/admission/application-details/",
+              "sourceType": "PROGRAM_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-30T00:00:00.000Z"
+            }
+          ],
+          "intakes": [
+            {
+              "key": "2026-september",
+              "year": 2026,
+              "month": 9,
+              "status": "PLANNED",
+              "applicationWindows": [
+                {
+                  "key": "2026-27-application",
+                  "roundName": null,
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "NOT_PUBLISHED",
+                  "verification": "OFFICIAL",
+                  "sourceKey": "programme-details",
+                  "lastVerifiedAt": "2026-07-30T00:00:00.000Z"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
