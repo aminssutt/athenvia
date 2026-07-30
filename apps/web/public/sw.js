@@ -1,4 +1,6 @@
-/* global self, caches, fetch, Response, URL */
+/* global self, caches, fetch, importScripts, Response, URL */
+
+importScripts("/sw-notifications.js");
 
 const deploymentVersion =
   new URL(self.location.href).searchParams.get("v")?.replace(/[^a-zA-Z0-9_-]/g, "") || "fallback";

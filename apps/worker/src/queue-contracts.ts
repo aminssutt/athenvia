@@ -26,10 +26,17 @@ export const ReviewJobDataSchema = z
   })
   .strict();
 
+export const NotificationDeliveryJobDataSchema = z
+  .object({
+    deliveryId: StableIdentifierSchema,
+  })
+  .strict();
+
 export type DiscoveryJobData = z.infer<typeof DiscoveryJobDataSchema>;
 export type FetchJobData = z.infer<typeof FetchJobDataSchema>;
 export type ParseJobData = z.infer<typeof ParseJobDataSchema>;
 export type ReviewJobData = z.infer<typeof ReviewJobDataSchema>;
+export type NotificationDeliveryJobData = z.infer<typeof NotificationDeliveryJobDataSchema>;
 
 export type VerificationJobData = DiscoveryJobData | FetchJobData | ParseJobData | ReviewJobData;
 
@@ -63,3 +70,9 @@ export const verificationQueueContracts = {
 export type VerificationStage = keyof typeof verificationQueueContracts;
 
 export const VERIFICATION_DEAD_LETTER_QUEUE_NAME = "verification-dead-letter";
+
+export const notificationDeliveryQueueContract = {
+  jobName: "deliver-notification",
+  queueName: "notifications",
+  schema: NotificationDeliveryJobDataSchema,
+} as const;

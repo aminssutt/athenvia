@@ -71,3 +71,16 @@ does not provide a global bound across multiple production instances. Requests t
 receive the same check-email response and do not reveal account existence. Allowed requests still
 require a valid Auth.js double-submit CSRF token before consuming a rate-limit bucket, then pass
 through Auth.js's normal CSRF validation again before any email is sent.
+
+## Push notification service worker
+
+`public/sw.js` imports the notification event handlers from
+`public/sw-notifications.js`. Push payloads contain only title, body, dedupe key
+and an internal deep link. The handler validates an exact
+`/programs/<UUID>` path and rejects absolute URLs, queries, fragments and
+backslashes both when receiving a push and when handling a click.
+
+A valid click first focuses an already-open exact programme page. Otherwise it
+navigates and focuses an existing same-origin Athenvia window, falling back to
+`clients.openWindow` only when necessary. Unsafe notification data is closed
+without focusing, navigating or opening a window.
