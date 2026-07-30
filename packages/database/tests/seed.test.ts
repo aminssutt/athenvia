@@ -31,6 +31,7 @@ class MemorySeedWriter implements SeedWriter {
   readonly intakes = new Map<string, unknown>();
   readonly programDomains = new Map<string, unknown>();
   readonly programs = new Map<string, unknown>();
+  readonly programSummaries = new Map<string, unknown>();
   readonly sources = new Map<string, unknown>();
   readonly universityAliases = new Map<string, unknown>();
   readonly universities = new Map<string, unknown>();
@@ -67,6 +68,12 @@ class MemorySeedWriter implements SeedWriter {
     return input.id;
   }
 
+  async upsertProgramSummary(
+    input: Parameters<SeedWriter["upsertProgramSummary"]>[0],
+  ): Promise<void> {
+    this.programSummaries.set(input.programId, input);
+  }
+
   async upsertIntake(input: Parameters<SeedWriter["upsertIntake"]>[0]): Promise<string> {
     this.intakes.set(input.id, input);
     return input.id;
@@ -85,6 +92,7 @@ class MemorySeedWriter implements SeedWriter {
       intakes: this.intakes.size,
       programDomains: this.programDomains.size,
       programs: this.programs.size,
+      programSummaries: this.programSummaries.size,
       sources: this.sources.size,
       universityAliases: this.universityAliases.size,
       universities: this.universities.size,
@@ -215,6 +223,7 @@ describe("idempotent seed application", () => {
       intakes: 1,
       programDomains: 2,
       programs: 1,
+      programSummaries: 1,
       sources: 1,
       universityAliases: 1,
       universities: 1,
@@ -233,5 +242,35 @@ describe("idempotent seed application", () => {
 
     assert.equal(writer.universityAliases.size, 1);
     assert.equal(writer.programDomains.size, 2);
+  });
+
+  it("links summaries and windows to the source identity adopted by the writer", async () => {
+    const seed = await readSeedFile(sampleUrl);
+    const adoptedSourceId = stableSeedUuid("existing-source:programme-page");
+    class AdoptingSeedWriter extends MemorySeedWriter {
+      override async upsertSource(
+        input: Parameters<SeedWriter["upsertSource"]>[0],
+      ): Promise<string> {
+        this.sources.set(adoptedSourceId, { ...input, id: adoptedSourceId });
+        return adoptedSourceId;
+      }
+    }
+    const writer = new AdoptingSeedWriter();
+
+    await applySeedFile(writer, seed);
+
+    const summary = [...writer.programSummaries.values()][0] as {
+      lastVerifiedAt: string;
+      sourceId: string;
+      text: string;
+    };
+    const applicationWindow = [...writer.applicationWindows.values()][0] as {
+      sourceId: string;
+    };
+    const source = seed.universities[0]!.programs[0]!.sources[0]!;
+    assert.equal(summary.sourceId, adoptedSourceId);
+    assert.equal(summary.lastVerifiedAt, source.lastCheckedAt);
+    assert.equal(summary.text, seed.universities[0]!.programs[0]!.summary.text);
+    assert.equal(applicationWindow.sourceId, adoptedSourceId);
   });
 });

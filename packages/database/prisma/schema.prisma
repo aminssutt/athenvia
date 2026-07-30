@@ -198,6 +198,7 @@ model Program {
   domains         ProgramDomain[]
   intakes         Intake[]
   sources         Source[]
+  summary         ProgramSummary?
   watchlists      UserWatchlist[]
 
   @@unique([universityId, normalizedName, degreeType])
@@ -244,6 +245,7 @@ model Intake {
 model ApplicationWindow {
   id              String                     @id @default(uuid()) @db.Uuid
   intakeId        String                     @db.Uuid @map("intake_id")
+  sourceId        String?                    @db.Uuid @map("source_id")
   roundName       String?                    @map("round_name")
   opensAt         DateTime?                  @map("opens_at")
   closesAt        DateTime?                  @map("closes_at")
@@ -254,7 +256,9 @@ model ApplicationWindow {
   createdAt       DateTime                   @default(now()) @map("created_at")
   updatedAt       DateTime                   @updatedAt @map("updated_at")
   intake          Intake                     @relation(fields: [intakeId], references: [id], onDelete: Cascade)
+  source          Source?                    @relation("ApplicationWindowSource", fields: [sourceId], references: [id], onDelete: NoAction)
 
+  @@index([sourceId])
   @@index([opensAt])
   @@index([closesAt])
   @@map("application_windows")
@@ -274,12 +278,28 @@ model Source {
   updatedAt     DateTime         @updatedAt @map("updated_at")
   university    University?      @relation(fields: [universityId], references: [id], onDelete: Cascade)
   program       Program?         @relation(fields: [programId], references: [id], onDelete: Cascade)
+  applicationWindows ApplicationWindow[] @relation("ApplicationWindowSource")
+  programSummaries ProgramSummary[] @relation("ProgramSummarySource")
   snapshots     SourceSnapshot[]
   revisions     DataRevision[]
 
   @@index([universityId])
   @@index([programId])
   @@map("sources")
+}
+
+model ProgramSummary {
+  programId      String   @id @db.Uuid @map("program_id")
+  sourceId       String   @db.Uuid @map("source_id")
+  text           String   @db.Text
+  lastVerifiedAt DateTime @map("last_verified_at")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+  program        Program  @relation(fields: [programId], references: [id], onDelete: Cascade)
+  source         Source   @relation("ProgramSummarySource", fields: [sourceId], references: [id], onDelete: NoAction)
+
+  @@index([sourceId])
+  @@map("program_summaries")
 }
 
 model SourceSnapshot {

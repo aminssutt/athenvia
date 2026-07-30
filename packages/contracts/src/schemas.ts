@@ -68,13 +68,27 @@ export const UniversitySummarySchema = z.object({
   logoUrl: z.string().url().nullable(),
 });
 
+function isSafeOfficialSourceUrl(value: string): boolean {
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" && url.username.length === 0 && url.password.length === 0;
+  } catch {
+    return false;
+  }
+}
+
+const OfficialSourceUrlSchema = z
+  .string()
+  .url()
+  .refine(isSafeOfficialSourceUrl, "Official source URLs must use HTTPS without credentials.");
+
 export const ApplicationWindowSchema = z.object({
   id: z.string().uuid(),
   roundName: z.string().nullable(),
   opensAt: z.iso.datetime().nullable(),
   closesAt: z.iso.datetime().nullable(),
   publicStatus: PublicDateStatusSchema,
-  officialSourceUrl: z.string().url().nullable(),
+  officialSourceUrl: OfficialSourceUrlSchema.nullable(),
 });
 
 export const ProgramSummarySchema = z.object({
@@ -87,6 +101,21 @@ export const ProgramSummarySchema = z.object({
   durationMonths: z.number().int().positive().nullable(),
   intakeLabel: z.string().min(1),
   nextWindow: ApplicationWindowSchema.nullable(),
+});
+
+export const ProgramDetailSummarySchema = z.object({
+  text: z.string().trim().min(80).max(800),
+  officialSourceUrl: OfficialSourceUrlSchema,
+});
+
+export const ProgramIntakeOptionSchema = z.object({
+  id: z.string().uuid(),
+  label: z.string().trim().min(1),
+});
+
+export const ProgramDetailSchema = ProgramSummarySchema.extend({
+  summary: ProgramDetailSummarySchema,
+  intakes: z.array(ProgramIntakeOptionSchema),
 });
 
 export const SearchRequestSchema = z.object({
@@ -154,7 +183,11 @@ export const NotificationPayloadSchema = z.object({
 });
 
 export type UniversitySummary = z.infer<typeof UniversitySummarySchema>;
+export type ApplicationWindow = z.infer<typeof ApplicationWindowSchema>;
 export type ProgramSummary = z.infer<typeof ProgramSummarySchema>;
+export type ProgramDetailSummary = z.infer<typeof ProgramDetailSummarySchema>;
+export type ProgramIntakeOption = z.infer<typeof ProgramIntakeOptionSchema>;
+export type ProgramDetail = z.infer<typeof ProgramDetailSchema>;
 export type SearchRequest = z.infer<typeof SearchRequestSchema>;
 export type SearchResponse = z.infer<typeof SearchResponseSchema>;
 export type SearchErrorCode = z.infer<typeof SearchErrorCodeSchema>;

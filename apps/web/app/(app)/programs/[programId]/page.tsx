@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import type { ProgramSummary } from "@athenvia/contracts";
+import type { ProgramDetail } from "@athenvia/contracts";
 
 import { Brand } from "@/components/brand";
 import { DateStatus } from "@/components/date-status";
@@ -10,7 +10,7 @@ import { UniversityLogo } from "@/components/university-logo";
 
 import { FollowProgram } from "./follow-program";
 import styles from "./program-detail.module.css";
-import { getMockProgramId, loadProgram, loadProgramIntakes } from "./program-data";
+import { loadProgram } from "./program-data";
 
 type ProgramPageProps = {
   params: Promise<{ programId: string }>;
@@ -21,7 +21,9 @@ const dateFormatter = new Intl.DateTimeFormat("en", {
   timeZone: "UTC",
 });
 
-const degreeNames: Record<ProgramSummary["degreeType"], string> = {
+export const dynamic = "force-dynamic";
+
+const degreeNames: Record<ProgramDetail["degreeType"], string> = {
   MASTER: "Master",
   MBA: "MBA",
   PHD: "PhD",
@@ -52,7 +54,11 @@ function safeOfficialSource(sourceUrl: string | null): string | null {
   try {
     const parsedUrl = new URL(sourceUrl);
 
-    if (parsedUrl.protocol !== "https:" && parsedUrl.protocol !== "http:") {
+    if (
+      parsedUrl.protocol !== "https:" ||
+      parsedUrl.username.length > 0 ||
+      parsedUrl.password.length > 0
+    ) {
       return null;
     }
 
@@ -60,10 +66,6 @@ function safeOfficialSource(sourceUrl: string | null): string | null {
   } catch {
     return null;
   }
-}
-
-export function generateStaticParams() {
-  return [{ programId: getMockProgramId() }];
 }
 
 export async function generateMetadata({ params }: ProgramPageProps): Promise<Metadata> {
@@ -77,17 +79,15 @@ export async function generateMetadata({ params }: ProgramPageProps): Promise<Me
 
 export default async function ProgramPage({ params }: ProgramPageProps) {
   const { programId } = await params;
-  const [program, intakes] = await Promise.all([
-    loadProgram(programId),
-    loadProgramIntakes(programId),
-  ]);
+  const program = await loadProgram(programId);
 
   if (!program) {
     notFound();
   }
 
   const applicationWindow = program.nextWindow;
-  const officialSource = safeOfficialSource(applicationWindow?.officialSourceUrl ?? null);
+  const applicationSource = safeOfficialSource(applicationWindow?.officialSourceUrl ?? null);
+  const summarySource = safeOfficialSource(program.summary.officialSourceUrl);
   const publicStatus = applicationWindow?.publicStatus ?? "NOT_PUBLISHED";
 
   return (
@@ -148,6 +148,23 @@ export default async function ProgramPage({ params }: ProgramPageProps) {
             ) : null}
           </section>
 
+          <section className={styles.card} aria-labelledby="program-summary">
+            <h2 id="program-summary">About this program</h2>
+            <p className={styles.summaryText}>{program.summary.text}</p>
+            {summarySource ? (
+              <a
+                className={styles.inlineSourceLink}
+                href={summarySource}
+                rel="noopener noreferrer"
+                target="_blank"
+              >
+                Read the official programme source
+                <span aria-hidden="true"> ↗</span>
+                <span className={styles.visuallyHidden}> (opens in a new tab)</span>
+              </a>
+            ) : null}
+          </section>
+
           <section className={styles.card} aria-labelledby="application-dates">
             <div className={styles.sectionHeading}>
               <h2 id="application-dates">Application dates</h2>
@@ -174,10 +191,10 @@ export default async function ProgramPage({ params }: ProgramPageProps) {
               <h2 id="official-source">Official source</h2>
               <p>Check the university page for the latest application information.</p>
             </div>
-            {officialSource ? (
+            {applicationSource ? (
               <a
                 className={styles.sourceLink}
-                href={officialSource}
+                href={applicationSource}
                 rel="noopener noreferrer"
                 target="_blank"
               >
@@ -190,7 +207,7 @@ export default async function ProgramPage({ params }: ProgramPageProps) {
             )}
           </section>
 
-          <FollowProgram intakes={intakes} programId={program.id} />
+          <FollowProgram intakes={program.intakes} programId={program.id} />
         </article>
       </main>
       <MobileNavigation />

@@ -2,6 +2,8 @@ import { database, Prisma } from "@athenvia/database";
 
 import type { ProgramSummary, SearchRequest, SearchResponse } from "@athenvia/contracts";
 
+import { formatIntakeLabel, toPublicApplicationWindow } from "../../../lib/catalogue-presentation";
+
 import { encodeSearchCursor, MAXIMUM_SEARCH_OFFSET } from "./cursor";
 
 const SEARCH_PAGE_SIZE = 20;
@@ -10,23 +12,6 @@ type RankedProgram = {
   id: string;
   relevance: number;
 };
-
-function intakeLabel(year: number, month: number | null): string {
-  if (!month || month < 1 || month > 12) {
-    return String(year);
-  }
-
-  const monthName = new Intl.DateTimeFormat("en", {
-    month: "long",
-    timeZone: "UTC",
-  }).format(new Date(Date.UTC(2000, month - 1, 1)));
-
-  return `${monthName} ${year}`;
-}
-
-function safeSourceUrl(url: string | undefined): string | null {
-  return url && URL.canParse(url) ? url : null;
-}
 
 export async function searchCatalogue(
   input: SearchRequest,
@@ -86,6 +71,14 @@ export async function searchCatalogue(
         SELECT 1
         FROM intakes AS intake
         WHERE intake.program_id = p.id
+      )
+      AND EXISTS (
+        SELECT 1
+        FROM program_summaries AS summary
+        JOIN sources AS summary_source ON summary_source.id = summary.source_id
+        WHERE summary.program_id = p.id
+          AND summary_source.program_id = p.id
+          AND summary_source.is_official = TRUE
       )
       AND (
         search_input.domain IS NULL
@@ -151,13 +144,17 @@ export async function searchCatalogue(
           applicationWindows: {
             orderBy: [{ closesAt: "asc" }, { opensAt: "asc" }],
             take: 1,
+            include: {
+              source: {
+                select: {
+                  isOfficial: true,
+                  programId: true,
+                  url: true,
+                },
+              },
+            },
           },
         },
-      },
-      sources: {
-        where: { isOfficial: true },
-        orderBy: { updatedAt: "desc" },
-        take: 1,
       },
       university: true,
     },
@@ -187,17 +184,8 @@ export async function searchCatalogue(
         domains: program.domains.map(({ domain }) => domain.name),
         location: program.campus ?? program.university.city,
         durationMonths: program.durationMonths,
-        intakeLabel: intakeLabel(intake.year, intake.month),
-        nextWindow: applicationWindow
-          ? {
-              id: applicationWindow.id,
-              roundName: applicationWindow.roundName,
-              opensAt: applicationWindow.opensAt?.toISOString() ?? null,
-              closesAt: applicationWindow.closesAt?.toISOString() ?? null,
-              publicStatus: applicationWindow.publicStatus,
-              officialSourceUrl: safeSourceUrl(program.sources[0]?.url),
-            }
-          : null,
+        intakeLabel: formatIntakeLabel(intake.year, intake.month),
+        nextWindow: toPublicApplicationWindow(applicationWindow, program.id),
       },
     ];
   });
