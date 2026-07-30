@@ -6,6 +6,7 @@ import {
   MAX_ACTIVE_PUSH_SUBSCRIPTIONS_PER_USER,
   PushSubscriptionLimitReachedError,
   PushSubscriptionOwnershipConflictError,
+  revokeInvalidPushSubscriptions,
   revokePushSubscription,
   storePushSubscription,
 } from "../src/push-subscriptions";
@@ -100,6 +101,35 @@ try {
     (await database.pushSubscription.findUniqueOrThrow({ where: { endpoint } })).revokedAt,
     null,
   );
+
+  const foreignCleanupEndpoint = `https://push.example.test/subscriptions/${suffix}/foreign`;
+  const foreignCleanupSubscription = await database.pushSubscription.create({
+    data: {
+      auth: "foreign-cleanup-auth",
+      endpoint: foreignCleanupEndpoint,
+      p256dh: "foreign-cleanup-p256dh",
+      userId: nextOwner.id,
+    },
+    select: { id: true },
+  });
+  assert.equal(
+    await revokeInvalidPushSubscriptions({
+      revokedAt: new Date(),
+      subscriptionIds: [concurrentResult.id, foreignCleanupSubscription.id],
+      userId: owner.id,
+    }),
+    1,
+  );
+  assert.ok((await database.pushSubscription.findUniqueOrThrow({ where: { endpoint } })).revokedAt);
+  assert.equal(
+    (
+      await database.pushSubscription.findUniqueOrThrow({
+        where: { endpoint: foreignCleanupEndpoint },
+      })
+    ).revokedAt,
+    null,
+  );
+  await database.pushSubscription.delete({ where: { id: foreignCleanupSubscription.id } });
 
   const quotaEndpoints = Array.from(
     { length: MAX_ACTIVE_PUSH_SUBSCRIPTIONS_PER_USER },

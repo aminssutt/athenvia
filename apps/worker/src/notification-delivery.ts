@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 
 import { NotificationPayloadSchema } from "@athenvia/contracts";
-import { database } from "@athenvia/database";
+import { database, revokeInvalidPushSubscriptions } from "@athenvia/database";
 
 import {
   DateChangeNotificationError,
@@ -26,6 +26,7 @@ import {
   NotificationDeliveryJobDataSchema,
   type NotificationDeliveryJobData,
 } from "./queue-contracts";
+import { deliverWebPushWithRetry, type PushRetrySleeper } from "./notifications/push-retries";
 
 import type { NotificationPayload } from "@athenvia/contracts";
 import type { NotificationType } from "@athenvia/database";
@@ -33,6 +34,7 @@ import type { ActivePushSubscription, NotificationTransport } from "./web-push-t
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu;
 const CLAIM_MARKER_PREFIX = "claim:v1";
+export const STALE_NOTIFICATION_CLAIM_MILLISECONDS = 5 * 60_000;
 
 export type ClaimPhase = "CLAIMED" | "SENDING";
 
@@ -53,17 +55,23 @@ export interface PreparedClaimedNotification {
   userId: string;
 }
 
+export interface ProcessingDeliveryClaim {
+  deliveryId: string;
+  marker: string | null;
+}
+
 export interface NotificationDeliveryRepository {
   claimScheduledDelivery(deliveryId: string, claimedAt: Date, marker: string): Promise<boolean>;
   finalizeClaimedDelivery(
     deliveryId: string,
-    marker: string,
+    marker: string | null,
     status: "CANCELLED" | "FAILED" | "SENT",
     completedAt: Date,
     safeMessage: string | null,
   ): Promise<boolean>;
   listActivePushSubscriptions(userId: string): Promise<ActivePushSubscription[]>;
   listDueScheduledDeliveryIds(now: Date, limit: number): Promise<string[]>;
+  listProcessingDeliveryClaims(limit: number): Promise<ProcessingDeliveryClaim[]>;
   loadClaimedDeliveryIdentity(
     deliveryId: string,
     marker: string,
@@ -73,6 +81,16 @@ export interface NotificationDeliveryRepository {
     claimedMarker: string,
     sendingMarker: string,
   ): Promise<boolean>;
+  resetStaleClaimedDelivery(
+    deliveryId: string,
+    claimedMarker: string,
+    safeMessage: string,
+  ): Promise<boolean>;
+  revokeInvalidPushSubscriptions(
+    userId: string,
+    subscriptionIds: string[],
+    revokedAt: Date,
+  ): Promise<number>;
 }
 
 export interface ClaimedNotificationPreparer {
@@ -116,8 +134,22 @@ export interface ProcessNotificationDeliveryOptions {
   logger?: DeliveryLogger;
   preparer: ClaimedNotificationPreparer;
   repository: NotificationDeliveryRepository;
+  retrySleeper?: PushRetrySleeper;
   tokenFactory?: () => string;
   transport: NotificationTransport;
+}
+
+export interface RecoverStaleNotificationDeliveriesOptions {
+  limit?: number;
+  now?: Date;
+  repository: NotificationDeliveryRepository;
+  staleAfterMilliseconds?: number;
+}
+
+export interface RecoverStaleNotificationDeliveriesResult {
+  quarantinedCount: number;
+  recoveredCount: number;
+  scannedCount: number;
 }
 
 export interface DispatchDueNotificationDeliveriesOptions {
@@ -137,6 +169,12 @@ export class StaleClaimedNotificationError extends Error {
     super("The claimed notification no longer satisfies delivery invariants.");
     this.name = "StaleClaimedNotificationError";
   }
+}
+
+export interface ParsedDeliveryClaimMarker {
+  claimedAt: Date;
+  marker: string;
+  phase: ClaimPhase;
 }
 
 function assertClock(value: Date): void {
@@ -166,6 +204,25 @@ export function createDeliveryClaimMarkers(
   };
 }
 
+export function parseDeliveryClaimMarker(marker: string): ParsedDeliveryClaimMarker | null {
+  const match =
+    /^claim:v1:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}:(.+):(CLAIMED|SENDING)$/iu.exec(
+      marker,
+    );
+  if (!match?.[1] || !match[2]) {
+    return null;
+  }
+  const claimedAt = new Date(match[1]);
+  if (!Number.isFinite(claimedAt.getTime()) || claimedAt.toISOString() !== match[1]) {
+    return null;
+  }
+  return {
+    claimedAt,
+    marker,
+    phase: match[2] as ClaimPhase,
+  };
+}
+
 export class PrismaNotificationDeliveryRepository implements NotificationDeliveryRepository {
   constructor(private readonly client: typeof database = database) {}
 
@@ -180,6 +237,24 @@ export class PrismaNotificationDeliveryRepository implements NotificationDeliver
       },
     });
     return deliveries.map(({ id }) => id);
+  }
+
+  async listProcessingDeliveryClaims(limit: number): Promise<ProcessingDeliveryClaim[]> {
+    const deliveries = await this.client.notificationDelivery.findMany({
+      orderBy: [{ scheduledFor: "asc" }, { id: "asc" }],
+      select: {
+        errorMessage: true,
+        id: true,
+      },
+      take: limit,
+      where: {
+        status: "PROCESSING",
+      },
+    });
+    return deliveries.map(({ errorMessage, id }) => ({
+      deliveryId: id,
+      marker: errorMessage,
+    }));
   }
 
   async claimScheduledDelivery(
@@ -253,7 +328,7 @@ export class PrismaNotificationDeliveryRepository implements NotificationDeliver
 
   async finalizeClaimedDelivery(
     deliveryId: string,
-    marker: string,
+    marker: string | null,
     status: "CANCELLED" | "FAILED" | "SENT",
     completedAt: Date,
     safeMessage: string | null,
@@ -271,6 +346,41 @@ export class PrismaNotificationDeliveryRepository implements NotificationDeliver
       },
     });
     return result.count === 1;
+  }
+
+  async resetStaleClaimedDelivery(
+    deliveryId: string,
+    claimedMarker: string,
+    safeMessage: string,
+  ): Promise<boolean> {
+    const result = await this.client.notificationDelivery.updateMany({
+      data: {
+        errorMessage: safeMessage,
+        sentAt: null,
+        status: "SCHEDULED",
+      },
+      where: {
+        errorMessage: claimedMarker,
+        id: deliveryId,
+        status: "PROCESSING",
+      },
+    });
+    return result.count === 1;
+  }
+
+  async revokeInvalidPushSubscriptions(
+    userId: string,
+    subscriptionIds: string[],
+    revokedAt: Date,
+  ): Promise<number> {
+    return revokeInvalidPushSubscriptions(
+      {
+        revokedAt,
+        subscriptionIds,
+        userId,
+      },
+      this.client,
+    );
   }
 }
 
@@ -379,6 +489,65 @@ export async function dispatchDueNotificationDeliveries(
   return { deliveryIds, queuedCount: deliveryIds.length };
 }
 
+export async function recoverStaleNotificationDeliveries(
+  options: RecoverStaleNotificationDeliveriesOptions,
+): Promise<RecoverStaleNotificationDeliveriesResult> {
+  const now = options.now ?? new Date();
+  assertClock(now);
+  const limit = options.limit ?? 1_000;
+  if (!Number.isInteger(limit) || limit < 1 || limit > 1_000) {
+    throw new RangeError("Notification recovery limit must be between 1 and 1000.");
+  }
+  const staleAfterMilliseconds =
+    options.staleAfterMilliseconds ?? STALE_NOTIFICATION_CLAIM_MILLISECONDS;
+  if (!Number.isInteger(staleAfterMilliseconds) || staleAfterMilliseconds < 1) {
+    throw new RangeError("Notification recovery requires a positive stale threshold.");
+  }
+
+  const claims = await options.repository.listProcessingDeliveryClaims(limit);
+  let quarantinedCount = 0;
+  let recoveredCount = 0;
+  for (const claim of claims) {
+    const parsed = claim.marker === null ? null : parseDeliveryClaimMarker(claim.marker);
+    if (parsed === null) {
+      const quarantined = await options.repository.finalizeClaimedDelivery(
+        claim.deliveryId,
+        claim.marker,
+        "FAILED",
+        now,
+        "dead-letter:v1:invalid-claim-marker",
+      );
+      quarantinedCount += quarantined ? 1 : 0;
+      continue;
+    }
+    if (now.getTime() - parsed.claimedAt.getTime() < staleAfterMilliseconds) {
+      continue;
+    }
+    if (parsed.phase === "CLAIMED") {
+      const recovered = await options.repository.resetStaleClaimedDelivery(
+        claim.deliveryId,
+        parsed.marker,
+        "retry:v1:stale-claimed",
+      );
+      recoveredCount += recovered ? 1 : 0;
+      continue;
+    }
+    const quarantined = await options.repository.finalizeClaimedDelivery(
+      claim.deliveryId,
+      parsed.marker,
+      "FAILED",
+      now,
+      "dead-letter:v1:indeterminate-send",
+    );
+    quarantinedCount += quarantined ? 1 : 0;
+  }
+  return {
+    quarantinedCount,
+    recoveredCount,
+    scannedCount: claims.length,
+  };
+}
+
 async function failBeforeNetwork(
   deliveryId: string,
   markers: DeliveryClaimMarkers,
@@ -390,7 +559,7 @@ async function failBeforeNetwork(
     markers.claimed,
     "FAILED",
     now,
-    "notification-delivery-failed",
+    "dead-letter:v1:pre-network",
   );
   return finalized ? "FAILED" : "LOST_FENCE";
 }
@@ -469,33 +638,101 @@ export async function processNotificationDeliveryJob(
     return "LOST_FENCE";
   }
 
-  const results = await Promise.allSettled(
-    subscriptions.map((subscription) => options.transport.send(subscription, prepared.payload)),
+  const results = await Promise.all(
+    subscriptions.map(async (subscription) => ({
+      outcome: await deliverWebPushWithRetry(
+        () => options.transport.send(subscription, prepared.payload),
+        options.retrySleeper,
+      ),
+      subscriptionId: subscription.id,
+    })),
   );
-  const successCount = results.filter(({ status }) => status === "fulfilled").length;
-  const failedCount = results.length - successCount;
-  const finalStatus = successCount > 0 ? "SENT" : "FAILED";
   const completedAt = (options.clock ?? (() => new Date()))();
   assertClock(completedAt);
+  const counts = {
+    indeterminate: 0,
+    invalidSubscription: 0,
+    permanent: 0,
+    sent: 0,
+    transientExhausted: 0,
+  };
+  const invalidSubscriptionIds: string[] = [];
+  for (const result of results) {
+    switch (result.outcome.kind) {
+      case "SENT":
+        counts.sent += 1;
+        break;
+      case "INVALID_SUBSCRIPTION":
+        counts.invalidSubscription += 1;
+        invalidSubscriptionIds.push(result.subscriptionId);
+        break;
+      case "PERMANENT":
+        counts.permanent += 1;
+        break;
+      case "TRANSIENT":
+        counts.transientExhausted += 1;
+        break;
+      case "INDETERMINATE":
+        counts.indeterminate += 1;
+        break;
+    }
+  }
+  if (invalidSubscriptionIds.length > 0) {
+    await options.repository.revokeInvalidPushSubscriptions(
+      prepared.userId,
+      invalidSubscriptionIds,
+      completedAt,
+    );
+  }
+  const unresolvedCount = counts.indeterminate + counts.permanent + counts.transientExhausted;
+  const finalStatus = counts.sent > 0 ? "SENT" : unresolvedCount === 0 ? "CANCELLED" : "FAILED";
+  const safeSummary =
+    `sent=${counts.sent};invalid=${counts.invalidSubscription};` +
+    `transient=${counts.transientExhausted};permanent=${counts.permanent};` +
+    `indeterminate=${counts.indeterminate}`;
+  const safeMessage =
+    finalStatus === "FAILED"
+      ? `dead-letter:v1:${safeSummary}`
+      : finalStatus === "CANCELLED"
+        ? "stale:ALL_SUBSCRIPTIONS_REVOKED"
+        : unresolvedCount > 0 || counts.invalidSubscription > 0
+          ? `partial:v1:${safeSummary}`
+          : null;
   const finalized = await options.repository.finalizeClaimedDelivery(
     data.deliveryId,
     markers.sending,
     finalStatus,
     completedAt,
-    finalStatus === "SENT" ? null : `web-push-failed:${failedCount.toString(10)}`,
+    safeMessage,
   );
+  if (finalStatus === "FAILED") {
+    options.logger?.error(
+      {
+        deliveryId: data.deliveryId,
+        ...counts,
+      },
+      "Notification delivery dead-lettered",
+    );
+  } else if (safeMessage?.startsWith("partial:")) {
+    options.logger?.error(
+      {
+        deliveryId: data.deliveryId,
+        ...counts,
+      },
+      "Notification delivery completed with endpoint failures",
+    );
+  }
   options.logger?.info(
     {
       deliveryId: data.deliveryId,
-      failedCount,
       finalStatus,
       subscriptionCount: subscriptions.length,
-      successCount,
+      ...counts,
     },
     "Notification delivery attempt completed",
   );
   if (!finalized) {
-    return successCount > 0 ? "LOST_FENCE_AFTER_SEND" : "LOST_FENCE";
+    return counts.sent > 0 ? "LOST_FENCE_AFTER_SEND" : "LOST_FENCE";
   }
   return finalStatus;
 }

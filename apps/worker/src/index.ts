@@ -4,6 +4,7 @@ import pino from "pino";
 import {
   dispatchDueNotificationDeliveries,
   processNotificationDeliveryJob,
+  recoverStaleNotificationDeliveries,
   prismaClaimedNotificationPreparer,
   prismaNotificationDeliveryRepository,
 } from "./notification-delivery";
@@ -49,6 +50,27 @@ const dispatchDueNotifications = () => {
   }
   dispatchTask = (async () => {
     try {
+      try {
+        const recovery = await recoverStaleNotificationDeliveries({
+          repository: prismaNotificationDeliveryRepository,
+        });
+        if (recovery.quarantinedCount > 0 || recovery.recoveredCount > 0) {
+          logger.info(
+            {
+              quarantinedCount: recovery.quarantinedCount,
+              recoveredCount: recovery.recoveredCount,
+              scannedCount: recovery.scannedCount,
+            },
+            "Stale notification claims recovered",
+          );
+        }
+      } catch (error) {
+        logger.error(
+          { errorName: error instanceof Error ? error.name : "UnknownError" },
+          "Notification claim recovery failed",
+        );
+      }
+
       const result = await dispatchDueNotificationDeliveries({
         queue: notificationQueue,
         repository: prismaNotificationDeliveryRepository,

@@ -36,7 +36,7 @@ The original failed job remains available for diagnosis during its retention win
 
 The `notifications` queue accepts only the strict job payload
 `{ deliveryId: UUID }` under job name `deliver-notification`. BullMQ `jobId`
-equals the delivery ID, and notification jobs have exactly one attempt. URLs,
+equals the delivery ID, and notification jobs have exactly one BullMQ attempt. URLs,
 copy, Web Push endpoints, encryption keys and VAPID material never enter Redis.
 The processor reloads all mutable delivery state and active subscriptions from
 PostgreSQL.
@@ -57,21 +57,34 @@ Delivery uses a compare-and-set state machine:
 3. Immediately before the first network call, an exact fencing CAS replaces
    `CLAIMED` with the same marker ending in `SENDING`.
 4. Finalization requires the exact delivery ID, `PROCESSING` state and current
-   marker. At least one successful endpoint produces `SENT`; zero successes
-   produces `FAILED`; stale data or zero endpoints produces `CANCELLED`.
-   `sentAt` is written only for `SENT`.
+   marker. At least one successful endpoint produces `SENT`; total unresolved
+   failure produces `FAILED`; stale data, zero endpoints or only invalid
+   endpoints produces `CANCELLED`. `sentAt` is written only for `SENT`.
 
-Concurrent jobs therefore produce at most one network attempt: only one can
-claim, and a changed fence before `SENDING` prevents every send. There is
-deliberately no reclaim of `PROCESSING` in this issue. A process crash after
-claim leaves `CLAIMED`; a crash after the network boundary may leave `SENDING`.
-The recovery/quarantine policy for these crash gaps belongs to #61, and no
-transition back to `SCHEDULED` occurs here.
+Concurrent jobs still produce one claim: only one can enter `PROCESSING`, and a
+changed fence before `SENDING` prevents every send. The 30-second dispatcher
+loop also scans a bounded set of `PROCESSING` claims. A `CLAIMED` marker older
+than five minutes is reset to `SCHEDULED` with an exact-marker compare-and-set
+because no network request started. A stale `SENDING` marker is instead
+quarantined as `FAILED`: the push service may have accepted the request, so
+retrying it could duplicate a notification. Invalid processing markers are
+quarantined in the same durable, observable state.
 
-Multi-device sends use `Promise.allSettled`. Partial success is terminal `SENT`
-without retry, because retrying could duplicate delivery to successful devices.
-Total failure is terminal `FAILED`. Logs contain only delivery IDs and aggregate
-endpoint counts, never endpoints or subscription/VAPID secrets.
+Multi-device sends retry only the endpoint that returned an explicit temporary
+HTTP response. There are at most three attempts with two- and four-second
+backoffs. `408`, `425`, `429` and `5xx` responses are temporary. `404` and
+`410` permanently invalidate an endpoint and soft-revoke its database record
+without retry. Other HTTP failures are permanent delivery failures. A failure
+without an HTTP response is indeterminate and is not retried because acceptance
+by the push service cannot be ruled out.
+
+Partial success remains terminal `SENT`, so an already successful endpoint is
+never sent the event again. If all endpoints are invalid, the delivery becomes
+`CANCELLED`; otherwise total failure becomes `FAILED`. Failed rows are durable
+notification dead letters, while partial failures are recorded on the `SENT`
+row. Both produce structured logs containing only delivery IDs and aggregate
+classification counts, never error bodies, headers, endpoints,
+subscription/VAPID keys or raw transport errors.
 
 BullMQ removes a notification job after completion or failure. PostgreSQL remains
 the delivery authority through the state and fencing checks above; removing the

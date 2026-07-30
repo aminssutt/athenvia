@@ -57,10 +57,14 @@ export {
   MAX_ACTIVE_PUSH_SUBSCRIPTIONS_PER_USER,
   PushSubscriptionLimitReachedError,
   PushSubscriptionOwnershipConflictError,
+  revokeInvalidPushSubscriptions,
   revokePushSubscription,
   storePushSubscription,
 } from "./push-subscriptions";
-export type { StorePushSubscriptionInput } from "./push-subscriptions";
+export type {
+  RevokeInvalidPushSubscriptionsInput,
+  StorePushSubscriptionInput,
+} from "./push-subscriptions";
 export { createSubmissionReview, SUBMISSION_REVIEW_FIELD } from "./submission-reviews";
 export type {
   RecordSourceSnapshotInput,

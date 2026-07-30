@@ -4,9 +4,12 @@ import { describe, it } from "node:test";
 import {
   createDeliveryClaimMarkers,
   dispatchDueNotificationDeliveries,
+  parseDeliveryClaimMarker,
   PrismaClaimedNotificationPreparer,
   PrismaNotificationDeliveryRepository,
   processNotificationDeliveryJob,
+  recoverStaleNotificationDeliveries,
+  STALE_NOTIFICATION_CLAIM_MILLISECONDS,
   StaleClaimedNotificationError,
   type ClaimedDeliveryIdentity,
   type ClaimedNotificationPreparer,
@@ -34,6 +37,7 @@ import {
 
 import type { NotificationPayload } from "@athenvia/contracts";
 import type { NotificationType } from "@athenvia/database";
+import type { PushRetrySleeper } from "./notifications/push-retries";
 
 const DELIVERY_ID = "11111111-1111-4111-8111-111111111111";
 const SECOND_DELIVERY_ID = "11111111-1111-4111-8111-111111111112";
@@ -187,7 +191,7 @@ function dateChangeRecord(): DateChangeDeliveryRecord {
 class FakeRepository implements NotificationDeliveryRepository {
   claimCalls = 0;
   finalizeCalls: Array<{
-    marker: string;
+    marker: string | null;
     safeMessage: string | null;
     status: string;
   }> = [];
@@ -195,6 +199,7 @@ class FakeRepository implements NotificationDeliveryRepository {
   sentAt: Date | null = null;
   status: "CANCELLED" | "FAILED" | "PROCESSING" | "SCHEDULED" | "SENT" = "SCHEDULED";
   subscriptions: ActivePushSubscription[] = [subscription("one")];
+  revokedSubscriptionIds: string[] = [];
 
   constructor(
     readonly identity: ClaimedDeliveryIdentity = {
@@ -205,6 +210,10 @@ class FakeRepository implements NotificationDeliveryRepository {
 
   async listDueScheduledDeliveryIds(): Promise<string[]> {
     return this.status === "SCHEDULED" ? [DELIVERY_ID] : [];
+  }
+
+  async listProcessingDeliveryClaims() {
+    return this.status === "PROCESSING" ? [{ deliveryId: DELIVERY_ID, marker: this.marker }] : [];
   }
 
   async claimScheduledDelivery(
@@ -246,7 +255,7 @@ class FakeRepository implements NotificationDeliveryRepository {
 
   async finalizeClaimedDelivery(
     _deliveryId: string,
-    marker: string,
+    marker: string | null,
     status: "CANCELLED" | "FAILED" | "SENT",
     completedAt: Date,
     safeMessage: string | null,
@@ -259,6 +268,30 @@ class FakeRepository implements NotificationDeliveryRepository {
     this.marker = safeMessage;
     this.sentAt = status === "SENT" ? completedAt : null;
     return true;
+  }
+
+  async resetStaleClaimedDelivery(
+    _deliveryId: string,
+    claimedMarker: string,
+    safeMessage: string,
+  ): Promise<boolean> {
+    if (this.status !== "PROCESSING" || this.marker !== claimedMarker) {
+      return false;
+    }
+    this.status = "SCHEDULED";
+    this.marker = safeMessage;
+    this.sentAt = null;
+    return true;
+  }
+
+  async revokeInvalidPushSubscriptions(
+    _userId: string,
+    subscriptionIds: string[],
+  ): Promise<number> {
+    this.revokedSubscriptionIds.push(...subscriptionIds);
+    const revoked = new Set(subscriptionIds);
+    this.subscriptions = this.subscriptions.filter(({ id }) => !revoked.has(id));
+    return subscriptionIds.length;
   }
 }
 
@@ -307,6 +340,7 @@ function processorOptions(
   overrides: {
     logger?: DeliveryLogger;
     preparer?: ClaimedNotificationPreparer;
+    retrySleeper?: PushRetrySleeper;
     transport?: NotificationTransport;
   } = {},
 ) {
@@ -315,6 +349,7 @@ function processorOptions(
     logger: overrides.logger,
     preparer: overrides.preparer ?? new FakePreparer(),
     repository,
+    retrySleeper: overrides.retrySleeper,
     tokenFactory: () => CLAIM_TOKEN,
     transport: overrides.transport ?? new FakeTransport(),
   };
@@ -394,6 +429,17 @@ describe("claim fencing and delivery states", () => {
     });
   });
 
+  it("strictly parses current claim markers without accepting malformed timestamps", () => {
+    const marker = createDeliveryClaimMarkers(NOW, CLAIM_TOKEN).sending;
+    assert.deepEqual(parseDeliveryClaimMarker(marker), {
+      claimedAt: NOW,
+      marker,
+      phase: "SENDING",
+    });
+    assert.equal(parseDeliveryClaimMarker(marker.replace(".000Z", "Z")), null);
+    assert.equal(parseDeliveryClaimMarker("claim:v1:not-a-token:secret:SENDING"), null);
+  });
+
   it("allows two concurrent jobs to claim once and send once", async () => {
     const repository = new FakeRepository();
     const transport = new FakeTransport();
@@ -405,7 +451,7 @@ describe("claim fencing and delivery states", () => {
     assert.deepEqual(transport.sent, ["one"]);
     assert.equal(repository.status, "SENT");
     assert.deepEqual(repository.sentAt, NOW);
-    assert.equal(repository.finalizeCalls[0]?.marker.endsWith(":SENDING"), true);
+    assert.equal(repository.finalizeCalls[0]?.marker?.endsWith(":SENDING"), true);
   });
 
   it("cancels stale preparation and zero-endpoint deliveries before SENDING", async () => {
@@ -424,7 +470,7 @@ describe("claim fencing and delivery states", () => {
       "CANCELLED",
     );
     assert.deepEqual(staleTransport.sent, []);
-    assert.equal(staleRepository.finalizeCalls[0]?.marker.endsWith(":CLAIMED"), true);
+    assert.equal(staleRepository.finalizeCalls[0]?.marker?.endsWith(":CLAIMED"), true);
     assert.equal(staleRepository.sentAt, null);
 
     const noEndpointRepository = new FakeRepository();
@@ -454,7 +500,7 @@ describe("claim fencing and delivery states", () => {
     assert.deepEqual(transport.sent, []);
     assert.equal(repository.status, "FAILED");
     assert.equal(repository.sentAt, null);
-    assert.equal(repository.finalizeCalls[0]?.marker.endsWith(":CLAIMED"), true);
+    assert.equal(repository.finalizeCalls[0]?.marker?.endsWith(":CLAIMED"), true);
   });
 
   it("marks partial multi-device success SENT and total failure FAILED", async () => {
@@ -483,6 +529,94 @@ describe("claim fencing and delivery states", () => {
     );
     assert.equal(failedRepository.status, "FAILED");
     assert.equal(failedRepository.sentAt, null);
+  });
+
+  it("retries only the temporarily failing endpoint and never resends a success", async () => {
+    const repository = new FakeRepository();
+    repository.subscriptions = [subscription("one"), subscription("two")];
+    const attempts = new Map<string, number>();
+    const delays: number[] = [];
+    const transport: NotificationTransport = {
+      send: async (pushSubscription) => {
+        const attempt = (attempts.get(pushSubscription.id) ?? 0) + 1;
+        attempts.set(pushSubscription.id, attempt);
+        if (pushSubscription.id === "two" && attempt < 3) {
+          throw { statusCode: 503 };
+        }
+      },
+    };
+
+    assert.equal(
+      await processNotificationDeliveryJob(
+        job(),
+        processorOptions(repository, {
+          retrySleeper: async (delay) => {
+            delays.push(delay);
+          },
+          transport,
+        }),
+      ),
+      "SENT",
+    );
+    assert.deepEqual(Object.fromEntries(attempts), { one: 1, two: 3 });
+    assert.deepEqual(delays, [2_000, 4_000]);
+    assert.deepEqual(repository.revokedSubscriptionIds, []);
+  });
+
+  it("revokes 404/410 subscriptions without retry and cancels when all are invalid", async () => {
+    const repository = new FakeRepository();
+    repository.subscriptions = [subscription("one"), subscription("two")];
+    const calls: string[] = [];
+    const outcome = await processNotificationDeliveryJob(
+      job(),
+      processorOptions(repository, {
+        transport: {
+          send: async (pushSubscription) => {
+            calls.push(pushSubscription.id);
+            throw { statusCode: pushSubscription.id === "one" ? 404 : 410 };
+          },
+        },
+      }),
+    );
+
+    assert.equal(outcome, "CANCELLED");
+    assert.deepEqual(calls, ["one", "two"]);
+    assert.deepEqual(repository.revokedSubscriptionIds, ["one", "two"]);
+    assert.equal(repository.marker, "stale:ALL_SUBSCRIPTIONS_REVOKED");
+  });
+
+  it("dead-letters exhausted, permanent and indeterminate failures without leaking errors", async () => {
+    for (const error of [{ statusCode: 503 }, { statusCode: 400 }, new Error("private-endpoint")]) {
+      const repository = new FakeRepository();
+      const entries: unknown[] = [];
+      const logger: DeliveryLogger = {
+        error: (fields, message) => entries.push({ fields, message }),
+        info: (fields, message) => entries.push({ fields, message }),
+      };
+      let calls = 0;
+      assert.equal(
+        await processNotificationDeliveryJob(
+          job(),
+          processorOptions(repository, {
+            logger,
+            retrySleeper: async () => undefined,
+            transport: {
+              send: async () => {
+                calls += 1;
+                throw error;
+              },
+            },
+          }),
+        ),
+        "FAILED",
+      );
+      assert.equal(calls, "statusCode" in error && error.statusCode === 503 ? 3 : 1);
+      assert.match(repository.marker ?? "", /^dead-letter:v1:/u);
+      const serialized = JSON.stringify(entries);
+      assert.match(serialized, /Notification delivery dead-lettered/u);
+      assert.doesNotMatch(serialized, /private-endpoint|statusCode/u);
+      assert.deepEqual(repository.revokedSubscriptionIds, []);
+    }
   });
 
   it("never sends after a changed fence between prepare and promote", async () => {
@@ -653,7 +787,122 @@ describe("claim fencing and delivery states", () => {
     );
     const serialized = JSON.stringify(logEntries);
     assert.doesNotMatch(serialized, /auth-secret|p256dh-secret|push\.example|private=endpoint/iu);
-    assert.match(serialized, /successCount/iu);
+    assert.match(serialized, /sent/iu);
+  });
+});
+
+describe("notification claim recovery", () => {
+  it("recovers stale CLAIMED work but never retries an indeterminate SENDING claim", async () => {
+    const claimedRepository = new FakeRepository();
+    claimedRepository.status = "PROCESSING";
+    const oldClaimedAt = new Date(NOW.getTime() - STALE_NOTIFICATION_CLAIM_MILLISECONDS);
+    claimedRepository.marker = createDeliveryClaimMarkers(oldClaimedAt, CLAIM_TOKEN).claimed;
+    assert.deepEqual(
+      await recoverStaleNotificationDeliveries({
+        now: NOW,
+        repository: claimedRepository,
+      }),
+      { quarantinedCount: 0, recoveredCount: 1, scannedCount: 1 },
+    );
+    assert.equal(claimedRepository.status, "SCHEDULED");
+    assert.equal(claimedRepository.marker, "retry:v1:stale-claimed");
+
+    const sendingRepository = new FakeRepository();
+    sendingRepository.status = "PROCESSING";
+    sendingRepository.marker = createDeliveryClaimMarkers(oldClaimedAt, CLAIM_TOKEN).sending;
+    assert.deepEqual(
+      await recoverStaleNotificationDeliveries({
+        now: NOW,
+        repository: sendingRepository,
+      }),
+      { quarantinedCount: 1, recoveredCount: 0, scannedCount: 1 },
+    );
+    assert.equal(sendingRepository.status, "FAILED");
+    assert.equal(sendingRepository.marker, "dead-letter:v1:indeterminate-send");
+  });
+
+  it("leaves fresh claims untouched and quarantines corrupt PROCESSING markers", async () => {
+    const freshRepository = new FakeRepository();
+    freshRepository.status = "PROCESSING";
+    freshRepository.marker = createDeliveryClaimMarkers(NOW, CLAIM_TOKEN).claimed;
+    assert.deepEqual(
+      await recoverStaleNotificationDeliveries({
+        now: NOW,
+        repository: freshRepository,
+      }),
+      { quarantinedCount: 0, recoveredCount: 0, scannedCount: 1 },
+    );
+    assert.equal(freshRepository.status, "PROCESSING");
+
+    const corruptRepository = new FakeRepository();
+    corruptRepository.status = "PROCESSING";
+    corruptRepository.marker = null;
+    assert.deepEqual(
+      await recoverStaleNotificationDeliveries({
+        now: NOW,
+        repository: corruptRepository,
+      }),
+      { quarantinedCount: 1, recoveredCount: 0, scannedCount: 1 },
+    );
+    assert.equal(corruptRepository.status, "FAILED");
+    assert.equal(corruptRepository.marker, "dead-letter:v1:invalid-claim-marker");
+  });
+
+  it("uses exact PROCESSING markers for reset recovery fencing", async () => {
+    let updateQuery: Record<string, unknown> | undefined;
+    const client = {
+      notificationDelivery: {
+        updateMany: async (query: Record<string, unknown>) => {
+          updateQuery = query;
+          return { count: 1 };
+        },
+      },
+    };
+    const repository = new PrismaNotificationDeliveryRepository(client as never);
+    const marker = createDeliveryClaimMarkers(NOW, CLAIM_TOKEN).claimed;
+    assert.equal(
+      await repository.resetStaleClaimedDelivery(DELIVERY_ID, marker, "retry:v1:stale-claimed"),
+      true,
+    );
+    assert.deepEqual(updateQuery, {
+      data: {
+        errorMessage: "retry:v1:stale-claimed",
+        sentAt: null,
+        status: "SCHEDULED",
+      },
+      where: {
+        errorMessage: marker,
+        id: DELIVERY_ID,
+        status: "PROCESSING",
+      },
+    });
+  });
+
+  it("reads a bounded deterministic PROCESSING recovery batch", async () => {
+    let findQuery: Record<string, unknown> | undefined;
+    const client = {
+      notificationDelivery: {
+        findMany: async (query: Record<string, unknown>) => {
+          findQuery = query;
+          return [{ errorMessage: "marker", id: DELIVERY_ID }];
+        },
+      },
+    };
+    const repository = new PrismaNotificationDeliveryRepository(client as never);
+    assert.deepEqual(await repository.listProcessingDeliveryClaims(25), [
+      { deliveryId: DELIVERY_ID, marker: "marker" },
+    ]);
+    assert.deepEqual(findQuery, {
+      orderBy: [{ scheduledFor: "asc" }, { id: "asc" }],
+      select: {
+        errorMessage: true,
+        id: true,
+      },
+      take: 25,
+      where: {
+        status: "PROCESSING",
+      },
+    });
   });
 });
 
