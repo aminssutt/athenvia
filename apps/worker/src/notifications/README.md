@@ -72,6 +72,28 @@ leave persistence with the job. Copy identifies it only as the program source:
 because no `ApplicationWindow -> Source` relation exists, the job does not
 attribute that page to `opensAt` or claim that it supports the opening date.
 
+## Deadline reminder jobs
+
+`prepareDueDeadlineReminderJobs` applies the same read-only preparation and
+revalidation boundary to due `SCHEDULED` `APPLICATION_DEADLINE` deliveries.
+It supports only the canonical 30, 14, 7 and 2 day offsets. The database read
+is bounded to the current UTC day, and preparation additionally requires the
+current application-window `closesAt` instant to be strictly later than the
+preparation clock. Stale jobs therefore cannot describe an already-passed
+deadline.
+
+Confirmed and expected deadlines use separate copy. Every expected payload
+states both that the deadline is expected and that it is not confirmed.
+Program-source handling matches opening reminders: only a canonical HTTPS
+origin and hostname leave persistence, with no path, query, credentials or
+fragment. Because the schema has no application-window source relation, the
+copy identifies the page only as the program source and never claims that it
+supports `closesAt`.
+
+Preparation does not claim a delivery, mutate lifecycle state or make a network
+request. Atomic `SCHEDULED -> PROCESSING` claims, queue paging and Web Push
+delivery remain sender responsibilities.
+
 ## PostgreSQL integration test
 
 The repository integration test is opt-in so the ordinary test suite can run
