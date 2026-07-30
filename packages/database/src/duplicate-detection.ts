@@ -170,9 +170,24 @@ export async function findUniversityDuplicateCandidates(
   input: UniversityDuplicateInput,
   client: DuplicateReadClient = database,
 ): Promise<DuplicateCandidate[]> {
+  const submittedDomain = normalizeOfficialDomain(input.officialWebsite);
   const records = await client.university.findMany({
     where: {
       status: { in: [EntityStatus.ACTIVE, EntityStatus.PENDING] },
+      OR: [
+        { countryCode: input.countryCode },
+        ...(submittedDomain
+          ? [
+              { officialDomain: { contains: submittedDomain, mode: "insensitive" as const } },
+              {
+                officialWebsite: {
+                  contains: submittedDomain,
+                  mode: "insensitive" as const,
+                },
+              },
+            ]
+          : []),
+      ],
     },
     orderBy: { id: "asc" },
     take: 1_000,
