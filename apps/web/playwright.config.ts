@@ -19,7 +19,7 @@ export default defineConfig({
   ],
   webServer: {
     command:
-      "pnpm --filter @athenvia/database db:generate && npm run dev -- --hostname 127.0.0.1 --port 3100",
+      "corepack pnpm --filter @athenvia/database db:generate && npm run dev -- --hostname 127.0.0.1 --port 3100",
     env: {
       AUTH_SECRET: process.env.AUTH_SECRET ?? "athenvia-e2e-only-secret-not-for-production",
       GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID ?? "athenvia-e2e.apps.googleusercontent.com",
