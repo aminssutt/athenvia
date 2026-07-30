@@ -1,4 +1,6 @@
 export type OfficialSourceFetchErrorCode =
+  | "BROWSER_LIMIT"
+  | "BROWSER_UNAVAILABLE"
   | "DOMAIN_NOT_APPROVED"
   | "HTTP_ERROR"
   | "INVALID_TARGET"

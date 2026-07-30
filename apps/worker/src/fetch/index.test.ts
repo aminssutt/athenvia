@@ -13,6 +13,50 @@ const htmlResponse = (status: number, body = "", headers = {}): RawResponse => (
 });
 
 describe("OfficialSourceFetcher", () => {
+  it("only starts the browser fallback when this source explicitly opts in", async () => {
+    let browserLaunchCount = 0;
+    const request: PinnedRequest = async (target) =>
+      target.pathname === "/robots.txt"
+        ? htmlResponse(404)
+        : htmlResponse(200, '<div id="app"></div>');
+    const commonDependencies = {
+      browserLauncher: async () => {
+        browserLaunchCount += 1;
+        throw new OfficialSourceFetchError("BROWSER_UNAVAILABLE", "No test browser is installed.");
+      },
+      rateLimiter: new PerDomainRateLimiter(0),
+      request,
+      resolver: async () => ["1.1.1.1"],
+    };
+
+    const staticSource = new OfficialSourceFetcher(
+      {
+        approvedHosts: ["www.example.edu"],
+        minimumIntervalMs: 0,
+        playwrightFallback: { shouldFallback: () => false },
+      },
+      commonDependencies,
+    );
+    const staticResult = await staticSource.fetch("https://www.example.edu/program");
+    assert.match(staticResult.body.toString(), /id="app"/u);
+    assert.equal(browserLaunchCount, 0);
+
+    const clientRenderedSource = new OfficialSourceFetcher(
+      {
+        approvedHosts: ["www.example.edu"],
+        minimumIntervalMs: 0,
+        playwrightFallback: { shouldFallback: () => true },
+      },
+      commonDependencies,
+    );
+    await assert.rejects(
+      clientRenderedSource.fetch("https://www.example.edu/program"),
+      (error: unknown) =>
+        error instanceof OfficialSourceFetchError && error.code === "BROWSER_UNAVAILABLE",
+    );
+    assert.equal(browserLaunchCount, 1);
+  });
+
   it("pins a vetted public address and respects robots.txt", async () => {
     const calls: Array<{ address: string; url: string }> = [];
     const request: PinnedRequest = async (target, address) => {

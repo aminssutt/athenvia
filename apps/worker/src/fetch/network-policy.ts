@@ -148,6 +148,10 @@ export class OfficialDomainPolicy {
     }
   }
 
+  approvedHostnames(): string[] {
+    return [...this.approvedHosts];
+  }
+
   parseTarget(value: string | URL): URL {
     let target: URL;
 
