@@ -1,0 +1,71 @@
+{
+  "$schema": "./seed.schema.json",
+  "schemaVersion": 1,
+  "domains": [
+    { "slug": "applied-ai", "name": "Applied AI" },
+    { "slug": "computer-science", "name": "Computer Science" }
+  ],
+  "universities": [
+    {
+      "key": "ntu",
+      "name": "Nanyang Technological University",
+      "countryCode": "SG",
+      "city": "Singapore",
+      "officialDomain": "ntu.edu.sg",
+      "officialWebsite": "https://www.ntu.edu.sg/",
+      "aliases": ["NTU", "NTU Singapore"],
+      "programs": [
+        {
+          "key": "msc-artificial-intelligence",
+          "name": "Master of Science in Artificial Intelligence (MSAI)",
+          "degreeType": "MASTER",
+          "summary": {
+            "text": "An intensive coursework master's that develops the theory and practical skills needed to design, implement and manage AI systems. Core study covers machine learning, deep learning, mathematics and ethics, while projects and electives extend into areas such as computer vision, language processing and robotics.",
+            "sourceKey": "programme-page"
+          },
+          "durationMonths": 12,
+          "campus": "Singapore",
+          "language": null,
+          "officialUrl": "https://www.ntu.edu.sg/education/graduate-programme/master-of-science-in-artificial-intelligence",
+          "domains": ["applied-ai", "computer-science"],
+          "sources": [
+            {
+              "key": "programme-page",
+              "url": "https://www.ntu.edu.sg/education/graduate-programme/master-of-science-in-artificial-intelligence",
+              "sourceType": "PROGRAM_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-30T13:36:05.893Z"
+            },
+            {
+              "key": "admissions-schedule",
+              "url": "https://www.ntu.edu.sg/admissions/graduate/cwadmissionguide/apply-now",
+              "sourceType": "ADMISSIONS_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-30T13:36:05.893Z"
+            }
+          ],
+          "intakes": [
+            {
+              "key": "2027-january",
+              "year": 2027,
+              "month": 1,
+              "status": "OPEN",
+              "applicationWindows": [
+                {
+                  "key": "main-round",
+                  "roundName": null,
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "NOT_PUBLISHED",
+                  "verification": "OFFICIAL",
+                  "sourceKey": "admissions-schedule",
+                  "lastVerifiedAt": "2026-07-30T13:36:05.893Z"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
