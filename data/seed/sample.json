@@ -1,20 +1,14 @@
 {
   "$schema": "./seed.schema.json",
+  "schemaVersion": 1,
   "domains": [
     { "slug": "entrepreneurship", "name": "Entrepreneurship" },
-    { "slug": "applied-ai", "name": "Applied AI" },
-    { "slug": "physical-ai", "name": "Physical AI" },
-    { "slug": "robotics", "name": "Robotics" },
-    { "slug": "computer-science", "name": "Computer Science" },
-    { "slug": "data-science", "name": "Data Science" },
-    { "slug": "management", "name": "Management" },
-    { "slug": "mba", "name": "MBA" },
-    { "slug": "phd", "name": "PhD" }
+    { "slug": "management", "name": "Management" }
   ],
   "universities": [
     {
+      "key": "nus",
       "name": "National University of Singapore",
-      "normalizedName": "national university of singapore",
       "countryCode": "SG",
       "city": "Singapore",
       "officialDomain": "nus.edu.sg",
@@ -22,18 +16,47 @@
       "aliases": ["NUS"],
       "programs": [
         {
+          "key": "msc-venture-creation",
           "name": "MSc Venture Creation",
-          "normalizedName": "msc venture creation",
           "degreeType": "MASTER",
+          "summary": {
+            "text": "A graduate programme focused on developing and launching new ventures through entrepreneurship coursework, practical projects and the university innovation ecosystem.",
+            "sourceKey": "programme-page"
+          },
           "durationMonths": 12,
+          "campus": "Singapore",
+          "language": "English",
           "officialUrl": "https://mscventurecreation.nus.edu.sg/",
           "domains": ["entrepreneurship", "management"],
-          "intake": { "year": 2027, "month": 8 },
-          "source": {
-            "url": "https://mscventurecreation.nus.edu.sg/",
-            "sourceType": "PROGRAM_PAGE",
-            "isOfficial": true
-          }
+          "sources": [
+            {
+              "key": "programme-page",
+              "url": "https://mscventurecreation.nus.edu.sg/",
+              "sourceType": "PROGRAM_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-30T00:00:00.000Z"
+            }
+          ],
+          "intakes": [
+            {
+              "key": "2027-august",
+              "year": 2027,
+              "month": 8,
+              "status": "PLANNED",
+              "applicationWindows": [
+                {
+                  "key": "main-round",
+                  "roundName": null,
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "NOT_PUBLISHED",
+                  "verification": "OFFICIAL",
+                  "sourceKey": "programme-page",
+                  "lastVerifiedAt": "2026-07-30T00:00:00.000Z"
+                }
+              ]
+            }
+          ]
         }
       ]
     }
