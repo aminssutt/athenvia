@@ -189,7 +189,29 @@
   background: linear-gradient(transparent, var(--background) 28%);
 }
 
-.primaryAction button {
+.followPanel {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.followPanel label {
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  font-weight: 750;
+}
+
+.followPanel select {
+  width: 100%;
+  min-height: var(--touch-target-min);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  padding: 0 0.9rem;
+  background: var(--surface);
+  color: var(--text-primary);
+  font: inherit;
+}
+
+.followPanel button {
   display: inline-flex;
   width: 100%;
   min-height: 3.5rem;
@@ -204,8 +226,48 @@
   font-weight: 750;
 }
 
-.primaryAction button:hover {
+.followPanel button:hover:not(:disabled) {
   background: var(--chocolate);
+}
+
+.followPanel button:disabled {
+  cursor: default;
+  opacity: 0.82;
+}
+
+.followMessage,
+.followSuccess,
+.followError p {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.followMessage {
+  color: var(--text-secondary);
+}
+
+.followSuccess {
+  color: var(--chocolate-dark);
+  font-weight: 750;
+}
+
+.followError {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border-radius: var(--radius-sm);
+  padding: 0.65rem 0.75rem;
+  background: var(--danger-soft);
+  color: var(--text-primary);
+}
+
+.followError a {
+  flex: none;
+  color: var(--chocolate-dark);
+  font-size: 0.82rem;
+  font-weight: 750;
 }
 
 .visuallyHidden {
