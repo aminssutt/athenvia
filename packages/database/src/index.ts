@@ -1,5 +1,27 @@
 export { database } from "./client";
 export {
+  catalogueNameSimilarity,
+  normalizeCatalogueName,
+  normalizeOfficialDomain,
+  normalizeOfficialUrl,
+} from "./catalogue-normalization";
+export {
+  createDuplicateReview,
+  detectProgramDuplicateCandidates,
+  detectUniversityDuplicateCandidates,
+  DUPLICATE_REVIEW_FIELD,
+  findProgramDuplicateCandidates,
+  findUniversityDuplicateCandidates,
+} from "./duplicate-detection";
+export type {
+  DuplicateCandidate,
+  DuplicateMatchReason,
+  ProgramDuplicateInput,
+  ProgramDuplicateRecord,
+  UniversityDuplicateInput,
+  UniversityDuplicateRecord,
+} from "./duplicate-detection";
+export {
   ActiveUniversityNotFoundError,
   createPendingProgramSubmission,
 } from "./program-submissions";
