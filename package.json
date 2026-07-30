@@ -20,6 +20,7 @@
     "db:validate": "pnpm --filter @athenvia/database db:validate",
     "db:migrate": "pnpm --filter @athenvia/database db:migrate",
     "db:seed": "pnpm --filter @athenvia/database db:seed",
+    "db:seed:check": "pnpm --filter @athenvia/database db:seed:check",
     "vapid:generate": "web-push generate-vapid-keys"
   },
   "devDependencies": {

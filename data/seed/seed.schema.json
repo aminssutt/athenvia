@@ -1,42 +1,217 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://athenvia.app/schemas/seed-v1.json",
+  "title": "Athenvia source-backed seed file v1",
   "type": "object",
-  "required": ["domains", "universities"],
+  "additionalProperties": false,
+  "required": ["schemaVersion", "domains", "universities"],
   "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": 1 },
     "domains": {
       "type": "array",
-      "items": {
-        "type": "object",
-        "required": ["slug", "name"],
-        "properties": {
-          "slug": { "type": "string", "minLength": 1 },
-          "name": { "type": "string", "minLength": 1 }
-        },
-        "additionalProperties": false
-      }
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/domain" }
     },
     "universities": {
       "type": "array",
-      "items": {
-        "type": "object",
-        "required": [
-          "name",
-          "normalizedName",
-          "countryCode",
-          "officialDomain",
-          "officialWebsite",
-          "aliases",
-          "programs"
-        ],
-        "properties": {
-          "name": { "type": "string", "minLength": 1 },
-          "normalizedName": { "type": "string", "minLength": 1 },
-          "countryCode": { "type": "string", "pattern": "^[A-Z]{2}$" },
-          "city": { "type": "string" },
-          "officialDomain": { "type": "string", "minLength": 3 },
-          "officialWebsite": { "type": "string", "format": "uri" },
-          "aliases": { "type": "array", "items": { "type": "string" } },
-          "programs": { "type": "array", "minItems": 1 }
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/university" }
+    }
+  },
+  "$defs": {
+    "key": {
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 80,
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "displayText": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200,
+      "pattern": ".*\\S.*"
+    },
+    "nullableDisplayText": {
+      "anyOf": [{ "$ref": "#/$defs/displayText" }, { "type": "null" }]
+    },
+    "httpsUrl": {
+      "type": "string",
+      "format": "uri",
+      "pattern": "^https://",
+      "maxLength": 2048
+    },
+    "nullableInstant": {
+      "anyOf": [{ "type": "string", "format": "date-time" }, { "type": "null" }]
+    },
+    "domain": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["slug", "name"],
+      "properties": {
+        "slug": { "$ref": "#/$defs/key" },
+        "name": { "$ref": "#/$defs/displayText" }
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["key", "url", "sourceType", "isOfficial", "lastCheckedAt"],
+      "properties": {
+        "key": { "$ref": "#/$defs/key" },
+        "url": { "$ref": "#/$defs/httpsUrl" },
+        "sourceType": {
+          "enum": [
+            "PROGRAM_PAGE",
+            "ADMISSIONS_PAGE",
+            "APPLICATION_PORTAL",
+            "OFFICIAL_PDF",
+            "UNIVERSITY_PAGE"
+          ]
+        },
+        "isOfficial": { "const": true },
+        "lastCheckedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["text", "sourceKey"],
+      "properties": {
+        "text": {
+          "type": "string",
+          "minLength": 80,
+          "maxLength": 800,
+          "pattern": ".*\\S.*"
+        },
+        "sourceKey": { "$ref": "#/$defs/key" }
+      }
+    },
+    "applicationWindow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "key",
+        "roundName",
+        "opensAt",
+        "closesAt",
+        "publicStatus",
+        "verification",
+        "sourceKey",
+        "lastVerifiedAt"
+      ],
+      "properties": {
+        "key": { "$ref": "#/$defs/key" },
+        "roundName": { "$ref": "#/$defs/nullableDisplayText" },
+        "opensAt": { "$ref": "#/$defs/nullableInstant" },
+        "closesAt": { "$ref": "#/$defs/nullableInstant" },
+        "publicStatus": {
+          "enum": ["CONFIRMED", "EXPECTED", "NOT_PUBLISHED"]
+        },
+        "verification": {
+          "enum": ["OFFICIAL", "VERIFIED", "EXPECTED", "UNKNOWN"]
+        },
+        "sourceKey": { "$ref": "#/$defs/key" },
+        "lastVerifiedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "intake": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["key", "year", "month", "status", "applicationWindows"],
+      "properties": {
+        "key": { "$ref": "#/$defs/key" },
+        "year": { "type": "integer", "minimum": 2000, "maximum": 2100 },
+        "month": { "type": "integer", "minimum": 1, "maximum": 12 },
+        "status": {
+          "enum": ["PLANNED", "OPEN", "CLOSED", "COMPLETED", "UNKNOWN"]
+        },
+        "applicationWindows": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/applicationWindow" }
+        }
+      }
+    },
+    "program": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "key",
+        "name",
+        "degreeType",
+        "summary",
+        "durationMonths",
+        "campus",
+        "language",
+        "officialUrl",
+        "domains",
+        "sources",
+        "intakes"
+      ],
+      "properties": {
+        "key": { "$ref": "#/$defs/key" },
+        "name": { "$ref": "#/$defs/displayText" },
+        "degreeType": { "enum": ["MASTER", "MBA", "PHD", "OTHER"] },
+        "summary": { "$ref": "#/$defs/summary" },
+        "durationMonths": {
+          "anyOf": [{ "type": "integer", "minimum": 1, "maximum": 120 }, { "type": "null" }]
+        },
+        "campus": { "$ref": "#/$defs/nullableDisplayText" },
+        "language": { "$ref": "#/$defs/nullableDisplayText" },
+        "officialUrl": { "$ref": "#/$defs/httpsUrl" },
+        "domains": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/key" }
+        },
+        "sources": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/source" }
+        },
+        "intakes": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/intake" }
+        }
+      }
+    },
+    "university": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "key",
+        "name",
+        "countryCode",
+        "city",
+        "officialDomain",
+        "officialWebsite",
+        "aliases",
+        "programs"
+      ],
+      "properties": {
+        "key": { "$ref": "#/$defs/key" },
+        "name": { "$ref": "#/$defs/displayText" },
+        "countryCode": { "type": "string", "pattern": "^[A-Z]{2}$" },
+        "city": { "$ref": "#/$defs/nullableDisplayText" },
+        "officialDomain": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 253,
+          "pattern": "^[a-z0-9.-]+\\.[a-z]{2,}$"
+        },
+        "officialWebsite": { "$ref": "#/$defs/httpsUrl" },
+        "aliases": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/displayText" }
+        },
+        "programs": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/program" }
         }
       }
     }
