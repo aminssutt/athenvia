@@ -289,6 +289,7 @@ model SourceSnapshot {
   contentHash String   @map("content_hash")
   capturedAt  DateTime @default(now()) @map("captured_at")
   source      Source   @relation(fields: [sourceId], references: [id], onDelete: Restrict)
+  revisions   DataRevision[]
 
   @@unique([sourceId, contentHash])
   @@index([sourceId, capturedAt])
@@ -303,6 +304,9 @@ model DataRevision {
   oldValue          Json?        @map("old_value")
   newValue          Json?        @map("new_value")
   sourceId          String?      @db.Uuid @map("source_id")
+  sourceSnapshotId  String?      @db.Uuid @map("source_snapshot_id")
+  conflictKey       String?      @map("conflict_key")
+  hasConflict       Boolean      @default(false) @map("has_conflict")
   changeStatus      ChangeStatus @default(PENDING) @map("change_status")
   confidenceScore   Decimal?     @db.Decimal(5, 4) @map("confidence_score")
   createdByUserId   String?      @db.Uuid @map("created_by_user_id")
@@ -310,9 +314,12 @@ model DataRevision {
   createdAt         DateTime     @default(now()) @map("created_at")
   reviewedAt        DateTime?    @map("reviewed_at")
   source            Source?      @relation(fields: [sourceId], references: [id], onDelete: SetNull)
+  sourceSnapshot    SourceSnapshot? @relation(fields: [sourceSnapshotId], references: [id], onDelete: Restrict)
   createdBy         User?        @relation("RevisionCreator", fields: [createdByUserId], references: [id], onDelete: SetNull)
 
   @@index([entityType, entityId])
+  @@index([entityType, entityId, fieldName, changeStatus])
+  @@index([conflictKey, changeStatus])
   @@map("data_revisions")
 }
 
