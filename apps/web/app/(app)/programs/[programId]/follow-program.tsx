@@ -1,14 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useRef, useState } from "react";
+
+import { PushPermissionOnboarding } from "@/components/push-permission-onboarding";
+import { FOLLOW_SUCCEEDED_EVENT } from "@/components/push-permission";
 
 import { FollowRequestError, requestProgramFollow } from "./follow-program-request";
 import styles from "./program-detail.module.css";
 
 import type { IntakeOption } from "./program-data";
 
-export const FOLLOW_SUCCEEDED_EVENT = "athenvia:follow-succeeded";
+export { FOLLOW_SUCCEEDED_EVENT } from "@/components/push-permission";
 
 type FollowPhase = "idle" | "optimistic" | "followed" | "error";
 
@@ -21,6 +24,7 @@ export function FollowProgram({ intakes, programId }: FollowProgramProps) {
   const [selectedIntakeId, setSelectedIntakeId] = useState(intakes[0]?.id ?? "");
   const [phase, setPhase] = useState<FollowPhase>("idle");
   const [requiresAuthentication, setRequiresAuthentication] = useState(false);
+  const followStatusRef = useRef<HTMLParagraphElement>(null);
 
   async function followSelectedIntake() {
     if (!selectedIntakeId || phase === "optimistic" || phase === "followed") {
@@ -50,59 +54,66 @@ export function FollowProgram({ intakes, programId }: FollowProgramProps) {
 
   if (intakes.length === 0) {
     return (
-      <div className={styles.followPanel}>
-        <p className={styles.followMessage}>No intake is available to follow yet.</p>
+      <div className={styles.primaryAction}>
+        <div className={styles.followPanel}>
+          <p className={styles.followMessage}>No intake is available to follow yet.</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className={styles.followPanel}>
-      <label htmlFor="follow-intake">Intake to follow</label>
-      <select
-        id="follow-intake"
-        value={selectedIntakeId}
-        onChange={(event) => {
-          setSelectedIntakeId(event.target.value);
-          setPhase("idle");
-          setRequiresAuthentication(false);
-        }}
-        disabled={phase === "optimistic" || phase === "followed"}
-      >
-        {intakes.map((intake) => (
-          <option key={intake.id} value={intake.id}>
-            {intake.label}
-          </option>
-        ))}
-      </select>
+    <>
+      <div className={styles.primaryAction}>
+        <div className={styles.followPanel}>
+          <label htmlFor="follow-intake">Intake to follow</label>
+          <select
+            id="follow-intake"
+            value={selectedIntakeId}
+            onChange={(event) => {
+              setSelectedIntakeId(event.target.value);
+              setPhase("idle");
+              setRequiresAuthentication(false);
+            }}
+            disabled={phase === "optimistic" || phase === "followed"}
+          >
+            {intakes.map((intake) => (
+              <option key={intake.id} value={intake.id}>
+                {intake.label}
+              </option>
+            ))}
+          </select>
 
-      {phase === "followed" ? (
-        <p className={styles.followSuccess} role="status">
-          Program followed. Reminder setup is ready for the next step.
-        </p>
-      ) : null}
-      {phase === "error" ? (
-        <div className={styles.followError} role="alert">
-          <p>
-            {requiresAuthentication
-              ? "Sign in to keep this program in your private watchlist."
-              : "We could not follow this program. Your selection was kept; please try again."}
-          </p>
-          {requiresAuthentication ? <Link href="/sign-in">Sign in</Link> : null}
+          {phase === "followed" ? (
+            <p className={styles.followSuccess} ref={followStatusRef} role="status" tabIndex={-1}>
+              Program followed. Reminder setup is ready for the next step.
+            </p>
+          ) : null}
+          {phase === "error" ? (
+            <div className={styles.followError} role="alert">
+              <p>
+                {requiresAuthentication
+                  ? "Sign in to keep this program in your private watchlist."
+                  : "We could not follow this program. Your selection was kept; please try again."}
+              </p>
+              {requiresAuthentication ? <Link href="/sign-in">Sign in</Link> : null}
+            </div>
+          ) : null}
+
+          <button
+            type="button"
+            onClick={() => void followSelectedIntake()}
+            disabled={phase === "optimistic" || phase === "followed"}
+          >
+            {phase === "optimistic"
+              ? "Following…"
+              : phase === "followed"
+                ? "Following"
+                : "Follow this program"}
+          </button>
         </div>
-      ) : null}
-
-      <button
-        type="button"
-        onClick={() => void followSelectedIntake()}
-        disabled={phase === "optimistic" || phase === "followed"}
-      >
-        {phase === "optimistic"
-          ? "Following…"
-          : phase === "followed"
-            ? "Following"
-            : "Follow this program"}
-      </button>
-    </div>
+      </div>
+      <PushPermissionOnboarding returnFocusRef={followStatusRef} />
+    </>
   );
 }

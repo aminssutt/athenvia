@@ -18,11 +18,13 @@ describe("requestProgramFollow", () => {
   it("posts the explicitly selected intake and accepts a matching owner response", async () => {
     const fetchFollow = vi.fn(async () =>
       response(201, {
+        created: true,
         watchlist: { id: watchlistId, programId, intakeId },
       }),
     );
 
     await expect(requestProgramFollow(programId, intakeId, fetchFollow)).resolves.toEqual({
+      created: true,
       watchlistId,
       programId,
       intakeId,
@@ -35,6 +37,22 @@ describe("requestProgramFollow", () => {
         method: "POST",
       }),
     );
+  });
+
+  it("preserves an idempotent Follow result for onboarding eligibility", async () => {
+    await expect(
+      requestProgramFollow(programId, intakeId, async () =>
+        response(200, {
+          created: false,
+          watchlist: { id: watchlistId, programId, intakeId },
+        }),
+      ),
+    ).resolves.toEqual({
+      created: false,
+      watchlistId,
+      programId,
+      intakeId,
+    });
   });
 
   it("maps an unauthenticated response to an explicit sign-in state", async () => {
@@ -53,11 +71,22 @@ describe("requestProgramFollow", () => {
     await expect(
       requestProgramFollow(programId, intakeId, async () =>
         response(200, {
+          created: false,
           watchlist: {
             id: watchlistId,
             programId,
             intakeId: "a74ebcdb-59c8-4f4d-a8a7-efdfbb0aeb1f",
           },
+        }),
+      ),
+    ).rejects.toMatchObject({ code: "FOLLOW_UNAVAILABLE" });
+  });
+
+  it("rejects a success payload that omits the creation result", async () => {
+    await expect(
+      requestProgramFollow(programId, intakeId, async () =>
+        response(201, {
+          watchlist: { id: watchlistId, programId, intakeId },
         }),
       ),
     ).rejects.toMatchObject({ code: "FOLLOW_UNAVAILABLE" });

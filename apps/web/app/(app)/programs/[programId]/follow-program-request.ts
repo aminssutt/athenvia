@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 const FollowSuccessSchema = z.object({
+  created: z.boolean(),
   watchlist: z.object({
     id: z.string().uuid(),
     intakeId: z.string().uuid(),
@@ -18,6 +19,7 @@ export class FollowRequestError extends Error {
 }
 
 export type FollowResult = {
+  created: boolean;
   intakeId: string;
   programId: string;
   watchlistId: string;
@@ -59,6 +61,7 @@ export async function requestProgramFollow(
   }
 
   return {
+    created: parsed.data.created,
     intakeId,
     programId,
     watchlistId: parsed.data.watchlist.id,

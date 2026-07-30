@@ -190,9 +190,7 @@ export default async function ProgramPage({ params }: ProgramPageProps) {
             )}
           </section>
 
-          <div className={styles.primaryAction}>
-            <FollowProgram intakes={intakes} programId={program.id} />
-          </div>
+          <FollowProgram intakes={intakes} programId={program.id} />
         </article>
       </main>
       <MobileNavigation />
