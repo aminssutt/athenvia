@@ -1,0 +1,64 @@
+{
+  "$schema": "./seed.schema.json",
+  "schemaVersion": 1,
+  "domains": [
+    { "slug": "applied-ai", "name": "Applied AI" },
+    { "slug": "management", "name": "Management" }
+  ],
+  "universities": [
+    {
+      "key": "smu",
+      "name": "Singapore Management University",
+      "countryCode": "SG",
+      "city": "Singapore",
+      "officialDomain": "smu.edu.sg",
+      "officialWebsite": "https://www.smu.edu.sg/",
+      "aliases": ["SMU"],
+      "programs": [
+        {
+          "key": "msc-business-ai",
+          "name": "Master of Science in Business AI (MBAI)",
+          "degreeType": "MASTER",
+          "summary": {
+            "text": "A 12-month full-time programme for professionals and aspiring leaders who want to connect AI with business strategy. The curriculum combines responsible AI, decision-making, human-AI collaboration and applied work across core business functions, with electives or an internship.",
+            "sourceKey": "programme-page"
+          },
+          "durationMonths": 12,
+          "campus": "Singapore",
+          "language": null,
+          "officialUrl": "https://masters.smu.edu.sg/programme/msc-in-business-ai",
+          "domains": ["applied-ai", "management"],
+          "sources": [
+            {
+              "key": "programme-page",
+              "url": "https://masters.smu.edu.sg/programme/msc-in-business-ai",
+              "sourceType": "PROGRAM_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-30T13:36:05.893Z"
+            }
+          ],
+          "intakes": [
+            {
+              "key": "2026-august",
+              "year": 2026,
+              "month": 8,
+              "status": "PLANNED",
+              "applicationWindows": [
+                {
+                  "key": "main-round",
+                  "roundName": null,
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "NOT_PUBLISHED",
+                  "verification": "OFFICIAL",
+                  "sourceKey": "programme-page",
+                  "lastVerifiedAt": "2026-07-30T13:36:05.893Z"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
