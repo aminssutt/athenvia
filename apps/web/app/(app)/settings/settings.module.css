@@ -1,0 +1,325 @@
+.appFrame {
+  display: grid;
+  width: min(100%, 30rem);
+  min-height: 100dvh;
+  grid-template-rows: 1fr auto;
+  margin: 0 auto;
+}
+
+.main {
+  width: 100%;
+  min-height: 0;
+  padding: max(1.25rem, env(safe-area-inset-top)) 1.25rem 2rem;
+}
+
+.header {
+  padding: 1rem 0 2.5rem;
+}
+
+.eyebrow {
+  margin: 2.5rem 0 0;
+  color: var(--chocolate);
+  font-size: 0.75rem;
+  font-weight: 750;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.header h1 {
+  margin: 0.45rem 0 0.5rem;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 2.5rem;
+  font-weight: 500;
+  letter-spacing: -0.045em;
+  line-height: 1.05;
+}
+
+.intro,
+.cardHeading p,
+.stateCard p,
+.preferenceRow p,
+.unsubscribeRow p,
+.dangerZone p {
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+
+.intro,
+.cardHeading p,
+.stateCard p,
+.preferenceRow p,
+.unsubscribeRow p,
+.dangerZone p,
+.cardHeading h2,
+.stateCard h2,
+.preferenceRow h3,
+.unsubscribeRow h3,
+.dangerZone h3 {
+  margin: 0;
+}
+
+.sections {
+  display: grid;
+  gap: 1rem;
+}
+
+.card,
+.stateCard {
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: 0 18px 50px rgb(95 64 50 / 8%);
+}
+
+.card {
+  display: grid;
+  gap: 1.25rem;
+  padding: 1.15rem;
+}
+
+.stateCard {
+  display: grid;
+  gap: 1rem;
+  align-items: center;
+  padding: 1.25rem;
+}
+
+.stateCard h2,
+.cardHeading h2 {
+  font-size: 1.15rem;
+}
+
+.stateCard p,
+.cardHeading p {
+  margin-top: 0.35rem;
+  font-size: 0.9rem;
+}
+
+.cardHeading {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.cardHeading .sectionLabel {
+  margin-bottom: 0.35rem;
+  color: var(--chocolate);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.lockMark {
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--success-soft);
+  color: var(--chocolate-dark);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.2rem;
+  font-weight: 800;
+}
+
+.primaryLink,
+.secondaryButton,
+.dangerOutlineButton,
+.dangerButton {
+  display: inline-flex;
+  min-height: var(--touch-target-min);
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-pill);
+  padding: 0.65rem 1rem;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 750;
+}
+
+.primaryLink {
+  background: var(--chocolate-dark);
+  color: var(--surface);
+  text-decoration: none;
+}
+
+.secondaryButton {
+  width: fit-content;
+  border: 1px solid var(--border-soft);
+  background: var(--surface);
+  color: var(--chocolate-dark);
+}
+
+.preferenceList {
+  display: grid;
+  border-top: 1px solid var(--border-soft);
+}
+
+.preferenceRow,
+.unsubscribeRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: center;
+  border-bottom: 1px solid var(--border-soft);
+  padding: 1rem 0;
+}
+
+.preferenceRow h3,
+.unsubscribeRow h3,
+.dangerZone h3 {
+  font-size: 0.94rem;
+}
+
+.preferenceRow p,
+.unsubscribeRow p,
+.dangerZone p {
+  margin-top: 0.25rem;
+  font-size: 0.82rem;
+}
+
+.switch {
+  position: relative;
+  width: 3rem;
+  min-width: 3rem;
+  height: 1.75rem;
+  border: 0;
+  border-radius: var(--radius-pill);
+  padding: 0.18rem;
+  background: var(--border-soft);
+  cursor: pointer;
+  transition: background 150ms ease;
+}
+
+.switch span {
+  display: block;
+  width: 1.39rem;
+  height: 1.39rem;
+  border-radius: 50%;
+  background: var(--surface);
+  box-shadow: 0 2px 7px rgb(42 33 29 / 18%);
+  transition: transform 150ms ease;
+}
+
+.switch[aria-checked="true"] {
+  background: var(--chocolate-dark);
+}
+
+.switch[aria-checked="true"] span {
+  transform: translateX(1.25rem);
+}
+
+.switch:disabled,
+.secondaryButton:disabled,
+.dangerOutlineButton:disabled,
+.dangerButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.helperText {
+  margin: -0.35rem 0 0;
+  border-radius: var(--radius-md);
+  padding: 0.75rem;
+  background: var(--surface-soft);
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.unsubscribeRow {
+  align-items: end;
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.dangerZone {
+  display: grid;
+  gap: 1rem;
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  background: var(--danger-soft);
+}
+
+.dangerOutlineButton {
+  width: fit-content;
+  border: 1px solid #9a4c43;
+  background: transparent;
+  color: #7b302a;
+}
+
+.dangerButton {
+  border: 1px solid #7b302a;
+  background: #7b302a;
+  color: white;
+}
+
+.confirmationPanel {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.confirmationPanel label {
+  font-size: 0.82rem;
+}
+
+.confirmationPanel input {
+  width: 100%;
+  min-height: 3rem;
+  border: 1px solid #9a4c43;
+  border-radius: var(--radius-md);
+  padding: 0 0.85rem;
+  background: var(--surface);
+  color: var(--text-primary);
+  font: inherit;
+}
+
+.confirmationActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.notice {
+  margin: 0;
+  border-radius: var(--radius-md);
+  padding: 0.85rem 1rem;
+  background: var(--success-soft);
+  color: var(--chocolate-dark);
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+.spinner {
+  width: 2rem;
+  height: 2rem;
+  border: 0.22rem solid var(--surface-soft);
+  border-top-color: var(--chocolate-dark);
+  border-radius: 50%;
+  animation: spin 800ms linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (min-width: 40rem) {
+  .main {
+    padding-right: 1.5rem;
+    padding-left: 1.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation-duration: 2s;
+  }
+
+  .switch,
+  .switch span {
+    transition: none;
+  }
+}
