@@ -16,6 +16,7 @@
     "db:migrate": "prisma migrate dev",
     "db:seed": "tsx src/seed.ts",
     "test:program-submissions:integration": "tsx tests/program-submissions.integration.ts",
+    "test:source-snapshots:integration": "tsx tests/source-snapshots.integration.ts",
     "test:watchlists:integration": "tsx tests/watchlists.integration.ts"
   },
   "dependencies": {
