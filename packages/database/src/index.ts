@@ -1,4 +1,10 @@
 export { database } from "./client";
+export { createCanonicalFieldRevision, RevisionEvidenceNotFoundError } from "./canonical-revisions";
+export type {
+  CanonicalRevisionInput,
+  CanonicalRevisionResult,
+  RevisionCreator,
+} from "./canonical-revisions";
 export {
   catalogueNameSimilarity,
   normalizeCatalogueName,
