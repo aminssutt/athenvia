@@ -92,7 +92,12 @@ export default async function HomePage() {
     <div className={styles.appFrame}>
       <main className={styles.main}>
         <header className={styles.header}>
-          <Brand />
+          <div className={styles.headerBar}>
+            <Brand />
+            <Link className={styles.authLink} href="/sign-in">
+              Sign in to sync
+            </Link>
+          </div>
           <p className={styles.eyebrow}>My watchlist</p>
           <h1>Your programs</h1>
           <p className={styles.intro}>The next useful dates, without the noise.</p>

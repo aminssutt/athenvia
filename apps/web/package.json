@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "test": "vitest run",
     "test:e2e": "playwright test",
     "typecheck": "tsc --noEmit"
   },
@@ -13,9 +14,12 @@
     "@athenvia/contracts": "workspace:*",
     "@athenvia/database": "workspace:*",
     "@athenvia/ui": "workspace:*",
+    "@auth/prisma-adapter": "2.11.3",
     "@tailwindcss/postcss": "^4.0.0",
     "ioredis": "^5.8.2",
     "next": "^16.0.0",
+    "next-auth": "4.24.15",
+    "nodemailer": "7.0.7",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "tailwindcss": "^4.0.0",
@@ -27,6 +31,7 @@
     "@types/node": "^24.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
-    "typescript": "^5.9.0"
+    "typescript": "^5.9.0",
+    "vitest": "4.1.10"
   }
 }

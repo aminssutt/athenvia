@@ -16,6 +16,23 @@
   padding: 1rem 0 2.5rem;
 }
 
+.headerBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.authLink {
+  min-height: 2.75rem;
+  display: inline-flex;
+  align-items: center;
+  color: var(--chocolate-dark);
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-underline-offset: 0.2rem;
+}
+
 .eyebrow {
   margin: 2.5rem 0 0;
   color: var(--chocolate);
