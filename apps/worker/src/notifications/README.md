@@ -46,6 +46,32 @@ pending rows.
 The sender/retry workers own `PROCESSING`, `SENT`, and `FAILED` rows. The
 scheduler never mutates them.
 
+## Opening reminder jobs
+
+`prepareDueOpeningReminderJobs` reads only due `SCHEDULED`
+`APPLICATION_OPENING` deliveries and prepares contract-valid queue payloads; it
+does not make network calls or mutate delivery lifecycle state. Each returned
+job keeps the persisted delivery ID as its queue job ID and the scheduler
+dedupe key in its payload.
+
+The batch read is bounded to deliveries due on the current UTC day so stale
+rows cannot consume the limit forever. Atomic claiming and paging through more
+than one batch of same-day deliveries belong to the delivery worker lifecycle.
+
+The three supported opening offsets are 30 days, 7 days and opening day.
+Confirmed and expected dates have separate copy. Expected reminders explicitly
+say that the date is expected and not confirmed.
+
+The current schema does not link an `ApplicationWindow` to the `Source` that
+supports it. Until that provenance relation exists, preparation checks a
+bounded newest-first set of official program sources, then
+`Program.officialUrl` as fallback. The
+source hostname appears in notification copy and only its canonical HTTPS
+origin is returned as job metadata. Source paths, queries and fragments never
+leave persistence with the job. Copy identifies it only as the program source:
+because no `ApplicationWindow -> Source` relation exists, the job does not
+attribute that page to `opensAt` or claim that it supports the opening date.
+
 ## PostgreSQL integration test
 
 The repository integration test is opt-in so the ordinary test suite can run
