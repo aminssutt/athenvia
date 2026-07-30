@@ -9,7 +9,8 @@ content belongs in immutable object storage, never PostgreSQL or Redis.
 - `(source_id, content_hash)` is unique, so repeated and concurrent captures of
   identical bytes resolve to one snapshot per source.
 - `storage_key` is globally unique and contains only a source UUID plus a
-  server-derived digest.
+  server-derived digest. PostgreSQL checks both its canonical SHA-256 format and
+  its exact relationship to the source and hash.
 - database triggers reject snapshot updates and deletes;
 - the snapshot foreign key uses `RESTRICT`, so its source cannot be deleted;
 - university/program links on a source cannot be reassigned after evidence
@@ -22,7 +23,7 @@ newer than `sources.last_checked_at`.
 ## Migration review and preflight
 
 Before applying `20260730170000_enforce_immutable_source_snapshots` in an
-environment that may already contain snapshots, both queries must return no
+environment that may already contain snapshots, all queries must return no
 rows:
 
 ```sql
@@ -35,6 +36,17 @@ SELECT storage_key, count(*)
 FROM source_snapshots
 GROUP BY storage_key
 HAVING count(*) > 1;
+
+SELECT id, source_id, content_hash, storage_key
+FROM source_snapshots
+WHERE content_hash !~ '^sha256:[0-9a-f]{64}$'
+   OR storage_key <> (
+     'source-snapshots/'
+     || source_id::text
+     || '/'
+     || substring(content_hash from 8)
+     || '.bin'
+   );
 ```
 
 If duplicates exist, do not delete evidence automatically. Quarantine the

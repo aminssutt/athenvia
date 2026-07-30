@@ -4,29 +4,22 @@ import { database } from "./client";
 
 import type { Prisma } from "@prisma/client";
 
-const CanonicalContentHashSchema = z
-  .string()
-  .regex(/^sha256:[a-f0-9]{64}$/u);
+const CanonicalContentHashSchema = z.string().regex(/^sha256:[a-f0-9]{64}$/u);
+
+const SourceSnapshotIdentitySchema = z
+  .object({
+    sourceId: z.string().uuid(),
+    contentHash: CanonicalContentHashSchema,
+  })
+  .strict();
 
 const SourceSnapshotInputSchema = z
   .object({
     sourceId: z.string().uuid(),
     contentHash: CanonicalContentHashSchema,
-    storageKey: z.string().max(255),
     capturedAt: z.date(),
   })
-  .strict()
-  .superRefine((input, context) => {
-    const digest = input.contentHash.slice("sha256:".length);
-    const expectedStorageKey = `source-snapshots/${input.sourceId}/${digest}.bin`;
-    if (input.storageKey !== expectedStorageKey) {
-      context.addIssue({
-        code: "custom",
-        message: "The storage key must be derived from the source ID and content hash.",
-        path: ["storageKey"],
-      });
-    }
-  });
+  .strict();
 
 const snapshotEvidenceSelection = {
   id: true,
@@ -46,9 +39,9 @@ export type SourceSnapshotEvidence = Prisma.SourceSnapshotGetPayload<{
   select: typeof snapshotEvidenceSelection;
 }>;
 
-export type RecordSourceSnapshotInput = z.input<
-  typeof SourceSnapshotInputSchema
->;
+export type RecordSourceSnapshotInput = z.input<typeof SourceSnapshotInputSchema>;
+
+export type SourceSnapshotIdentity = z.input<typeof SourceSnapshotIdentitySchema>;
 
 export type RecordSourceSnapshotResult = {
   created: boolean;
@@ -70,12 +63,13 @@ export class SnapshotStorageKeyConflictError extends Error {
 }
 
 function isUniqueConstraintError(error: unknown): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "code" in error &&
-    error.code === "P2002"
-  );
+  return typeof error === "object" && error !== null && "code" in error && error.code === "P2002";
+}
+
+export function sourceSnapshotStorageKey(rawIdentity: SourceSnapshotIdentity): string {
+  const identity = SourceSnapshotIdentitySchema.parse(rawIdentity);
+  const digest = identity.contentHash.slice("sha256:".length);
+  return `source-snapshots/${identity.sourceId}/${digest}.bin`;
 }
 
 async function markSourceChecked(
@@ -111,6 +105,10 @@ export async function recordSourceSnapshot(
   rawInput: RecordSourceSnapshotInput,
 ): Promise<RecordSourceSnapshotResult> {
   const input = SourceSnapshotInputSchema.parse(rawInput);
+  const storageKey = sourceSnapshotStorageKey({
+    sourceId: input.sourceId,
+    contentHash: input.contentHash,
+  });
 
   try {
     const snapshot = await database.$transaction(async (transaction) => {
@@ -127,15 +125,13 @@ export async function recordSourceSnapshot(
       }
 
       const created = await transaction.sourceSnapshot.create({
-        data: input,
+        data: {
+          ...input,
+          storageKey,
+        },
         select: snapshotEvidenceSelection,
       });
-      await markSourceChecked(
-        transaction,
-        source.id,
-        input.contentHash,
-        input.capturedAt,
-      );
+      await markSourceChecked(transaction, source.id, input.contentHash, input.capturedAt);
 
       return created;
     });
@@ -158,16 +154,11 @@ export async function recordSourceSnapshot(
     if (!existing) {
       throw new SnapshotStorageKeyConflictError();
     }
-    if (existing.storageKey !== input.storageKey) {
+    if (existing.storageKey !== storageKey) {
       throw new SnapshotStorageKeyConflictError();
     }
 
-    await markSourceChecked(
-      database,
-      input.sourceId,
-      input.contentHash,
-      input.capturedAt,
-    );
+    await markSourceChecked(database, input.sourceId, input.contentHash, input.capturedAt);
     return { created: false, snapshot: existing };
   }
 }

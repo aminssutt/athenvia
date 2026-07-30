@@ -5,6 +5,20 @@
 -- 2. Existing snapshots become append-only. Source deletion and source link
 --    reassignment are rejected after a snapshot exists.
 
+ALTER TABLE "source_snapshots"
+ADD CONSTRAINT "source_snapshots_content_hash_format_check"
+CHECK ("content_hash" ~ '^sha256:[0-9a-f]{64}$'),
+ADD CONSTRAINT "source_snapshots_storage_key_identity_check"
+CHECK (
+  "storage_key" = (
+    'source-snapshots/'
+    || "source_id"::text
+    || '/'
+    || substring("content_hash" from 8)
+    || '.bin'
+  )
+);
+
 CREATE UNIQUE INDEX "source_snapshots_source_id_content_hash_key"
 ON "source_snapshots"("source_id", "content_hash");
 

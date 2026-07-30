@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@athenvia/contracts": "workspace:*",
+    "@athenvia/database": "workspace:*",
     "bullmq": "^5.0.0",
     "ioredis": "^5.0.0",
     "playwright": "^1.58.0",
