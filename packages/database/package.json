@@ -8,6 +8,8 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
+    "test": "tsx --test tests/*.test.ts",
+    "test:submission-smoke": "tsx tests/university-submissions.smoke.ts",
     "typecheck": "tsc -p tsconfig.json",
     "db:generate": "prisma generate",
     "db:validate": "prisma validate",
