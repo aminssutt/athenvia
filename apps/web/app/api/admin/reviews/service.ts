@@ -97,6 +97,9 @@ export async function decideAdminReviewWith(
       where: { changeStatus: "PENDING", id: revisionId },
       select: {
         conflictKey: true,
+        entityId: true,
+        entityType: true,
+        fieldName: true,
         hasConflict: true,
         id: true,
         sourceId: true,
@@ -129,6 +132,20 @@ export async function decideAdminReviewWith(
         reviewedAt: new Date(),
       },
     });
+    if (revision.fieldName === "submissionReview") {
+      const submissionStatus = decision === "APPROVE" ? "APPROVED" : "REJECTED";
+      if (revision.entityType === "UNIVERSITY_SUBMISSION") {
+        await transaction.universitySubmission.update({
+          where: { id: revision.entityId },
+          data: { reviewedAt: new Date(), status: submissionStatus },
+        });
+      } else if (revision.entityType === "PROGRAM_SUBMISSION") {
+        await transaction.programSubmission.update({
+          where: { id: revision.entityId },
+          data: { reviewedAt: new Date(), status: submissionStatus },
+        });
+      }
+    }
     await transaction.dataRevision.create({
       data: {
         changeStatus: "APPROVED",

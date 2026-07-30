@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { AdminReviewConflictError, decideAdminReviewWith } from "./service";
 
-function fakeDatabase(competitors: number) {
+function fakeDatabase(competitors: number, revisionOverrides: Record<string, unknown> = {}) {
   const transaction = {
     dataRevision: {
       count: vi.fn().mockResolvedValue(competitors),
@@ -13,9 +13,12 @@ function fakeDatabase(competitors: number) {
         id: "revision-1",
         sourceId: "source-1",
         sourceSnapshotId: "snapshot-1",
+        ...revisionOverrides,
       }),
       update: vi.fn().mockResolvedValue({ id: "revision-1" }),
     },
+    programSubmission: { update: vi.fn() },
+    universitySubmission: { update: vi.fn() },
   };
   return {
     database: {
@@ -62,6 +65,21 @@ describe("admin review decisions", () => {
         sourceId: "source-1",
         sourceSnapshotId: "snapshot-1",
       },
+    });
+  });
+
+  it("marks an approved university proposal ready for publication", async () => {
+    const fake = fakeDatabase(0, {
+      entityId: "submission-1",
+      entityType: "UNIVERSITY_SUBMISSION",
+      fieldName: "submissionReview",
+      hasConflict: false,
+    });
+    await decideAdminReviewWith(fake.database as never, "revision-1", "admin-1", "APPROVE");
+
+    expect(fake.transaction.universitySubmission.update).toHaveBeenCalledWith({
+      data: { reviewedAt: expect.any(Date), status: "APPROVED" },
+      where: { id: "submission-1" },
     });
   });
 });

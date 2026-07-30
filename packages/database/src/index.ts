@@ -31,6 +31,13 @@ export {
   ActiveUniversityNotFoundError,
   createPendingProgramSubmission,
 } from "./program-submissions";
+export {
+  ApprovedSubmissionNotFoundError,
+  publishApprovedProgramSubmission,
+  publishApprovedUniversitySubmission,
+  SubmissionReviewRequiredError,
+} from "./publish-submissions";
+export type { PublicationResult } from "./publish-submissions";
 export type {
   PendingProgramSubmission,
   PendingProgramSubmissionInput,
@@ -46,6 +53,7 @@ export {
   SnapshotSourceNotFoundError,
   SnapshotStorageKeyConflictError,
 } from "./source-snapshots";
+export { createSubmissionReview, SUBMISSION_REVIEW_FIELD } from "./submission-reviews";
 export type {
   RecordSourceSnapshotInput,
   RecordSourceSnapshotResult,

@@ -3,6 +3,7 @@ import { EntityStatus, SubmissionStatus } from "@prisma/client";
 import { normalizeCatalogueName } from "./catalogue-normalization";
 import { database } from "./client";
 import { createDuplicateReview, findProgramDuplicateCandidates } from "./duplicate-detection";
+import { createSubmissionReview } from "./submission-reviews";
 
 import type { DegreeType } from "@prisma/client";
 
@@ -82,6 +83,19 @@ export async function createPendingProgramSubmission(
         officialUrl: input.officialUrl,
       },
       transaction,
+    );
+    await createSubmissionReview(
+      transaction,
+      "PROGRAM_SUBMISSION",
+      submission.id,
+      input.submittedByUserId,
+      {
+        degreeType: input.degreeType,
+        domain: input.domain,
+        name: input.name,
+        officialUrl: input.officialUrl,
+        universityId: university.id,
+      },
     );
     await createDuplicateReview(transaction, "PROGRAM_SUBMISSION", submission.id, candidates);
     return submission;
