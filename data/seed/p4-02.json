@@ -1,0 +1,65 @@
+{
+  "$schema": "./seed.schema.json",
+  "schemaVersion": 1,
+  "domains": [
+    { "slug": "entrepreneurship", "name": "Entrepreneurship" },
+    { "slug": "innovation", "name": "Innovation" },
+    { "slug": "management", "name": "Management" }
+  ],
+  "universities": [
+    {
+      "key": "nus",
+      "name": "National University of Singapore",
+      "countryCode": "SG",
+      "city": "Singapore",
+      "officialDomain": "nus.edu.sg",
+      "officialWebsite": "https://nus.edu.sg/",
+      "aliases": ["NUS"],
+      "programs": [
+        {
+          "key": "msc-venture-creation",
+          "name": "MSc (Venture Creation)",
+          "degreeType": "MASTER",
+          "summary": {
+            "text": "An immersive multidisciplinary master's combining venture-building projects with entrepreneurship, business development and technical electives, supported by mentorship, access to NUS technologies and the university's innovation ecosystem.",
+            "sourceKey": "programme-page"
+          },
+          "durationMonths": null,
+          "campus": "Singapore",
+          "language": null,
+          "officialUrl": "https://scale.nus.edu.sg/programmes/graduate/msc-in-venture-creation",
+          "domains": ["entrepreneurship", "innovation", "management"],
+          "sources": [
+            {
+              "key": "programme-page",
+              "url": "https://scale.nus.edu.sg/programmes/graduate/msc-in-venture-creation",
+              "sourceType": "PROGRAM_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-30T00:00:00.000Z"
+            }
+          ],
+          "intakes": [
+            {
+              "key": "2027-august",
+              "year": 2027,
+              "month": 8,
+              "status": "PLANNED",
+              "applicationWindows": [
+                {
+                  "key": "main-application-period",
+                  "roundName": null,
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "NOT_PUBLISHED",
+                  "verification": "OFFICIAL",
+                  "sourceKey": "programme-page",
+                  "lastVerifiedAt": "2026-07-30T00:00:00.000Z"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
