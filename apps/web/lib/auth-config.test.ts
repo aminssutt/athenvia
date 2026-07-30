@@ -1,6 +1,63 @@
 import { describe, expect, it } from "vitest";
 
-import { normalizeEmailIdentifier, resolveEmailServer, safeAuthRedirect } from "./auth-config";
+import {
+  hasPartialGoogleAuthConfiguration,
+  isVerifiedGoogleProfile,
+  normalizeEmailIdentifier,
+  resolveEmailServer,
+  resolveGoogleAuthConfiguration,
+  safeAuthRedirect,
+} from "./auth-config";
+
+describe("resolveGoogleAuthConfiguration", () => {
+  it("enables Google only when both credentials are present", () => {
+    expect(
+      resolveGoogleAuthConfiguration({
+        GOOGLE_CLIENT_ID: " google-client ",
+        GOOGLE_CLIENT_SECRET: " google-secret ",
+      }),
+    ).toEqual({
+      clientId: "google-client",
+      clientSecret: "google-secret",
+    });
+  });
+
+  it.each([
+    {},
+    { GOOGLE_CLIENT_ID: "google-client" },
+    { GOOGLE_CLIENT_SECRET: "google-secret" },
+    { GOOGLE_CLIENT_ID: " ", GOOGLE_CLIENT_SECRET: " " },
+  ])("keeps Google disabled for incomplete configuration: %j", (environment) => {
+    expect(resolveGoogleAuthConfiguration(environment)).toBeNull();
+  });
+
+  it("detects partial configuration without exposing credential values", () => {
+    expect(hasPartialGoogleAuthConfiguration({ GOOGLE_CLIENT_ID: "google-client" })).toBe(true);
+    expect(
+      hasPartialGoogleAuthConfiguration({
+        GOOGLE_CLIENT_ID: "google-client",
+        GOOGLE_CLIENT_SECRET: "google-secret",
+      }),
+    ).toBe(false);
+  });
+});
+
+describe("isVerifiedGoogleProfile", () => {
+  it("accepts only a verified profile with an email address", () => {
+    expect(isVerifiedGoogleProfile({ email: "student@example.com", email_verified: true })).toBe(
+      true,
+    );
+  });
+
+  it.each([
+    null,
+    {},
+    { email: "student@example.com", email_verified: false },
+    { email_verified: true },
+  ])("rejects an unverified or incomplete profile: %j", (profile) => {
+    expect(isVerifiedGoogleProfile(profile)).toBe(false);
+  });
+});
 
 describe("normalizeEmailIdentifier", () => {
   it("normalizes case and surrounding whitespace", () => {

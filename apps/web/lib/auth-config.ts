@@ -9,6 +9,53 @@ type AuthEnvironment = {
   AUTH_RESEND_API_KEY?: string;
 };
 
+type GoogleAuthEnvironment = {
+  GOOGLE_CLIENT_ID?: string;
+  GOOGLE_CLIENT_SECRET?: string;
+};
+
+export type GoogleAuthConfiguration = {
+  clientId: string;
+  clientSecret: string;
+};
+
+export function resolveGoogleAuthConfiguration(
+  environment: GoogleAuthEnvironment = {
+    GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
+    GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
+  },
+): GoogleAuthConfiguration | null {
+  const clientId = environment.GOOGLE_CLIENT_ID?.trim() ?? "";
+  const clientSecret = environment.GOOGLE_CLIENT_SECRET?.trim() ?? "";
+
+  return clientId && clientSecret ? { clientId, clientSecret } : null;
+}
+
+export function hasPartialGoogleAuthConfiguration(
+  environment: GoogleAuthEnvironment = {
+    GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
+    GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
+  },
+): boolean {
+  return (
+    Boolean(environment.GOOGLE_CLIENT_ID?.trim()) !==
+    Boolean(environment.GOOGLE_CLIENT_SECRET?.trim())
+  );
+}
+
+export function isVerifiedGoogleProfile(profile: unknown): boolean {
+  if (typeof profile !== "object" || profile === null) {
+    return false;
+  }
+
+  const candidate = profile as { email?: unknown; email_verified?: unknown };
+  return (
+    candidate.email_verified === true &&
+    typeof candidate.email === "string" &&
+    candidate.email.trim().length > 0
+  );
+}
+
 export function normalizeEmailIdentifier(identifier: string): string {
   const email = identifier.trim().toLowerCase();
   const parts = email.split("@");
