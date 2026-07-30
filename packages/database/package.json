@@ -19,6 +19,7 @@
     "test:program-submissions:integration": "tsx tests/program-submissions.integration.ts",
     "test:canonical-revisions:integration": "tsx tests/canonical-revisions.integration.ts",
     "test:publish-submissions:integration": "tsx tests/publish-submissions.integration.ts",
+    "test:push-subscriptions:integration": "tsx tests/push-subscriptions.integration.ts",
     "test:source-snapshots:integration": "tsx tests/source-snapshots.integration.ts",
     "test:watchlists:integration": "tsx tests/watchlists.integration.ts"
   },
