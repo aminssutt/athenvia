@@ -5,6 +5,7 @@ import {
   MAX_ACTIVE_PUSH_SUBSCRIPTIONS_PER_USER,
   PushSubscriptionLimitReachedError,
   PushSubscriptionOwnershipConflictError,
+  revokeInvalidPushSubscriptions,
   revokePushSubscription,
   storePushSubscription,
 } from "../src/push-subscriptions";
@@ -260,4 +261,74 @@ test("revokes only an active endpoint owned by the authenticated user", async ()
     revokedAt: null,
   });
   assert.ok(writes[0]?.data.revokedAt instanceof Date);
+});
+
+test("batch-revokes only active internal IDs owned by the delivery user", async () => {
+  const revokedAt = new Date("2027-01-10T12:00:00.000Z");
+  const writes: unknown[] = [];
+  const client = {
+    pushSubscription: {
+      updateMany: async (args: unknown) => {
+        writes.push(args);
+        return { count: 2 };
+      },
+    },
+  } as never;
+
+  const count = await revokeInvalidPushSubscriptions(
+    {
+      revokedAt,
+      subscriptionIds: ["subscription-2", "subscription-1", "subscription-2"],
+      userId: firstUserId,
+    },
+    client,
+  );
+
+  assert.equal(count, 2);
+  assert.deepEqual(writes, [
+    {
+      data: { revokedAt },
+      where: {
+        id: { in: ["subscription-2", "subscription-1"] },
+        revokedAt: null,
+        userId: firstUserId,
+      },
+    },
+  ]);
+});
+
+test("skips empty batch revocation and rejects invalid cleanup input", async () => {
+  let writes = 0;
+  const client = {
+    pushSubscription: {
+      updateMany: async () => {
+        writes += 1;
+        return { count: 0 };
+      },
+    },
+  } as never;
+
+  assert.equal(
+    await revokeInvalidPushSubscriptions(
+      {
+        revokedAt: new Date("2027-01-10T12:00:00.000Z"),
+        subscriptionIds: [],
+        userId: firstUserId,
+      },
+      client,
+    ),
+    0,
+  );
+  await assert.rejects(
+    revokeInvalidPushSubscriptions(
+      {
+        revokedAt: new Date("invalid"),
+        subscriptionIds: ["subscription-1"],
+        userId: firstUserId,
+      },
+      client,
+    ),
+    TypeError,
+  );
+  assert.equal(writes, 0);
 });

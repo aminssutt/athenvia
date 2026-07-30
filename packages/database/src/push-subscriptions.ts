@@ -19,6 +19,12 @@ export type StorePushSubscriptionInput = {
   userAgent?: string;
 };
 
+export type RevokeInvalidPushSubscriptionsInput = {
+  revokedAt: Date;
+  subscriptionIds: string[];
+  userId: string;
+};
+
 export class PushSubscriptionOwnershipConflictError extends Error {
   constructor() {
     super("The push endpoint is already owned by another account.");
@@ -190,4 +196,42 @@ export async function revokePushSubscription(
       revokedAt: new Date(),
     },
   });
+}
+
+/**
+ * Soft-revokes invalid delivery endpoints by their internal identifiers.
+ *
+ * The user ownership predicate prevents a stale or corrupted delivery result
+ * from revoking another account's subscription. The active-only predicate
+ * makes repeated Web Push failures idempotent. Endpoints and encryption keys
+ * never cross this cleanup boundary.
+ */
+export async function revokeInvalidPushSubscriptions(
+  input: RevokeInvalidPushSubscriptionsInput,
+  client: PushSubscriptionDatabase = database,
+): Promise<number> {
+  if (!(input.revokedAt instanceof Date) || !Number.isFinite(input.revokedAt.getTime())) {
+    throw new TypeError("Push subscription revocation requires a valid timestamp.");
+  }
+  const subscriptionIds = [...new Set(input.subscriptionIds)];
+  if (subscriptionIds.length === 0) {
+    return 0;
+  }
+  if (subscriptionIds.length > MAX_ACTIVE_PUSH_SUBSCRIPTIONS_PER_USER) {
+    throw new RangeError("Too many push subscriptions were selected for revocation.");
+  }
+
+  const result = await client.pushSubscription.updateMany({
+    data: {
+      revokedAt: input.revokedAt,
+    },
+    where: {
+      id: {
+        in: subscriptionIds,
+      },
+      revokedAt: null,
+      userId: input.userId,
+    },
+  });
+  return result.count;
 }
