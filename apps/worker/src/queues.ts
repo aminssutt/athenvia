@@ -1,4 +1,3 @@
-import type { NotificationPayload } from "@athenvia/contracts";
 import { Queue } from "bullmq";
 import IORedis from "ioredis";
 
@@ -7,9 +6,11 @@ import {
   type DiscoveryJobData,
   type FetchJobData,
   type ParseJobData,
+  type NotificationDeliveryJobData,
   type ReviewJobData,
   type VerificationJobData,
   VERIFICATION_DEAD_LETTER_QUEUE_NAME,
+  notificationDeliveryQueueContract,
   verificationQueueContracts,
 } from "./queue-contracts";
 import { deadLetterJobOptions, verificationJobOptions } from "./queue-policy";
@@ -49,15 +50,17 @@ export const verificationDeadLetterQueue = new Queue<VerificationJobData>(
   },
 );
 
-export const notificationQueue = new Queue<NotificationPayload>("notifications", {
-  connection: redisConnection,
-  defaultJobOptions: {
-    attempts: 5,
-    backoff: { type: "exponential", delay: 5_000 },
-    removeOnComplete: 1_000,
-    removeOnFail: false,
+export const notificationQueue = new Queue<NotificationDeliveryJobData>(
+  notificationDeliveryQueueContract.queueName,
+  {
+    connection: redisConnection,
+    defaultJobOptions: {
+      attempts: 1,
+      removeOnComplete: true,
+      removeOnFail: true,
+    },
   },
-});
+);
 
 export function addDiscoveryJob(data: unknown) {
   return discoveryQueue.add(
@@ -85,6 +88,13 @@ export function addReviewJob(data: unknown) {
     verificationQueueContracts.review.jobName,
     verificationQueueContracts.review.schema.parse(data),
   );
+}
+
+export function addNotificationDeliveryJob(data: unknown) {
+  const parsed = notificationDeliveryQueueContract.schema.parse(data);
+  return notificationQueue.add(notificationDeliveryQueueContract.jobName, parsed, {
+    jobId: parsed.deliveryId,
+  });
 }
 
 export const allQueues = [

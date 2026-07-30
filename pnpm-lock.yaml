@@ -113,6 +113,9 @@ importers:
       playwright:
         specifier: ^1.58.0
         version: 1.62.0
+      web-push:
+        specifier: ^3.6.7
+        version: 3.6.7(supports-color@7.2.0)
       zod:
         specifier: ^4.0.0
         version: 4.4.3
