@@ -1,5 +1,13 @@
 export { database } from "./client";
 export {
+  ActiveUniversityNotFoundError,
+  createPendingProgramSubmission,
+} from "./program-submissions";
+export type {
+  PendingProgramSubmission,
+  PendingProgramSubmissionInput,
+} from "./program-submissions";
+export {
   createPendingUniversitySubmission,
   findAuthenticatedUserIdByEmail,
 } from "./university-submissions";
