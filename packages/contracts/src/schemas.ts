@@ -7,6 +7,59 @@ import {
   TrackingStatusSchema,
 } from "./domain";
 
+export const DEFAULT_OPENING_REMINDER_DAYS = [30, 7, 0] as const;
+export const DEFAULT_DEADLINE_REMINDER_DAYS = [30, 14, 7, 2] as const;
+
+export const OpeningReminderDaySchema = z.union([z.literal(30), z.literal(7), z.literal(0)]);
+export const DeadlineReminderDaySchema = z.union([
+  z.literal(30),
+  z.literal(14),
+  z.literal(7),
+  z.literal(2),
+]);
+
+function canonicalReminderDays<T extends number>(
+  daySchema: z.ZodType<T>,
+  orderedDays: readonly T[],
+) {
+  return z
+    .array(daySchema)
+    .max(orderedDays.length)
+    .superRefine((days, context) => {
+      if (new Set(days).size !== days.length) {
+        context.addIssue({
+          code: "custom",
+          message: "Reminder offsets must be unique.",
+        });
+      }
+    })
+    .transform((days) => orderedDays.filter((day) => days.includes(day)));
+}
+
+export const OpeningReminderDaysSchema = canonicalReminderDays(
+  OpeningReminderDaySchema,
+  DEFAULT_OPENING_REMINDER_DAYS,
+);
+export const DeadlineReminderDaysSchema = canonicalReminderDays(
+  DeadlineReminderDaySchema,
+  DEFAULT_DEADLINE_REMINDER_DAYS,
+);
+
+export const ReminderPreferencesSchema = z
+  .object({
+    dateChangeAlerts: z.boolean(),
+    deadlineReminderDays: DeadlineReminderDaysSchema,
+    openingReminderDays: OpeningReminderDaysSchema,
+  })
+  .strict();
+
+export const NotificationSettingsResponseSchema = ReminderPreferencesSchema.extend({
+  activePushSubscriptions: z.number().int().nonnegative(),
+  deadlineReminders: z.boolean(),
+  openingReminders: z.boolean(),
+  trackedPrograms: z.number().int().nonnegative(),
+});
+
 export const UniversitySummarySchema = z.object({
   id: z.string().uuid(),
   name: z.string().min(1),
@@ -110,3 +163,7 @@ export type WatchlistItem = z.infer<typeof WatchlistItemSchema>;
 export type WatchlistResponse = z.infer<typeof WatchlistResponseSchema>;
 export type FollowProgramRequest = z.infer<typeof FollowProgramRequestSchema>;
 export type NotificationPayload = z.infer<typeof NotificationPayloadSchema>;
+export type OpeningReminderDay = z.infer<typeof OpeningReminderDaySchema>;
+export type DeadlineReminderDay = z.infer<typeof DeadlineReminderDaySchema>;
+export type ReminderPreferences = z.infer<typeof ReminderPreferencesSchema>;
+export type NotificationSettingsResponse = z.infer<typeof NotificationSettingsResponseSchema>;

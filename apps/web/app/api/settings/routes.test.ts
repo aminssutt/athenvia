@@ -55,6 +55,72 @@ describe("settings route authorization", () => {
     expect(saveNotificationSettings).not.toHaveBeenCalled();
   });
 
+  it("updates only the authenticated owner's approved reminder offsets", async () => {
+    getAuthenticatedUser.mockResolvedValue({
+      email: "private@example.com",
+      id: "user-1",
+    });
+    loadNotificationSettings.mockResolvedValue({
+      activePushSubscriptions: 1,
+      dateChangeAlerts: true,
+      deadlineReminderDays: [30, 2],
+      deadlineReminders: true,
+      openingReminderDays: [7, 0],
+      openingReminders: true,
+      trackedPrograms: 2,
+    });
+
+    const response = await patchNotifications(
+      new Request("https://athenvia.example/api/settings/notifications", {
+        body: JSON.stringify({
+          dateChangeAlerts: true,
+          deadlineReminderDays: [2, 30],
+          openingReminderDays: [0, 7],
+        }),
+        headers: {
+          "content-type": "application/json",
+          origin: "https://athenvia.example",
+          "sec-fetch-site": "same-origin",
+        },
+        method: "PATCH",
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(saveNotificationSettings).toHaveBeenCalledWith("user-1", {
+      dateChangeAlerts: true,
+      deadlineReminderDays: [30, 2],
+      openingReminderDays: [7, 0],
+    });
+  });
+
+  it("rejects caller-selected ownership fields", async () => {
+    getAuthenticatedUser.mockResolvedValue({
+      email: "private@example.com",
+      id: "user-1",
+    });
+
+    const response = await patchNotifications(
+      new Request("https://athenvia.example/api/settings/notifications", {
+        body: JSON.stringify({
+          dateChangeAlerts: true,
+          deadlineReminderDays: [30],
+          openingReminderDays: [30],
+          userId: "user-2",
+        }),
+        headers: {
+          "content-type": "application/json",
+          origin: "https://athenvia.example",
+          "sec-fetch-site": "same-origin",
+        },
+        method: "PATCH",
+      }),
+    );
+
+    expect(response.status).toBe(400);
+    expect(saveNotificationSettings).not.toHaveBeenCalled();
+  });
+
   it("requires server-side confirmation for account deletion", async () => {
     getAuthenticatedUser.mockResolvedValue({
       email: "private@example.com",
