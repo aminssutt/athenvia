@@ -1,4 +1,5 @@
 import { database } from "./client";
+import { createDuplicateReview, findUniversityDuplicateCandidates } from "./duplicate-detection";
 
 export type PendingUniversitySubmissionInput = {
   submittedByUserId: string;
@@ -18,20 +19,23 @@ const defaultFindUserId: FindUserId = (email) =>
     select: { id: true },
   });
 
-const defaultInsertUniversitySubmission: InsertUniversitySubmission = async (input) => {
-  const submission = await database.universitySubmission.create({
-    data: {
-      ...input,
-      status: "PENDING",
-    },
-    select: {
-      id: true,
-      status: true,
-    },
-  });
+const defaultInsertUniversitySubmission: InsertUniversitySubmission = (input) =>
+  database.$transaction(async (transaction) => {
+    const submission = await transaction.universitySubmission.create({
+      data: {
+        ...input,
+        status: "PENDING",
+      },
+      select: {
+        id: true,
+        status: true,
+      },
+    });
+    const candidates = await findUniversityDuplicateCandidates(input, transaction);
+    await createDuplicateReview(transaction, "UNIVERSITY_SUBMISSION", submission.id, candidates);
 
-  return { id: submission.id, status: "PENDING" };
-};
+    return { id: submission.id, status: "PENDING" };
+  });
 
 export async function findAuthenticatedUserIdByEmail(
   email: string,

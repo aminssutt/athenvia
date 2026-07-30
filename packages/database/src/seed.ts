@@ -1,12 +1,12 @@
 import { readFile } from "node:fs/promises";
 
+import { normalizeCatalogueName } from "./catalogue-normalization";
 import { database } from "./client";
 
 type SeedFile = {
   domains: Array<{ slug: string; name: string }>;
   universities: Array<{
     name: string;
-    normalizedName: string;
     countryCode: string;
     city: string;
     officialDomain: string;
@@ -14,7 +14,6 @@ type SeedFile = {
     aliases: string[];
     programs: Array<{
       name: string;
-      normalizedName: string;
       degreeType: "MASTER" | "MBA" | "PHD" | "OTHER";
       durationMonths: number | null;
       officialUrl: string;
@@ -37,10 +36,11 @@ for (const domain of seed.domains) {
 }
 
 for (const universitySeed of seed.universities) {
+  const normalizedUniversityName = normalizeCatalogueName(universitySeed.name);
   const university = await database.university.upsert({
     where: {
       normalizedName_countryCode: {
-        normalizedName: universitySeed.normalizedName,
+        normalizedName: normalizedUniversityName,
         countryCode: universitySeed.countryCode,
       },
     },
@@ -52,7 +52,7 @@ for (const universitySeed of seed.universities) {
     },
     create: {
       name: universitySeed.name,
-      normalizedName: universitySeed.normalizedName,
+      normalizedName: normalizedUniversityName,
       countryCode: universitySeed.countryCode,
       city: universitySeed.city,
       officialDomain: universitySeed.officialDomain,
@@ -62,28 +62,30 @@ for (const universitySeed of seed.universities) {
   });
 
   for (const alias of universitySeed.aliases) {
+    const normalizedAlias = normalizeCatalogueName(alias);
     await database.universityAlias.upsert({
       where: {
         universityId_normalizedAlias: {
           universityId: university.id,
-          normalizedAlias: alias.toLowerCase(),
+          normalizedAlias,
         },
       },
       update: { alias },
       create: {
         universityId: university.id,
         alias,
-        normalizedAlias: alias.toLowerCase(),
+        normalizedAlias,
       },
     });
   }
 
   for (const programSeed of universitySeed.programs) {
+    const normalizedProgramName = normalizeCatalogueName(programSeed.name);
     const program = await database.program.upsert({
       where: {
         universityId_normalizedName_degreeType: {
           universityId: university.id,
-          normalizedName: programSeed.normalizedName,
+          normalizedName: normalizedProgramName,
           degreeType: programSeed.degreeType,
         },
       },
@@ -95,7 +97,7 @@ for (const universitySeed of seed.universities) {
       create: {
         universityId: university.id,
         name: programSeed.name,
-        normalizedName: programSeed.normalizedName,
+        normalizedName: normalizedProgramName,
         degreeType: programSeed.degreeType,
         durationMonths: programSeed.durationMonths,
         officialUrl: programSeed.officialUrl,

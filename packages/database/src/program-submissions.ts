@@ -1,6 +1,8 @@
 import { EntityStatus, SubmissionStatus } from "@prisma/client";
 
+import { normalizeCatalogueName } from "./catalogue-normalization";
 import { database } from "./client";
+import { createDuplicateReview, findProgramDuplicateCandidates } from "./duplicate-detection";
 
 import type { DegreeType } from "@prisma/client";
 
@@ -27,7 +29,7 @@ export class ActiveUniversityNotFoundError extends Error {
 }
 
 function comparableUniversityName(value: string): string {
-  return value.normalize("NFKC").trim().replace(/\s+/gu, " ").toLocaleLowerCase("en");
+  return normalizeCatalogueName(value);
 }
 
 /**
@@ -57,7 +59,7 @@ export async function createPendingProgramSubmission(
       throw new ActiveUniversityNotFoundError();
     }
 
-    return transaction.programSubmission.create({
+    const submission = await transaction.programSubmission.create({
       data: {
         submittedByUserId: input.submittedByUserId,
         universityId: university.id,
@@ -72,5 +74,16 @@ export async function createPendingProgramSubmission(
         status: true,
       },
     });
+    const candidates = await findProgramDuplicateCandidates(
+      {
+        universityId: university.id,
+        name: input.name,
+        degreeType: input.degreeType,
+        officialUrl: input.officialUrl,
+      },
+      transaction,
+    );
+    await createDuplicateReview(transaction, "PROGRAM_SUBMISSION", submission.id, candidates);
+    return submission;
   });
 }
