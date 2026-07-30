@@ -1,0 +1,79 @@
+{
+  "$schema": "./seed.schema.json",
+  "schemaVersion": 1,
+  "domains": [
+    { "slug": "artificial-intelligence", "name": "Artificial Intelligence" },
+    { "slug": "computer-science", "name": "Computer Science" },
+    { "slug": "machine-learning", "name": "Machine Learning" }
+  ],
+  "universities": [
+    {
+      "key": "kaist",
+      "name": "Korea Advanced Institute of Science and Technology",
+      "countryCode": "KR",
+      "city": "Daejeon",
+      "officialDomain": "kaist.ac.kr",
+      "officialWebsite": "https://www.kaist.ac.kr/en/",
+      "aliases": ["KAIST"],
+      "programs": [
+        {
+          "key": "ms-artificial-intelligence",
+          "name": "M.S. in Artificial Intelligence",
+          "degreeType": "MASTER",
+          "summary": {
+            "text": "A graduate artificial intelligence programme whose curriculum combines core AI study with advanced coursework across machine learning and related research areas.",
+            "sourceKey": "curriculum"
+          },
+          "durationMonths": null,
+          "campus": "Seoul Campus",
+          "language": "English",
+          "officialUrl": "https://gsai.kaist.ac.kr/",
+          "domains": ["artificial-intelligence", "computer-science", "machine-learning"],
+          "sources": [
+            {
+              "key": "programme-page",
+              "url": "https://gsai.kaist.ac.kr/",
+              "sourceType": "PROGRAM_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-30T00:00:00Z"
+            },
+            {
+              "key": "curriculum",
+              "url": "https://gsai.kaist.ac.kr/academics/",
+              "sourceType": "PROGRAM_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-30T00:00:00Z"
+            },
+            {
+              "key": "international-graduate-admissions",
+              "url": "https://admission.kaist.ac.kr/intl-graduate",
+              "sourceType": "ADMISSIONS_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-30T00:00:00Z"
+            }
+          ],
+          "intakes": [
+            {
+              "key": "2027-march",
+              "year": 2027,
+              "month": 3,
+              "status": "PLANNED",
+              "applicationWindows": [
+                {
+                  "key": "spring-regular",
+                  "roundName": "Spring 2027 Regular Admission",
+                  "opensAt": "2026-08-18T01:00:00Z",
+                  "closesAt": "2026-09-01T08:00:00Z",
+                  "publicStatus": "CONFIRMED",
+                  "verification": "OFFICIAL",
+                  "sourceKey": "international-graduate-admissions",
+                  "lastVerifiedAt": "2026-07-30T00:00:00Z"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
