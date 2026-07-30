@@ -1,5 +1,11 @@
 import { OfficialSourceFetchError } from "./errors";
 import { type HostResolver, OfficialDomainPolicy, systemHostResolver } from "./network-policy";
+import {
+  fetchWithPlaywright,
+  type PlaywrightBrowserLauncher,
+  type PlaywrightFallbackLimits,
+  systemPlaywrightBrowserLauncher,
+} from "./playwright";
 import { PerDomainRateLimiter } from "./rate-limit";
 import { type PinnedRequest, pinnedRequest, type RawResponse } from "./request";
 import { parseRobots, type RobotsRules } from "./robots";
@@ -13,6 +19,7 @@ const ALLOWED_CONTENT_TYPES = [
   "text/html",
   "text/plain",
 ];
+const BROWSER_CONTENT_TYPES = new Set(["application/xhtml+xml", "text/html"]);
 
 export type OfficialSourceFetchResult = {
   body: Buffer;
@@ -23,6 +30,9 @@ export type OfficialSourceFetchResult = {
 
 export type OfficialSourceFetcherOptions = {
   approvedHosts: readonly string[];
+  playwrightFallback?: PlaywrightFallbackLimits & {
+    shouldFallback(result: OfficialSourceFetchResult): boolean;
+  };
   maximumBytes?: number;
   maximumRedirects?: number;
   minimumIntervalMs?: number;
@@ -31,6 +41,7 @@ export type OfficialSourceFetcherOptions = {
 };
 
 type FetcherDependencies = {
+  browserLauncher?: PlaywrightBrowserLauncher;
   now?: () => number;
   rateLimiter?: PerDomainRateLimiter;
   request?: PinnedRequest;
@@ -70,10 +81,12 @@ function redirectTarget(
 }
 
 export class OfficialSourceFetcher {
+  private readonly browserLauncher: PlaywrightBrowserLauncher;
   private readonly domainPolicy: OfficialDomainPolicy;
   private readonly maximumBytes: number;
   private readonly maximumRedirects: number;
   private readonly now: () => number;
+  private readonly playwrightFallback: OfficialSourceFetcherOptions["playwrightFallback"];
   private readonly rateLimiter: PerDomainRateLimiter;
   private readonly request: PinnedRequest;
   private readonly resolver: HostResolver;
@@ -82,10 +95,12 @@ export class OfficialSourceFetcher {
   private readonly userAgent: string;
 
   constructor(options: OfficialSourceFetcherOptions, dependencies: FetcherDependencies = {}) {
+    this.browserLauncher = dependencies.browserLauncher ?? systemPlaywrightBrowserLauncher;
     this.domainPolicy = new OfficialDomainPolicy(options.approvedHosts);
     this.maximumBytes = options.maximumBytes ?? 5 * 1024 * 1024;
     this.maximumRedirects = options.maximumRedirects ?? 3;
     this.now = dependencies.now ?? Date.now;
+    this.playwrightFallback = options.playwrightFallback;
     this.rateLimiter =
       dependencies.rateLimiter ??
       new PerDomainRateLimiter(options.minimumIntervalMs ?? 1_000, this.now);
@@ -158,7 +173,7 @@ export class OfficialSourceFetcher {
     return rules;
   }
 
-  async fetch(value: string | URL): Promise<OfficialSourceFetchResult> {
+  private async fetchHttp(value: string | URL): Promise<OfficialSourceFetchResult> {
     let target = this.domainPolicy.parseTarget(value);
 
     for (let redirectCount = 0; redirectCount <= this.maximumRedirects; redirectCount += 1) {
@@ -214,9 +229,53 @@ export class OfficialSourceFetcher {
       "Official source exceeded the redirect limit.",
     );
   }
+
+  async fetch(value: string | URL): Promise<OfficialSourceFetchResult> {
+    const httpResult = await this.fetchHttp(value);
+    if (
+      !this.playwrightFallback ||
+      !BROWSER_CONTENT_TYPES.has(httpResult.contentType) ||
+      !this.playwrightFallback.shouldFallback(httpResult)
+    ) {
+      return httpResult;
+    }
+
+    return fetchWithPlaywright(
+      this.domainPolicy.parseTarget(httpResult.finalUrl),
+      {
+        browserLauncher: this.browserLauncher,
+        domainPolicy: this.domainPolicy,
+        fetchRobots: (target) => this.fetchRobots(target),
+        rateLimiter: this.rateLimiter,
+        resolver: this.resolver,
+        userAgent: this.userAgent,
+      },
+      {
+        ...this.playwrightFallback,
+        maximumHtmlBytes: Math.min(
+          this.maximumBytes,
+          this.playwrightFallback.maximumHtmlBytes ?? this.maximumBytes,
+        ),
+        timeoutMs: Math.min(this.timeoutMs, this.playwrightFallback.timeoutMs ?? this.timeoutMs),
+      },
+      this.maximumRedirects,
+    );
+  }
 }
 
 export { OfficialSourceFetchError } from "./errors";
 export { isPublicAddress, OfficialDomainPolicy } from "./network-policy";
 export { PerDomainRateLimiter } from "./rate-limit";
+export {
+  type PlaywrightBrowser,
+  type PlaywrightBrowserContext,
+  type PlaywrightBrowserLauncher,
+  type PlaywrightCdpSession,
+  type PlaywrightFallbackLimits,
+  type PlaywrightPage,
+  type PlaywrightRequest,
+  type PlaywrightResponse,
+  type PlaywrightRoute,
+  systemPlaywrightBrowserLauncher,
+} from "./playwright";
 export { parseRobots } from "./robots";
