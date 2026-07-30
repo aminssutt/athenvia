@@ -41,6 +41,15 @@ export function SettingsIcon(props: IconProps) {
   );
 }
 
+export function NotificationsIcon(props: IconProps) {
+  return (
+    <svg {...commonProps} {...props}>
+      <path d="M6.5 9.5a5.5 5.5 0 0 1 11 0c0 5.5 2.5 6 2.5 7.5H4c0-1.5 2.5-2 2.5-7.5Z" />
+      <path d="M10 20h4" />
+    </svg>
+  );
+}
+
 export function ConfirmedIcon(props: IconProps) {
   return (
     <svg {...commonProps} {...props}>

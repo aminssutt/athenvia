@@ -3,12 +3,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { HomeIcon, SearchIcon, SettingsIcon } from "./component-icons";
+import { HomeIcon, NotificationsIcon, SearchIcon, SettingsIcon } from "./component-icons";
 import styles from "./product-components.module.css";
 
 const ESSENTIAL_DESTINATIONS = [
   { href: "/home", label: "Home", icon: HomeIcon },
   { href: "/search", label: "Search", icon: SearchIcon },
+  { href: "/notifications", label: "Alerts", icon: NotificationsIcon },
   { href: "/settings", label: "Settings", icon: SettingsIcon },
 ] as const;
 
