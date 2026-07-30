@@ -1,4 +1,5 @@
 import { ProgramDetailSchema } from "@athenvia/contracts";
+import { z } from "zod";
 
 import type { ProgramDetail } from "@athenvia/contracts";
 
@@ -6,6 +7,8 @@ import { findPublicProgramDetail } from "../../../../lib/program-details";
 
 export type ProgramLoader = (programId: string) => Promise<unknown>;
 export type IntakeOption = ProgramDetail["intakes"][number];
+
+const ProgramIdentifierSchema = z.string().uuid();
 
 /**
  * Keeps the page independent from Prisma while enforcing the shared public
@@ -15,6 +18,10 @@ export async function loadProgram(
   programId: string,
   loader: ProgramLoader = findPublicProgramDetail,
 ): Promise<ProgramDetail | null> {
+  if (!ProgramIdentifierSchema.safeParse(programId).success) {
+    return null;
+  }
+
   const payload = await loader(programId);
 
   if (payload === null) {

@@ -47,3 +47,7 @@ database transaction. A real import validates every selected file first, then
 applies all writes in one transaction under a PostgreSQL advisory lock.
 Deterministic UUID v5 identities and natural-key adoption make repeated and
 serialized concurrent imports idempotent.
+
+On a new deployment, apply the Prisma migrations before running `pnpm db:seed`.
+The live search, programme detail and watchlist views intentionally hide records
+until their source-backed summaries have been imported.

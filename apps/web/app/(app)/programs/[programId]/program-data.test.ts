@@ -18,6 +18,13 @@ describe("live programme page data", () => {
     await expect(loadProgram(crypto.randomUUID(), loader)).resolves.toBeNull();
   });
 
+  it("treats malformed route identifiers as not found without querying Prisma", async () => {
+    const loader = vi.fn();
+
+    await expect(loadProgram("not-a-program-id", loader)).resolves.toBeNull();
+    expect(loader).not.toHaveBeenCalled();
+  });
+
   it("rejects catalogue cards that do not satisfy the detail contract", async () => {
     await expect(loadProgram(mockProgram.id, async () => mockProgram)).rejects.toThrow();
   });
