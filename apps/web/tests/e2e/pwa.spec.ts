@@ -49,8 +49,12 @@ test("prepares the essential shell and plain-language fallback for offline use",
   });
 
   expect(cachedShell.cachedUrls).toEqual(
-    expect.arrayContaining(["/", "/home", "/offline", "/onboarding", "/manifest.webmanifest"]),
+    expect.arrayContaining(["/", "/offline", "/onboarding", "/manifest.webmanifest"]),
   );
+  // `/home` is force-dynamic and answers `Cache-Control: no-store` in
+  // production: precaching it would reject the install there, so the worker
+  // must not even attempt to keep it in the shell cache.
+  expect(cachedShell.cachedUrls).not.toContain("/home");
   expect(cachedShell.offlineHtml).toContain("You are offline right now.");
   expect(cachedShell.offlineHtml).toContain("Try again");
 });
