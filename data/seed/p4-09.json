@@ -1,0 +1,79 @@
+{
+  "$schema": "./seed.schema.json",
+  "schemaVersion": 1,
+  "domains": [
+    { "slug": "applied-ai", "name": "Applied AI" },
+    { "slug": "computer-science", "name": "Computer Science" },
+    { "slug": "machine-learning", "name": "Machine Learning" }
+  ],
+  "universities": [
+    {
+      "key": "snu",
+      "name": "Seoul National University",
+      "countryCode": "KR",
+      "city": "Seoul",
+      "officialDomain": "snu.ac.kr",
+      "officialWebsite": "https://www.snu.ac.kr/",
+      "aliases": ["SNU"],
+      "programs": [
+        {
+          "key": "ms-artificial-intelligence",
+          "name": "Master of Science in Artificial Intelligence",
+          "degreeType": "MASTER",
+          "summary": {
+            "text": "Seoul National University's Interdisciplinary Program in Artificial Intelligence (IPAI) is a graduate cooperative course centred on professors researching core artificial intelligence technology, drawing on more than 100 AI professors and over 200 AI application labs across the university to train advanced master's and doctoral-level talent combining AI excellence, multidisciplinary convergence, industry friendliness and social value.",
+            "sourceKey": "programme-overview"
+          },
+          "durationMonths": null,
+          "campus": null,
+          "language": null,
+          "officialUrl": "https://gsai.snu.ac.kr/en/",
+          "domains": ["applied-ai", "computer-science", "machine-learning"],
+          "sources": [
+            {
+              "key": "programme-overview",
+              "url": "https://gsai.snu.ac.kr/en/%ED%95%99%EA%B3%BC%EC%86%8C%EA%B0%9C/",
+              "sourceType": "PROGRAM_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-31T12:10:22.000Z"
+            },
+            {
+              "key": "degree-requirements",
+              "url": "https://gsai.snu.ac.kr/en/%ea%b5%90%ea%b3%bc%ea%b3%bc%ec%a0%95/",
+              "sourceType": "PROGRAM_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-31T12:10:22.000Z"
+            },
+            {
+              "key": "graduate-admissions-notice",
+              "url": "https://en.snu.ac.kr/admission/overview/notice?md=v&bbsidx=172490",
+              "sourceType": "ADMISSIONS_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-31T12:10:22.000Z"
+            }
+          ],
+          "intakes": [
+            {
+              "key": "2027-march",
+              "year": 2027,
+              "month": 3,
+              "status": "PLANNED",
+              "applicationWindows": [
+                {
+                  "key": "international-admissions",
+                  "roundName": "2027 Spring graduate international admissions",
+                  "opensAt": "2026-07-06T01:00:00.000Z",
+                  "closesAt": "2026-07-09T08:00:00.000Z",
+                  "publicStatus": "CONFIRMED",
+                  "verification": "OFFICIAL",
+                  "sourceKey": "graduate-admissions-notice",
+                  "lastVerifiedAt": "2026-07-31T12:10:22.000Z"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

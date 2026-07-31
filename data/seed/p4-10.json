@@ -1,0 +1,194 @@
+{
+  "$schema": "./seed.schema.json",
+  "schemaVersion": 1,
+  "domains": [
+    { "slug": "applied-ai", "name": "Applied AI" },
+    { "slug": "computer-science", "name": "Computer Science" },
+    { "slug": "data-science", "name": "Data Science" },
+    { "slug": "machine-learning", "name": "Machine Learning" }
+  ],
+  "universities": [
+    {
+      "key": "hec-paris",
+      "name": "HEC Paris",
+      "countryCode": "FR",
+      "city": "Jouy-en-Josas",
+      "officialDomain": "hec.edu",
+      "officialWebsite": "https://www.hec.edu/",
+      "aliases": ["HEC", "Ecole des Hautes Etudes Commerciales de Paris"],
+      "programs": [
+        {
+          "key": "msc-data-science-ai-for-business-x-hec",
+          "name": "Master of Science Data Science & AI for Business X-HEC",
+          "degreeType": "MASTER",
+          "summary": {
+            "text": "A two-year joint Master of Science taught by École Polytechnique and HEC Paris that combines mathematics, modeling, statistics, IT and visualization to convert data into knowledge, strategic decisions and operational business implementations. The programme admits around 70 students per year and is ranked second worldwide in the QS 2026 rankings.",
+            "sourceKey": "programme-overview"
+          },
+          "durationMonths": 24,
+          "campus": null,
+          "language": "English",
+          "officialUrl": "https://www.hec.edu/en/master-s-programs/master-science-data-science-ai-business-x-hec",
+          "domains": ["applied-ai", "data-science", "machine-learning"],
+          "sources": [
+            {
+              "key": "programme-overview",
+              "url": "https://www.hec.edu/en/master-s-programs/master-science-data-science-ai-business-x-hec",
+              "sourceType": "PROGRAM_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-31T12:14:59.000Z"
+            },
+            {
+              "key": "admissions-page",
+              "url": "https://www.hec.edu/en/master-s-programs/master-science-data-science-ai-business-x-hec/admissions",
+              "sourceType": "ADMISSIONS_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-31T12:14:59.000Z"
+            }
+          ],
+          "intakes": [
+            {
+              "key": "2027-september",
+              "year": 2027,
+              "month": 9,
+              "status": "PLANNED",
+              "applicationWindows": [
+                {
+                  "key": "round-1",
+                  "roundName": "Round 1",
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "NOT_PUBLISHED",
+                  "verification": "OFFICIAL",
+                  "sourceKey": "admissions-page",
+                  "lastVerifiedAt": "2026-07-31T12:14:59.000Z"
+                },
+                {
+                  "key": "round-2",
+                  "roundName": "Round 2",
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "NOT_PUBLISHED",
+                  "verification": "OFFICIAL",
+                  "sourceKey": "admissions-page",
+                  "lastVerifiedAt": "2026-07-31T12:14:59.000Z"
+                },
+                {
+                  "key": "round-3",
+                  "roundName": "Round 3",
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "NOT_PUBLISHED",
+                  "verification": "OFFICIAL",
+                  "sourceKey": "admissions-page",
+                  "lastVerifiedAt": "2026-07-31T12:14:59.000Z"
+                },
+                {
+                  "key": "round-4",
+                  "roundName": "Round 4",
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "NOT_PUBLISHED",
+                  "verification": "OFFICIAL",
+                  "sourceKey": "admissions-page",
+                  "lastVerifiedAt": "2026-07-31T12:14:59.000Z"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "ecole-polytechnique",
+      "name": "École Polytechnique",
+      "countryCode": "FR",
+      "city": "Palaiseau",
+      "officialDomain": "polytechnique.edu",
+      "officialWebsite": "https://www.polytechnique.edu/",
+      "aliases": ["Ecole Polytechnique", "l'X"],
+      "programs": [
+        {
+          "key": "msct-visual-and-creative-artificial-intelligence",
+          "name": "MSc&T Visual and Creative Artificial Intelligence (ViCAI)",
+          "degreeType": "MASTER",
+          "summary": {
+            "text": "A two-year Master of Science and Technology specialization taught entirely in English at École Polytechnique, combining artificial intelligence and visual computing. Teaching covers machine learning and deep learning together with self-supervised learning, reinforcement learning and generative AI models, alongside the processing and generation of multimedia content from images, videos, texts and sounds to animated 3D virtual worlds.",
+            "sourceKey": "programme-page"
+          },
+          "durationMonths": 24,
+          "campus": "Palaiseau",
+          "language": "English",
+          "officialUrl": "https://programmes.polytechnique.edu/en/master/all-msct-programs/artificial-intelligence-advanced-visual-computing-master",
+          "domains": ["applied-ai", "computer-science", "machine-learning"],
+          "sources": [
+            {
+              "key": "programme-page",
+              "url": "https://programmes.polytechnique.edu/en/master/all-msct-programs/artificial-intelligence-advanced-visual-computing-master",
+              "sourceType": "PROGRAM_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-31T12:14:59.000Z"
+            },
+            {
+              "key": "msct-application-deadlines",
+              "url": "https://programmes.polytechnique.edu/en/master/admissions-msct/application-deadlines-procedure",
+              "sourceType": "ADMISSIONS_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-31T12:14:59.000Z"
+            }
+          ],
+          "intakes": [
+            {
+              "key": "2027-september",
+              "year": 2027,
+              "month": 9,
+              "status": "PLANNED",
+              "applicationWindows": [
+                {
+                  "key": "round-1",
+                  "roundName": "Round 1",
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "NOT_PUBLISHED",
+                  "verification": "OFFICIAL",
+                  "sourceKey": "msct-application-deadlines",
+                  "lastVerifiedAt": "2026-07-31T12:14:59.000Z"
+                },
+                {
+                  "key": "round-2",
+                  "roundName": "Round 2",
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "NOT_PUBLISHED",
+                  "verification": "OFFICIAL",
+                  "sourceKey": "msct-application-deadlines",
+                  "lastVerifiedAt": "2026-07-31T12:14:59.000Z"
+                },
+                {
+                  "key": "round-3",
+                  "roundName": "Round 3",
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "NOT_PUBLISHED",
+                  "verification": "OFFICIAL",
+                  "sourceKey": "msct-application-deadlines",
+                  "lastVerifiedAt": "2026-07-31T12:14:59.000Z"
+                },
+                {
+                  "key": "round-4",
+                  "roundName": "Round 4",
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "NOT_PUBLISHED",
+                  "verification": "OFFICIAL",
+                  "sourceKey": "msct-application-deadlines",
+                  "lastVerifiedAt": "2026-07-31T12:14:59.000Z"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

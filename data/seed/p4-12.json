@@ -1,0 +1,90 @@
+{
+  "$schema": "./seed.schema.json",
+  "schemaVersion": 1,
+  "domains": [
+    { "slug": "applied-ai", "name": "Applied AI" },
+    { "slug": "computer-science", "name": "Computer Science" },
+    { "slug": "machine-learning", "name": "Machine Learning" }
+  ],
+  "universities": [
+    {
+      "key": "university-of-oxford",
+      "name": "University of Oxford",
+      "countryCode": "GB",
+      "city": "Oxford",
+      "officialDomain": "ox.ac.uk",
+      "officialWebsite": "https://www.ox.ac.uk/",
+      "aliases": ["Oxford", "Oxford University"],
+      "programs": [
+        {
+          "key": "msc-advanced-computer-science",
+          "name": "MSc in Advanced Computer Science",
+          "degreeType": "MASTER",
+          "summary": {
+            "text": "A full-time, twelve-month taught MSc at the Department of Computer Science combining theory and practice, covering advanced topics such as machine learning, computer security, quantum information and formal verification. Students complete option modules and a dissertation, and may transfer to a specialist stream in Artificial Intelligence or Foundations of Computer Science.",
+            "sourceKey": "graduate-course-page"
+          },
+          "durationMonths": 12,
+          "campus": null,
+          "language": "English",
+          "officialUrl": "https://www.ox.ac.uk/admissions/graduate/courses/msc-advanced-computer-science",
+          "domains": ["applied-ai", "computer-science", "machine-learning"],
+          "sources": [
+            {
+              "key": "graduate-course-page",
+              "url": "https://www.ox.ac.uk/admissions/graduate/courses/msc-advanced-computer-science",
+              "sourceType": "PROGRAM_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-31T12:15:53.000Z"
+            },
+            {
+              "key": "department-course-page",
+              "url": "https://www.cs.ox.ac.uk/teaching/MSCinCS/",
+              "sourceType": "PROGRAM_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-31T12:15:53.000Z"
+            }
+          ],
+          "intakes": [
+            {
+              "key": "2026-october",
+              "year": 2026,
+              "month": 10,
+              "status": "CLOSED",
+              "applicationWindows": [
+                {
+                  "key": "main-round",
+                  "roundName": null,
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "NOT_PUBLISHED",
+                  "verification": "OFFICIAL",
+                  "sourceKey": "graduate-course-page",
+                  "lastVerifiedAt": "2026-07-31T12:15:53.000Z"
+                }
+              ]
+            },
+            {
+              "key": "2027-october",
+              "year": 2027,
+              "month": 10,
+              "status": "PLANNED",
+              "applicationWindows": [
+                {
+                  "key": "main-round",
+                  "roundName": null,
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "NOT_PUBLISHED",
+                  "verification": "OFFICIAL",
+                  "sourceKey": "graduate-course-page",
+                  "lastVerifiedAt": "2026-07-31T12:15:53.000Z"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
