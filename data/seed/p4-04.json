@@ -3,7 +3,8 @@
   "schemaVersion": 1,
   "domains": [
     { "slug": "applied-ai", "name": "Applied AI" },
-    { "slug": "computer-science", "name": "Computer Science" }
+    { "slug": "computer-science", "name": "Computer Science" },
+    { "slug": "data-science", "name": "Data Science" }
   ],
   "universities": [
     {
@@ -60,6 +61,56 @@
                   "verification": "OFFICIAL",
                   "sourceKey": "admissions-schedule",
                   "lastVerifiedAt": "2026-07-30T13:36:05.893Z"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "key": "msc-data-science",
+          "name": "Master of Science in Data Science (MSDS)",
+          "degreeType": "MASTER",
+          "summary": {
+            "text": "A coursework MSc requiring 30 academic units, led and mainly run by the College of Computing and Data Science with instructors drawn from social sciences, physical sciences and other schools. Core courses build interdisciplinary data science thinking across the full ecosystem from data preparation to data visualisation, electives cover domain-specific applications, and a year-long 6-AU capstone project is completed in industrial settings or academia.",
+            "sourceKey": "programme-page"
+          },
+          "durationMonths": 12,
+          "campus": "Singapore",
+          "language": "English",
+          "officialUrl": "https://www.ntu.edu.sg/education/graduate-programme/master-of-science-in-data-science-(msds)",
+          "domains": ["computer-science", "data-science"],
+          "sources": [
+            {
+              "key": "programme-page",
+              "url": "https://www.ntu.edu.sg/education/graduate-programme/master-of-science-in-data-science-(msds)",
+              "sourceType": "PROGRAM_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-31T13:37:32.000Z"
+            },
+            {
+              "key": "admissions-schedule",
+              "url": "https://www.ntu.edu.sg/admissions/graduate/cwadmissionguide/apply-now",
+              "sourceType": "ADMISSIONS_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-31T13:37:32.000Z"
+            }
+          ],
+          "intakes": [
+            {
+              "key": "2027-january",
+              "year": 2027,
+              "month": 1,
+              "status": "OPEN",
+              "applicationWindows": [
+                {
+                  "key": "main-round",
+                  "roundName": null,
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "EXPECTED",
+                  "verification": "EXPECTED",
+                  "sourceKey": "admissions-schedule",
+                  "lastVerifiedAt": "2026-07-31T13:37:32.000Z"
                 }
               ]
             }
