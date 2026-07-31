@@ -10,8 +10,12 @@ import {
   NotificationSettingsResponseSchema,
 } from "@athenvia/contracts";
 
+import { detectDevicePushState, requestPushSubscription } from "@/components/push-enable";
+
+import { devicePushCopy } from "./push-device";
 import styles from "./settings.module.css";
 
+import type { DevicePushState } from "./push-device";
 import type {
   DeadlineReminderDay,
   NotificationSettingsResponse as NotificationSettings,
@@ -54,16 +58,29 @@ async function unsubscribeBrowserPush(): Promise<void> {
   await subscription?.unsubscribe();
 }
 
+async function currentDevicePushState(): Promise<DevicePushState> {
+  try {
+    return await detectDevicePushState();
+  } catch {
+    // An unreadable capability is, for the owner, the same as no push here.
+    return "unsupported";
+  }
+}
+
 export function SettingsClient() {
   const [loadState, setLoadState] = useState<LoadState>("loading");
   const [settings, setSettings] = useState<NotificationSettings | null>(null);
   const [busyAction, setBusyAction] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [devicePush, setDevicePush] = useState<DevicePushState>("checking");
   const [deletePanelOpen, setDeletePanelOpen] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState("");
   const deleteTriggerRef = useRef<HTMLButtonElement>(null);
   const deleteConfirmationInputRef = useRef<HTMLInputElement>(null);
   const deletePanelWasOpenRef = useRef(false);
+  const devicePushStatusRef = useRef<HTMLDivElement>(null);
+  const devicePushActionWasShownRef = useRef(false);
+  const deviceCopy = devicePushCopy(devicePush);
 
   // Swapping the trigger button for the confirmation panel (and back on Cancel)
   // unmounts the focused element; move focus explicitly so it never falls back
@@ -77,6 +94,36 @@ export function SettingsClient() {
 
     deletePanelWasOpenRef.current = deletePanelOpen;
   }, [deletePanelOpen]);
+
+  // Turning notifications on removes the button that was just activated, so
+  // focus is moved to the text explaining the outcome (WCAG 2.4.3).
+  useEffect(() => {
+    const actionShown = deviceCopy?.actionLabel != null;
+    if (!actionShown && devicePushActionWasShownRef.current) {
+      devicePushStatusRef.current?.focus();
+    }
+
+    devicePushActionWasShownRef.current = actionShown;
+  }, [deviceCopy]);
+
+  // Push capability depends on the browser and on this device's registration,
+  // so it is resolved after mount only: reading it while rendering would make
+  // the server and client markup disagree.
+  useEffect(() => {
+    let active = true;
+
+    async function detect() {
+      const state = await currentDevicePushState();
+      if (active) {
+        setDevicePush(state);
+      }
+    }
+
+    void detect();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -184,6 +231,56 @@ export function SettingsClient() {
     );
   }
 
+  async function refreshPushSubscriptionCount() {
+    try {
+      const response = await fetch("/api/settings/notifications", {
+        cache: "no-store",
+        credentials: "same-origin",
+      });
+
+      if (!response.ok) {
+        return;
+      }
+
+      const refreshed = NotificationSettingsResponseSchema.parse(await response.json());
+      setSettings((current) =>
+        current
+          ? { ...current, activePushSubscriptions: refreshed.activePushSubscriptions }
+          : current,
+      );
+    } catch {
+      // The device is subscribed either way; the count catches up on reload.
+    }
+  }
+
+  async function enableDevicePush() {
+    setBusyAction("enable-push");
+    setDevicePush("enabling");
+    setNotice(null);
+
+    try {
+      // No await may run before this call: the native permission prompt has to
+      // be requested inside the click that opened it, or iOS never shows it.
+      const result = await requestPushSubscription();
+
+      if (result === "enabled") {
+        setDevicePush("subscribed");
+        setNotice("Push notifications are on for this device.");
+        await refreshPushSubscriptionCount();
+      } else if (result === "denied") {
+        setDevicePush("denied");
+        setNotice("Your browser blocked notifications for Athenvia.");
+      } else {
+        setDevicePush("permission-dismissed");
+      }
+    } catch {
+      setDevicePush("error");
+      setNotice("We could not turn on notifications for this device. Please try again.");
+    } finally {
+      setBusyAction(null);
+    }
+  }
+
   async function unsubscribe() {
     setBusyAction("unsubscribe");
     setNotice(null);
@@ -206,6 +303,9 @@ export function SettingsClient() {
       } catch {
         setNotice("Server delivery is off. This browser could not clear its local subscription.");
       }
+
+      // This device can be turned back on right away, so re-read its state.
+      setDevicePush(await currentDevicePushState());
     } catch {
       setNotice("We could not unsubscribe this account. Please try again.");
     } finally {
@@ -458,6 +558,29 @@ export function SettingsClient() {
             {busyAction === "unsubscribe" ? "Turning off…" : "Unsubscribe all"}
           </button>
         </div>
+
+        {deviceCopy ? (
+          <div
+            className={styles.devicePushRow}
+            aria-busy={devicePush === "enabling"}
+            aria-live="polite"
+          >
+            <div ref={devicePushStatusRef} tabIndex={-1}>
+              <h4>{deviceCopy.title}</h4>
+              <p>{deviceCopy.description}</p>
+            </div>
+            {deviceCopy.actionLabel ? (
+              <button
+                className={styles.secondaryButton}
+                type="button"
+                disabled={busyAction !== null}
+                onClick={() => void enableDevicePush()}
+              >
+                {deviceCopy.actionLabel}
+              </button>
+            ) : null}
+          </div>
+        ) : null}
       </section>
 
       <section className={styles.card} aria-labelledby="account-title">

@@ -3,29 +3,21 @@
 import { useEffect, useRef, useState } from "react";
 
 import {
+  pushCapabilitySnapshot,
+  requestPushSubscription,
+  syncPushSubscription,
+} from "./push-enable";
+import {
   classifyPushAvailability,
-  decodePublicVapidKey,
   dismissPushOnboarding,
-  enablePushNotifications,
   FOLLOW_SUCCEEDED_EVENT,
-  isIosDevice,
-  PushSubscriptionStoreError,
   shouldConsiderPushOnboarding,
-  syncExistingPushSubscription,
   wasPushOnboardingDismissed,
-  withTimeout,
 } from "./push-permission";
 import styles from "./push-permission-onboarding.module.css";
 
-import type {
-  FollowSucceededDetail,
-  PushCapabilitySnapshot,
-  PushSubscriptionLike,
-  PushSubscriptionPayload,
-} from "./push-permission";
+import type { FollowSucceededDetail } from "./push-permission";
 import type { RefObject } from "react";
-
-const SERVICE_WORKER_READY_TIMEOUT_MS = 8_000;
 
 type PanelState =
   | { kind: "closed" }
@@ -42,36 +34,6 @@ type PushPermissionOnboardingProps = {
   returnFocusRef: RefObject<HTMLElement | null>;
 };
 
-type NavigatorWithStandalone = Navigator & {
-  standalone?: boolean;
-};
-
-function isStandaloneDisplay(): boolean {
-  return (
-    window.matchMedia?.("(display-mode: standalone)").matches === true ||
-    (navigator as NavigatorWithStandalone).standalone === true
-  );
-}
-
-function pushCapabilitySnapshot(): PushCapabilitySnapshot {
-  const hasNotificationApi =
-    typeof Notification !== "undefined" && typeof Notification.requestPermission === "function";
-
-  return {
-    hasNotificationApi,
-    hasPushManager: "PushManager" in window,
-    hasServiceWorker: "serviceWorker" in navigator,
-    isIos: isIosDevice({
-      maxTouchPoints: navigator.maxTouchPoints,
-      platform: navigator.platform,
-      userAgent: navigator.userAgent,
-    }),
-    isSecureContext: window.isSecureContext,
-    isStandalone: isStandaloneDisplay(),
-    permission: hasNotificationApi ? Notification.permission : null,
-  };
-}
-
 function followSucceededDetail(event: Event): FollowSucceededDetail | null {
   if (!(event instanceof CustomEvent) || typeof event.detail !== "object" || !event.detail) {
     return null;
@@ -84,69 +46,6 @@ function followSucceededDetail(event: Event): FollowSucceededDetail | null {
     typeof detail.watchlistId === "string"
     ? (detail as FollowSucceededDetail)
     : null;
-}
-
-async function loadPublicVapidKey(): Promise<Uint8Array<ArrayBuffer>> {
-  const response = await fetch("/api/push/vapid-public-key", {
-    cache: "no-store",
-    credentials: "same-origin",
-  });
-  if (!response.ok) {
-    throw new Error("Push configuration is unavailable.");
-  }
-
-  const payload: unknown = await response.json();
-  if (typeof payload !== "object" || payload === null || !("publicKey" in payload)) {
-    throw new Error("Push configuration is unavailable.");
-  }
-
-  return decodePublicVapidKey(payload.publicKey);
-}
-
-async function storeSubscription(payload: PushSubscriptionPayload): Promise<void> {
-  const response = await fetch("/api/push/subscriptions", {
-    body: JSON.stringify(payload),
-    credentials: "same-origin",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    method: "POST",
-  });
-
-  if (response.status !== 204) {
-    let code: string | null = null;
-    try {
-      const payload: unknown = await response.json();
-      if (
-        typeof payload === "object" &&
-        payload !== null &&
-        "error" in payload &&
-        typeof payload.error === "object" &&
-        payload.error !== null &&
-        "code" in payload.error &&
-        typeof payload.error.code === "string"
-      ) {
-        code = payload.error.code;
-      }
-    } catch {
-      // The status remains sufficient to choose safe client recovery.
-    }
-    throw new PushSubscriptionStoreError(response.status, code);
-  }
-}
-
-async function currentPushSubscription(): Promise<PushSubscriptionLike | null> {
-  const registration = await navigator.serviceWorker.getRegistration();
-  return (await registration?.pushManager.getSubscription()) ?? null;
-}
-
-async function readyPushManager() {
-  const registration = await withTimeout(
-    navigator.serviceWorker.ready,
-    SERVICE_WORKER_READY_TIMEOUT_MS,
-    "The service worker did not become ready.",
-  );
-  return registration.pushManager;
 }
 
 export function PushPermissionOnboarding({ returnFocusRef }: PushPermissionOnboardingProps) {
@@ -171,10 +70,7 @@ export function PushPermissionOnboarding({ returnFocusRef }: PushPermissionOnboa
 
       if (availability === "offer" && snapshot.permission === "granted") {
         try {
-          const synchronization = await syncExistingPushSubscription({
-            getExistingSubscription: currentPushSubscription,
-            storeSubscription,
-          });
+          const synchronization = await syncPushSubscription();
 
           if (generation !== eventGeneration.current) {
             return;
@@ -221,13 +117,7 @@ export function PushPermissionOnboarding({ returnFocusRef }: PushPermissionOnboa
     setState({ kind: "enabling" });
 
     try {
-      const result = await enablePushNotifications({
-        getPermission: () => Notification.permission,
-        getPushManager: readyPushManager,
-        loadPublicVapidKey,
-        requestPermission: () => Notification.requestPermission(),
-        storeSubscription,
-      });
+      const result = await requestPushSubscription();
 
       if (result === "enabled") {
         setState({ kind: "enabled" });

@@ -10,6 +10,12 @@ export type FollowSucceededDetail = {
 
 export type PushAvailability = "denied" | "install-required" | "offer" | "unsupported";
 
+/**
+ * Adds the one state a capability snapshot alone cannot express: this browser
+ * already holds a push subscription, so nothing is left to turn on here.
+ */
+export type DevicePushAvailability = "subscribed" | PushAvailability;
+
 export type PushCapabilitySnapshot = {
   hasNotificationApi: boolean;
   hasPushManager: boolean;
@@ -143,6 +149,22 @@ export function classifyPushAvailability(snapshot: PushCapabilitySnapshot): Push
   }
 
   return snapshot.permission === "denied" ? "denied" : "offer";
+}
+
+export function classifyDevicePushState({
+  hasLocalSubscription,
+  snapshot,
+}: {
+  hasLocalSubscription: boolean;
+  snapshot: PushCapabilitySnapshot;
+}): DevicePushAvailability {
+  const availability = classifyPushAvailability(snapshot);
+
+  // A stale registration can survive a revoked permission, so both signals must
+  // agree before we tell the owner this device is already covered.
+  return availability === "offer" && snapshot.permission === "granted" && hasLocalSubscription
+    ? "subscribed"
+    : availability;
 }
 
 export function shouldConsiderPushOnboarding({
