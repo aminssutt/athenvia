@@ -582,7 +582,12 @@ a {
    entrances from leaving anything stuck at opacity 0. Delays are zeroed too:
    a staggered reveal with its delay intact would still hide list items behind
    a visible pause, and iteration counts are clamped so looping animations
-   (skeleton sheen, spinners) run once and stop instead of thrashing. */
+   (skeleton sheen, spinners) run once and stop instead of thrashing.
+
+   One narrow exemption is allowed: a busy indicator that is the only signal
+   that a request is still running may re-assert a slow loop with `!important`,
+   because freezing it reads as a hung interface. Settings' `.spinner` does
+   exactly that. Decorative motion never qualifies. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
