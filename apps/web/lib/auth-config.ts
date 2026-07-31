@@ -108,18 +108,21 @@ export function resolveEmailServer(
 }
 
 export function safeAuthRedirect(url: string, baseUrl: string): string {
-  if (url.startsWith("/") && !url.startsWith("//")) {
-    return new URL(url, baseUrl).toString();
-  }
+  const base = new URL(baseUrl);
 
   try {
-    const destination = new URL(url);
-    if (destination.origin === new URL(baseUrl).origin) {
+    // The WHATWG URL parser strips tab/newline characters and normalizes
+    // backslashes to slashes for special schemes, so string-prefix guards such
+    // as `startsWith("/") && !startsWith("//")` are bypassable ("/\evil.com"
+    // resolves to https://evil.com). Resolve every candidate against the base
+    // URL and trust only an exact resolved-origin match.
+    const destination = new URL(url, base);
+    if (destination.origin === base.origin) {
       return destination.toString();
     }
   } catch {
-    // Invalid and non-HTTP destinations fall through to the safe app home.
+    // Unparseable destinations fall through to the safe app home.
   }
 
-  return new URL("/home", baseUrl).toString();
+  return new URL("/home", base).toString();
 }

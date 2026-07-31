@@ -113,12 +113,28 @@ describe("safeAuthRedirect", () => {
     );
   });
 
+  it("keeps plain text on the application origin", () => {
+    expect(safeAuthRedirect("not a url", baseUrl)).toBe("https://athenvia.example/not%20a%20url");
+  });
+
   it.each([
     "https://attacker.example/collect",
     "//attacker.example/collect",
     "javascript:alert(1)",
-    "not a url",
   ])("rejects unsafe destination %s", (destination) => {
+    expect(safeAuthRedirect(destination, baseUrl)).toBe("https://athenvia.example/home");
+  });
+
+  it.each([
+    "/\\attacker.example/collect",
+    "/\\/attacker.example/collect",
+    "\\/attacker.example/collect",
+    "\\\\attacker.example/collect",
+    "/\t/attacker.example/collect",
+    "/\n/attacker.example/collect",
+    "/\r/attacker.example/collect",
+    "/\t\\attacker.example/collect",
+  ])("rejects the parser-normalization bypass %j", (destination) => {
     expect(safeAuthRedirect(destination, baseUrl)).toBe("https://athenvia.example/home");
   });
 });
