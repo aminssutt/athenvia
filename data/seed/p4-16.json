@@ -4,6 +4,7 @@
   "domains": [
     { "slug": "applied-ai", "name": "Applied AI" },
     { "slug": "computer-science", "name": "Computer Science" },
+    { "slug": "data-science", "name": "Data Science" },
     { "slug": "machine-learning", "name": "Machine Learning" }
   ],
   "universities": [
@@ -64,6 +65,112 @@
                   "verification": "EXPECTED",
                   "sourceKey": "programme-page",
                   "lastVerifiedAt": "2026-07-31T12:19:25.000Z"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "key": "msc-computer-science",
+          "name": "Computer Science MSc",
+          "degreeType": "MASTER",
+          "summary": {
+            "text": "A one-calendar-year, full-time conversion programme teaching foundational computer science topics including programming, computer architecture, operating systems, algorithmics and databases. Students select optional modules in areas such as machine learning and software engineering, then complete a substantial industrial or research project.",
+            "sourceKey": "programme-page"
+          },
+          "durationMonths": 12,
+          "campus": "London, Bloomsbury",
+          "language": null,
+          "officialUrl": "https://www.ucl.ac.uk/prospective-students/graduate/taught-degrees/computer-science-msc",
+          "domains": ["computer-science"],
+          "sources": [
+            {
+              "key": "programme-page",
+              "url": "https://www.ucl.ac.uk/prospective-students/graduate/taught-degrees/computer-science-msc",
+              "sourceType": "PROGRAM_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-31T13:33:50.000Z"
+            }
+          ],
+          "intakes": [
+            {
+              "key": "2026-september",
+              "year": 2026,
+              "month": 9,
+              "status": "OPEN",
+              "applicationWindows": [
+                {
+                  "key": "visa-applicants",
+                  "roundName": "Applicants who require a visa",
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "EXPECTED",
+                  "verification": "EXPECTED",
+                  "sourceKey": "programme-page",
+                  "lastVerifiedAt": "2026-07-31T13:33:50.000Z"
+                },
+                {
+                  "key": "non-visa-applicants",
+                  "roundName": "Applicants who do not require a visa",
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "EXPECTED",
+                  "verification": "EXPECTED",
+                  "sourceKey": "programme-page",
+                  "lastVerifiedAt": "2026-07-31T13:33:50.000Z"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "key": "msc-data-science-and-machine-learning",
+          "name": "Data Science and Machine Learning MSc",
+          "degreeType": "MASTER",
+          "summary": {
+            "text": "A one-calendar-year, full-time 180-credit MSc equipping students with expertise spanning artificial intelligence and deep learning to digital finance and probabilistic modelling. Compulsory modules cover statistical data science and applied machine learning, with optional modules such as supervised learning, reinforcement learning, machine vision and Bayesian deep learning, concluding with a summer research project in industry or academia.",
+            "sourceKey": "programme-page"
+          },
+          "durationMonths": 12,
+          "campus": "London, Bloomsbury",
+          "language": null,
+          "officialUrl": "https://www.ucl.ac.uk/prospective-students/graduate/taught-degrees/data-science-and-machine-learning-msc",
+          "domains": ["applied-ai", "data-science", "machine-learning"],
+          "sources": [
+            {
+              "key": "programme-page",
+              "url": "https://www.ucl.ac.uk/prospective-students/graduate/taught-degrees/data-science-and-machine-learning-msc",
+              "sourceType": "PROGRAM_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-31T13:33:50.000Z"
+            }
+          ],
+          "intakes": [
+            {
+              "key": "2026-september",
+              "year": 2026,
+              "month": 9,
+              "status": "OPEN",
+              "applicationWindows": [
+                {
+                  "key": "visa-applicants",
+                  "roundName": "Applicants who require a visa",
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "EXPECTED",
+                  "verification": "EXPECTED",
+                  "sourceKey": "programme-page",
+                  "lastVerifiedAt": "2026-07-31T13:33:50.000Z"
+                },
+                {
+                  "key": "non-visa-applicants",
+                  "roundName": "Applicants who do not require a visa",
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "EXPECTED",
+                  "verification": "EXPECTED",
+                  "sourceKey": "programme-page",
+                  "lastVerifiedAt": "2026-07-31T13:33:50.000Z"
                 }
               ]
             }

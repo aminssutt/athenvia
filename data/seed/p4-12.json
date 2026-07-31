@@ -4,6 +4,7 @@
   "domains": [
     { "slug": "applied-ai", "name": "Applied AI" },
     { "slug": "computer-science", "name": "Computer Science" },
+    { "slug": "data-science", "name": "Data Science" },
     { "slug": "machine-learning", "name": "Machine Learning" }
   ],
   "universities": [
@@ -79,6 +80,128 @@
                   "verification": "OFFICIAL",
                   "sourceKey": "graduate-course-page",
                   "lastVerifiedAt": "2026-07-31T12:15:53.000Z"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "key": "msc-statistical-science",
+          "name": "MSc in Statistical Science",
+          "degreeType": "MASTER",
+          "summary": {
+            "text": "A twelve-month, full-time taught MSc offering advanced training in statistical inference, machine learning and computational methods. The course combines compulsory core courses with optional courses, delivered through mathematically demanding lectures, problems classes and practical sessions in the computer laboratory, and concludes with a dissertation based on around three months of supervised independent research.",
+            "sourceKey": "graduate-course-page"
+          },
+          "durationMonths": 12,
+          "campus": null,
+          "language": "English",
+          "officialUrl": "https://www.ox.ac.uk/admissions/graduate/courses/msc-statistical-science",
+          "domains": ["data-science", "machine-learning"],
+          "sources": [
+            {
+              "key": "graduate-course-page",
+              "url": "https://www.ox.ac.uk/admissions/graduate/courses/msc-statistical-science",
+              "sourceType": "PROGRAM_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-31T13:33:50.000Z"
+            }
+          ],
+          "intakes": [
+            {
+              "key": "2026-october",
+              "year": 2026,
+              "month": 10,
+              "status": "CLOSED",
+              "applicationWindows": [
+                {
+                  "key": "main-round",
+                  "roundName": null,
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "NOT_PUBLISHED",
+                  "verification": "OFFICIAL",
+                  "sourceKey": "graduate-course-page",
+                  "lastVerifiedAt": "2026-07-31T13:33:50.000Z"
+                }
+              ]
+            },
+            {
+              "key": "2027-october",
+              "year": 2027,
+              "month": 10,
+              "status": "PLANNED",
+              "applicationWindows": [
+                {
+                  "key": "main-round",
+                  "roundName": null,
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "NOT_PUBLISHED",
+                  "verification": "OFFICIAL",
+                  "sourceKey": "graduate-course-page",
+                  "lastVerifiedAt": "2026-07-31T13:33:50.000Z"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "key": "msc-social-data-science",
+          "name": "MSc in Social Data Science",
+          "degreeType": "MASTER",
+          "summary": {
+            "text": "A ten-month, full-time multidisciplinary MSc at the Oxford Internet Institute for students applying quantitative and computational methods to questions of social and political significance. The applied programme combines machine learning, multivariate statistics and mixed-methods research with a substantive focus on social, ethical and legal considerations for AI and data, including the governance and regulation of the internet.",
+            "sourceKey": "graduate-course-page"
+          },
+          "durationMonths": 10,
+          "campus": null,
+          "language": "English",
+          "officialUrl": "https://www.ox.ac.uk/admissions/graduate/courses/msc-social-data-science",
+          "domains": ["applied-ai", "data-science"],
+          "sources": [
+            {
+              "key": "graduate-course-page",
+              "url": "https://www.ox.ac.uk/admissions/graduate/courses/msc-social-data-science",
+              "sourceType": "PROGRAM_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-31T13:33:50.000Z"
+            }
+          ],
+          "intakes": [
+            {
+              "key": "2026-october",
+              "year": 2026,
+              "month": 10,
+              "status": "CLOSED",
+              "applicationWindows": [
+                {
+                  "key": "main-round",
+                  "roundName": null,
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "NOT_PUBLISHED",
+                  "verification": "OFFICIAL",
+                  "sourceKey": "graduate-course-page",
+                  "lastVerifiedAt": "2026-07-31T13:33:50.000Z"
+                }
+              ]
+            },
+            {
+              "key": "2027-october",
+              "year": 2027,
+              "month": 10,
+              "status": "PLANNED",
+              "applicationWindows": [
+                {
+                  "key": "main-round",
+                  "roundName": null,
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "NOT_PUBLISHED",
+                  "verification": "OFFICIAL",
+                  "sourceKey": "graduate-course-page",
+                  "lastVerifiedAt": "2026-07-31T13:33:50.000Z"
                 }
               ]
             }

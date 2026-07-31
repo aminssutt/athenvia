@@ -187,6 +187,166 @@
               ]
             }
           ]
+        },
+        {
+          "key": "msct-large-language-models-graphs-and-applications",
+          "name": "MSc&T Large Language Models, Graphs and Applications (LLGA)",
+          "degreeType": "MASTER",
+          "summary": {
+            "text": "A two-year, English-taught Master of Science and Technology track at École Polytechnique worth 140 ECTS credits, combining a solid theoretical foundation with hands-on industry expertise in generative AI. Teaching covers machine learning and deep learning fundamentals together with large language models, graph neural networks, natural language processing and multimodal generative AI applications, applied to sectors such as healthcare, biology, finance, social networks, recommendation systems, pharma and logistics.",
+            "sourceKey": "programme-page"
+          },
+          "durationMonths": 24,
+          "campus": "Palaiseau",
+          "language": "English",
+          "officialUrl": "https://programmes.polytechnique.edu/en/master/all-msct-specializations/large-language-models-graphs-and-applications-llga",
+          "domains": ["applied-ai", "computer-science", "machine-learning"],
+          "sources": [
+            {
+              "key": "programme-page",
+              "url": "https://programmes.polytechnique.edu/en/master/all-msct-specializations/large-language-models-graphs-and-applications-llga",
+              "sourceType": "PROGRAM_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-31T13:37:17.000Z"
+            },
+            {
+              "key": "msct-application-deadlines",
+              "url": "https://programmes.polytechnique.edu/en/master/admissions-msct/application-deadlines-procedure",
+              "sourceType": "ADMISSIONS_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-31T13:37:17.000Z"
+            }
+          ],
+          "intakes": [
+            {
+              "key": "2027-september",
+              "year": 2027,
+              "month": 9,
+              "status": "PLANNED",
+              "applicationWindows": [
+                {
+                  "key": "round-1",
+                  "roundName": "Round 1",
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "EXPECTED",
+                  "verification": "EXPECTED",
+                  "sourceKey": "msct-application-deadlines",
+                  "lastVerifiedAt": "2026-07-31T13:37:17.000Z"
+                },
+                {
+                  "key": "round-2",
+                  "roundName": "Round 2",
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "EXPECTED",
+                  "verification": "EXPECTED",
+                  "sourceKey": "msct-application-deadlines",
+                  "lastVerifiedAt": "2026-07-31T13:37:17.000Z"
+                },
+                {
+                  "key": "round-3",
+                  "roundName": "Round 3",
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "EXPECTED",
+                  "verification": "EXPECTED",
+                  "sourceKey": "msct-application-deadlines",
+                  "lastVerifiedAt": "2026-07-31T13:37:17.000Z"
+                },
+                {
+                  "key": "round-4",
+                  "roundName": "Round 4",
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "EXPECTED",
+                  "verification": "EXPECTED",
+                  "sourceKey": "msct-application-deadlines",
+                  "lastVerifiedAt": "2026-07-31T13:37:17.000Z"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "key": "msct-trustworthy-and-responsible-ai",
+          "name": "MSc&T Trustworthy and Responsible AI (TRAI)",
+          "degreeType": "MASTER",
+          "summary": {
+            "text": "A two-year, English-taught Master of Science and Technology track at École Polytechnique worth 140 ECTS credits, focused on building AI applications that are not only effective but also trustworthy, transparent and responsible. Teaching covers sustainable AI including energy-efficient models and parameter optimisation, trustworthy and secure AI spanning privacy, safety, adversarial robustness and regulatory compliance, and AI transparency and explainability through interpretability methods, decision trees and knowledge graphs.",
+            "sourceKey": "programme-page"
+          },
+          "durationMonths": 24,
+          "campus": "Palaiseau",
+          "language": "English",
+          "officialUrl": "https://programmes.polytechnique.edu/en/master/all-msct-specializations/trustworthy-and-responsible-ai-trai",
+          "domains": ["applied-ai", "computer-science", "machine-learning"],
+          "sources": [
+            {
+              "key": "programme-page",
+              "url": "https://programmes.polytechnique.edu/en/master/all-msct-specializations/trustworthy-and-responsible-ai-trai",
+              "sourceType": "PROGRAM_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-31T13:37:17.000Z"
+            },
+            {
+              "key": "msct-application-deadlines",
+              "url": "https://programmes.polytechnique.edu/en/master/admissions-msct/application-deadlines-procedure",
+              "sourceType": "ADMISSIONS_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-31T13:37:17.000Z"
+            }
+          ],
+          "intakes": [
+            {
+              "key": "2027-september",
+              "year": 2027,
+              "month": 9,
+              "status": "PLANNED",
+              "applicationWindows": [
+                {
+                  "key": "round-1",
+                  "roundName": "Round 1",
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "EXPECTED",
+                  "verification": "EXPECTED",
+                  "sourceKey": "msct-application-deadlines",
+                  "lastVerifiedAt": "2026-07-31T13:37:17.000Z"
+                },
+                {
+                  "key": "round-2",
+                  "roundName": "Round 2",
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "EXPECTED",
+                  "verification": "EXPECTED",
+                  "sourceKey": "msct-application-deadlines",
+                  "lastVerifiedAt": "2026-07-31T13:37:17.000Z"
+                },
+                {
+                  "key": "round-3",
+                  "roundName": "Round 3",
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "EXPECTED",
+                  "verification": "EXPECTED",
+                  "sourceKey": "msct-application-deadlines",
+                  "lastVerifiedAt": "2026-07-31T13:37:17.000Z"
+                },
+                {
+                  "key": "round-4",
+                  "roundName": "Round 4",
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "EXPECTED",
+                  "verification": "EXPECTED",
+                  "sourceKey": "msct-application-deadlines",
+                  "lastVerifiedAt": "2026-07-31T13:37:17.000Z"
+                }
+              ]
+            }
+          ]
         }
       ]
     }

@@ -3,6 +3,7 @@
   "schemaVersion": 1,
   "domains": [
     { "slug": "applied-ai", "name": "Applied AI" },
+    { "slug": "data-science", "name": "Data Science" },
     { "slug": "management", "name": "Management" }
   ],
   "universities": [
@@ -53,6 +54,49 @@
                   "verification": "OFFICIAL",
                   "sourceKey": "programme-page",
                   "lastVerifiedAt": "2026-07-30T13:36:05.893Z"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "key": "master-of-it-in-business",
+          "name": "Master of IT in Business (MITB)",
+          "degreeType": "MASTER",
+          "summary": {
+            "text": "A 12 to 24-month English-taught programme with five specialisation tracks: Artificial Intelligence, Cybersecurity, Data Science & Analytics, Digital Transformation, and Financial Technology & Analytics. Core courses cover computational thinking, spreadsheet modelling and statistical analysis for data science; the AI track adds algorithm design, machine learning applications, natural language processing and deep learning for visual recognition. Students complete a 2-credit internship or capstone project as their practicum.",
+            "sourceKey": "programme-page"
+          },
+          "durationMonths": 12,
+          "campus": "Singapore",
+          "language": "English",
+          "officialUrl": "https://masters.smu.edu.sg/programme/master-of-it-in-business",
+          "domains": ["applied-ai", "data-science", "management"],
+          "sources": [
+            {
+              "key": "programme-page",
+              "url": "https://masters.smu.edu.sg/programme/master-of-it-in-business",
+              "sourceType": "PROGRAM_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-31T13:37:32.000Z"
+            }
+          ],
+          "intakes": [
+            {
+              "key": "2027-january",
+              "year": 2027,
+              "month": 1,
+              "status": "OPEN",
+              "applicationWindows": [
+                {
+                  "key": "main-round",
+                  "roundName": null,
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "EXPECTED",
+                  "verification": "EXPECTED",
+                  "sourceKey": "programme-page",
+                  "lastVerifiedAt": "2026-07-31T13:37:32.000Z"
                 }
               ]
             }

@@ -3,7 +3,9 @@
   "schemaVersion": 1,
   "domains": [
     { "slug": "applied-ai", "name": "Applied AI" },
-    { "slug": "computer-science", "name": "Computer Science" }
+    { "slug": "computer-science", "name": "Computer Science" },
+    { "slug": "data-science", "name": "Data Science" },
+    { "slug": "machine-learning", "name": "Machine Learning" }
   ],
   "universities": [
     {
@@ -60,6 +62,133 @@
                   "verification": "OFFICIAL",
                   "sourceKey": "grad-division-program",
                   "lastVerifiedAt": "2026-07-31T12:20:57.000Z"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "key": "master-of-information-and-data-science",
+          "name": "Master of Information and Data Science (MIDS)",
+          "degreeType": "MASTER",
+          "summary": {
+            "text": "A part-time, fully online Master of Information and Data Science from the UC Berkeley School of Information, delivered through weekly live sessions combined with asynchronous coursework across a 27-unit curriculum. The project-based programme spans machine learning and deep learning, generative AI and large language models, natural language processing, data engineering, applied statistics and research design, and AI ethics, and concludes with a capstone project.",
+            "sourceKey": "program-page"
+          },
+          "durationMonths": null,
+          "campus": null,
+          "language": null,
+          "officialUrl": "https://www.ischool.berkeley.edu/programs/mids",
+          "domains": ["data-science", "machine-learning"],
+          "sources": [
+            {
+              "key": "program-page",
+              "url": "https://www.ischool.berkeley.edu/programs/mids",
+              "sourceType": "PROGRAM_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-31T13:36:55.000Z"
+            },
+            {
+              "key": "grad-division-program",
+              "url": "https://grad.berkeley.edu/program/information-data-science-mids/",
+              "sourceType": "UNIVERSITY_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-31T13:36:55.000Z"
+            },
+            {
+              "key": "admissions-page",
+              "url": "https://ischoolonline.berkeley.edu/admissions",
+              "sourceType": "ADMISSIONS_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-31T13:36:55.000Z"
+            }
+          ],
+          "intakes": [
+            {
+              "key": "2027-january",
+              "year": 2027,
+              "month": 1,
+              "status": "PLANNED",
+              "applicationWindows": [
+                {
+                  "key": "early-action",
+                  "roundName": "Early action deadline",
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "EXPECTED",
+                  "verification": "EXPECTED",
+                  "sourceKey": "admissions-page",
+                  "lastVerifiedAt": "2026-07-31T13:36:55.000Z"
+                },
+                {
+                  "key": "priority-round",
+                  "roundName": "Priority application deadline",
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "EXPECTED",
+                  "verification": "EXPECTED",
+                  "sourceKey": "admissions-page",
+                  "lastVerifiedAt": "2026-07-31T13:36:55.000Z"
+                },
+                {
+                  "key": "final-round",
+                  "roundName": "Final application deadline",
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "EXPECTED",
+                  "verification": "EXPECTED",
+                  "sourceKey": "admissions-page",
+                  "lastVerifiedAt": "2026-07-31T13:36:55.000Z"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "key": "master-of-analytics",
+          "name": "Master of Analytics",
+          "degreeType": "MASTER",
+          "summary": {
+            "text": "A 12-month, in-person Master of Analytics offered by the Department of Industrial Engineering and Operations Research in UC Berkeley's College of Engineering. Students learn data-driven decision making using data analysis, risk modeling, optimization and simulation, with curriculum that includes machine learning, applied probability and game theory, applied to business problems in pricing, finance, scheduling, logistics, supply chain and operations management. Admission is for the fall term only.",
+            "sourceKey": "program-page"
+          },
+          "durationMonths": 12,
+          "campus": "Berkeley",
+          "language": null,
+          "officialUrl": "https://analytics.berkeley.edu/our-program/",
+          "domains": ["data-science", "machine-learning"],
+          "sources": [
+            {
+              "key": "program-page",
+              "url": "https://analytics.berkeley.edu/our-program/",
+              "sourceType": "PROGRAM_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-31T13:36:55.000Z"
+            },
+            {
+              "key": "grad-division-program",
+              "url": "https://grad.berkeley.edu/program/master-of-analytics-manlytx/",
+              "sourceType": "UNIVERSITY_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-31T13:36:55.000Z"
+            }
+          ],
+          "intakes": [
+            {
+              "key": "2027-august",
+              "year": 2027,
+              "month": 8,
+              "status": "PLANNED",
+              "applicationWindows": [
+                {
+                  "key": "main-round",
+                  "roundName": null,
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "EXPECTED",
+                  "verification": "EXPECTED",
+                  "sourceKey": "program-page",
+                  "lastVerifiedAt": "2026-07-31T13:36:55.000Z"
                 }
               ]
             }
