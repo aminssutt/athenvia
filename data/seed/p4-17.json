@@ -1,0 +1,68 @@
+{
+  "$schema": "./seed.schema.json",
+  "schemaVersion": 1,
+  "domains": [{ "slug": "computer-science", "name": "Computer Science" }],
+  "universities": [
+    {
+      "key": "ucla",
+      "name": "University of California, Los Angeles",
+      "countryCode": "US",
+      "city": "Los Angeles",
+      "officialDomain": "ucla.edu",
+      "officialWebsite": "https://www.ucla.edu/",
+      "aliases": ["UCLA"],
+      "programs": [
+        {
+          "key": "ms-computer-science",
+          "name": "Master of Science in Computer Science",
+          "degreeType": "MASTER",
+          "summary": {
+            "text": "A two-year Master of Science offered by the UCLA Computer Science Department, designed to nurture the next generation of computing professionals with the required depth and breadth of computer science knowledge. Students complete a student-driven capstone advised by CS faculty or may choose a thesis option, and applications are accepted for Fall admission only.",
+            "sourceKey": "graduate-admissions"
+          },
+          "durationMonths": 24,
+          "campus": null,
+          "language": null,
+          "officialUrl": "https://www.cs.ucla.edu/graduate-admissions/",
+          "domains": ["computer-science"],
+          "sources": [
+            {
+              "key": "graduate-admissions",
+              "url": "https://www.cs.ucla.edu/graduate-admissions/",
+              "sourceType": "ADMISSIONS_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-31T12:19:55.000Z"
+            },
+            {
+              "key": "grad-division-listing",
+              "url": "https://grad.ucla.edu/programs/school-of-engineering-and-applied-science/computer-science/",
+              "sourceType": "UNIVERSITY_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-31T12:19:55.000Z"
+            }
+          ],
+          "intakes": [
+            {
+              "key": "2027-september",
+              "year": 2027,
+              "month": 9,
+              "status": "PLANNED",
+              "applicationWindows": [
+                {
+                  "key": "fall-admission",
+                  "roundName": null,
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "EXPECTED",
+                  "verification": "EXPECTED",
+                  "sourceKey": "graduate-admissions",
+                  "lastVerifiedAt": "2026-07-31T12:19:55.000Z"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
