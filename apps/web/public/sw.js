@@ -9,10 +9,19 @@ const shellCacheName = `${cachePrefix}-shell-${deploymentVersion}`;
 const pageCacheName = `${cachePrefix}-pages-${deploymentVersion}`;
 const assetCacheName = `${cachePrefix}-assets-${deploymentVersion}`;
 const currentCacheNames = new Set([shellCacheName, pageCacheName, assetCacheName]);
-const shellPagePaths = new Set(["/", "/home", "/offline", "/onboarding", "/privacy"]);
+// `/home` is intentionally absent: it is force-dynamic and answers with
+// `Cache-Control: private, no-cache, no-store` in production, so it can never
+// be cached. Offline navigations to it fall back to `/offline` instead.
+const shellPagePaths = new Set(["/", "/offline", "/onboarding", "/privacy"]);
 const runtimeCacheablePagePaths = new Set(["/", "/offline", "/onboarding", "/privacy"]);
-const shellUrls = [...shellPagePaths, "/manifest.webmanifest"];
+// Losing any of these leaves the worker unable to do its one essential job
+// (a working offline fallback + installable manifest), so a miss must abort
+// the install and let the previous worker keep serving.
+const criticalShellUrls = ["/offline", "/manifest.webmanifest"];
 const staticUrls = ["/icons/icon.svg", "/icons/icon-maskable.svg", "/icons/mark.svg"];
+// Nice-to-have warm cache. Any of these may refuse caching (`no-store`) or be
+// briefly unavailable; that must NEVER fail the install.
+const optionalShellUrls = [...shellPagePaths].filter((path) => !criticalShellUrls.includes(path));
 const emergencyOfflineHtml = `<!doctype html>
 <html lang="en">
   <meta charset="utf-8">
@@ -67,20 +76,30 @@ async function fetchAndCache(cache, url) {
   return response;
 }
 
+async function cacheShellPage(shellCache, discoveredAssets, url) {
+  const response = await fetchAndCache(shellCache, url);
+  if (response.headers.get("content-type")?.includes("text/html")) {
+    for (const assetUrl of assetUrlsFrom(await response.text())) {
+      discoveredAssets.add(assetUrl);
+    }
+  }
+}
+
 async function cacheShell() {
   const shellCache = await caches.open(shellCacheName);
   const assetCache = await caches.open(assetCacheName);
-  const discoveredAssets = new Set(staticUrls);
+  const discoveredAssets = new Set();
 
-  await Promise.all(
-    shellUrls.map(async (url) => {
-      const response = await fetchAndCache(shellCache, url);
-      if (response.headers.get("content-type")?.includes("text/html")) {
-        for (const assetUrl of assetUrlsFrom(await response.text())) {
-          discoveredAssets.add(assetUrl);
-        }
-      }
-    }),
+  // Critical resources: a rejection here rejects the install on purpose.
+  await Promise.all([
+    ...criticalShellUrls.map((url) => cacheShellPage(shellCache, discoveredAssets, url)),
+    ...staticUrls.map((url) => fetchAndCache(assetCache, url)),
+  ]);
+
+  // Best-effort warm-up: pages that refuse caching (e.g. `no-store` on
+  // dynamic routes in production) must never make the install fail.
+  await Promise.allSettled(
+    optionalShellUrls.map((url) => cacheShellPage(shellCache, discoveredAssets, url)),
   );
 
   await Promise.allSettled([...discoveredAssets].map((url) => fetchAndCache(assetCache, url)));
