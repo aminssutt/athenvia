@@ -100,7 +100,7 @@
               "url": "https://ischoolonline.berkeley.edu/admissions",
               "sourceType": "ADMISSIONS_PAGE",
               "isOfficial": true,
-              "lastCheckedAt": "2026-07-31T13:36:55.000Z"
+              "lastCheckedAt": "2026-07-31T18:10:09.000Z"
             }
           ],
           "intakes": [
@@ -114,31 +114,31 @@
                   "key": "early-action",
                   "roundName": "Early action deadline",
                   "opensAt": null,
-                  "closesAt": null,
-                  "publicStatus": "EXPECTED",
-                  "verification": "EXPECTED",
+                  "closesAt": "2026-08-05T12:00:00.000Z",
+                  "publicStatus": "CONFIRMED",
+                  "verification": "OFFICIAL",
                   "sourceKey": "admissions-page",
-                  "lastVerifiedAt": "2026-07-31T13:36:55.000Z"
+                  "lastVerifiedAt": "2026-07-31T18:10:09.000Z"
                 },
                 {
                   "key": "priority-round",
                   "roundName": "Priority application deadline",
                   "opensAt": null,
-                  "closesAt": null,
-                  "publicStatus": "EXPECTED",
-                  "verification": "EXPECTED",
+                  "closesAt": "2026-09-02T12:00:00.000Z",
+                  "publicStatus": "CONFIRMED",
+                  "verification": "OFFICIAL",
                   "sourceKey": "admissions-page",
-                  "lastVerifiedAt": "2026-07-31T13:36:55.000Z"
+                  "lastVerifiedAt": "2026-07-31T18:10:09.000Z"
                 },
                 {
                   "key": "final-round",
                   "roundName": "Final application deadline",
                   "opensAt": null,
-                  "closesAt": null,
-                  "publicStatus": "EXPECTED",
-                  "verification": "EXPECTED",
+                  "closesAt": "2026-09-23T12:00:00.000Z",
+                  "publicStatus": "CONFIRMED",
+                  "verification": "OFFICIAL",
                   "sourceKey": "admissions-page",
-                  "lastVerifiedAt": "2026-07-31T13:36:55.000Z"
+                  "lastVerifiedAt": "2026-07-31T18:10:09.000Z"
                 }
               ]
             }

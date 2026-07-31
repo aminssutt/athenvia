@@ -36,7 +36,7 @@
               "url": "https://prog-crs.hkust.edu.hk/pgprog/2026-27/msc-ai",
               "sourceType": "PROGRAM_PAGE",
               "isOfficial": true,
-              "lastCheckedAt": "2026-07-30T13:46:55.825Z"
+              "lastCheckedAt": "2026-07-31T18:08:14.000Z"
             },
             {
               "key": "english-medium",
@@ -57,11 +57,11 @@
                   "key": "main-round",
                   "roundName": null,
                   "opensAt": null,
-                  "closesAt": null,
-                  "publicStatus": "NOT_PUBLISHED",
+                  "closesAt": "2026-03-01T12:00:00.000Z",
+                  "publicStatus": "CONFIRMED",
                   "verification": "OFFICIAL",
                   "sourceKey": "programme-catalog",
-                  "lastVerifiedAt": "2026-07-30T13:46:55.825Z"
+                  "lastVerifiedAt": "2026-07-31T18:08:14.000Z"
                 }
               ]
             }
@@ -86,7 +86,7 @@
               "url": "https://prog-crs.hkust.edu.hk/pgprog/2026-27/msc-bdt",
               "sourceType": "PROGRAM_PAGE",
               "isOfficial": true,
-              "lastCheckedAt": "2026-07-31T13:37:32.000Z"
+              "lastCheckedAt": "2026-07-31T18:08:14.000Z"
             }
           ],
           "intakes": [
@@ -100,11 +100,11 @@
                   "key": "rolling-admission",
                   "roundName": null,
                   "opensAt": null,
-                  "closesAt": null,
-                  "publicStatus": "EXPECTED",
-                  "verification": "EXPECTED",
+                  "closesAt": "2026-03-01T12:00:00.000Z",
+                  "publicStatus": "CONFIRMED",
+                  "verification": "OFFICIAL",
                   "sourceKey": "programme-catalog",
-                  "lastVerifiedAt": "2026-07-31T13:37:32.000Z"
+                  "lastVerifiedAt": "2026-07-31T18:08:14.000Z"
                 }
               ]
             }

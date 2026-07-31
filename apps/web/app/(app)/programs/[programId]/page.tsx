@@ -89,6 +89,10 @@ export default async function ProgramPage({ params }: ProgramPageProps) {
   const applicationSource = safeOfficialSource(applicationWindow?.officialSourceUrl ?? null);
   const summarySource = safeOfficialSource(program.summary.officialSourceUrl);
   const publicStatus = applicationWindow?.publicStatus ?? "NOT_PUBLISHED";
+  // A closed cycle keeps its real deadline, but calling a past date the "next"
+  // one would be plainly wrong.
+  const deadlineHasPassed =
+    applicationWindow?.closesAt != null && new Date(applicationWindow.closesAt) < new Date();
 
   return (
     <div className={styles.appFrame}>
@@ -178,7 +182,7 @@ export default async function ProgramPage({ params }: ProgramPageProps) {
                 </dd>
               </div>
               <div>
-                <dt>Next deadline</dt>
+                <dt>{deadlineHasPassed ? "Applications closed" : "Next deadline"}</dt>
                 <dd>
                   <PublishedDate value={applicationWindow?.closesAt ?? null} />
                 </dd>

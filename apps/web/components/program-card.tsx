@@ -31,11 +31,18 @@ function getNextEvent(program: ProgramSummary, locale?: string) {
     return null;
   }
 
+  // A closed cycle keeps its real deadline, but calling a past date the "next"
+  // one would be plainly wrong.
+  const deadlineHasPassed =
+    applicationWindow.closesAt !== null && new Date(applicationWindow.closesAt) < new Date();
+
   const event = applicationWindow.closesAt
     ? {
-        label: applicationWindow.roundName
-          ? `${applicationWindow.roundName} deadline`
-          : "Next deadline",
+        label: deadlineHasPassed
+          ? "Applications closed"
+          : applicationWindow.roundName
+            ? `${applicationWindow.roundName} deadline`
+            : "Next deadline",
         value: applicationWindow.closesAt,
       }
     : applicationWindow.opensAt
@@ -48,7 +55,12 @@ function getNextEvent(program: ProgramSummary, locale?: string) {
 
   return {
     label: event.label,
-    value: new Intl.DateTimeFormat(locale, { dateStyle: "medium" }).format(new Date(event.value)),
+    // Pinned to UTC like every other catalogue date formatter: deadlines are
+    // stored as instants, and rendering them in the viewer's zone would shift
+    // the published calendar day for anyone west of UTC.
+    value: new Intl.DateTimeFormat(locale, { dateStyle: "medium", timeZone: "UTC" }).format(
+      new Date(event.value),
+    ),
   };
 }
 
