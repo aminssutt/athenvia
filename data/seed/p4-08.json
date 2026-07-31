@@ -2,7 +2,9 @@
   "$schema": "./seed.schema.json",
   "schemaVersion": 1,
   "domains": [
+    { "slug": "applied-ai", "name": "Applied AI" },
     { "slug": "computer-science", "name": "Computer Science" },
+    { "slug": "data-science", "name": "Data Science" },
     { "slug": "machine-learning", "name": "Machine Learning" }
   ],
   "universities": [
@@ -60,6 +62,92 @@
                   "verification": "OFFICIAL",
                   "sourceKey": "application-page",
                   "lastVerifiedAt": "2026-07-31T12:08:57.000Z"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "key": "master-data-science-and-technology",
+          "name": "Data Science and Technology (English-taught Program)",
+          "degreeType": "MASTER",
+          "summary": {
+            "text": "An English-taught master's programme at Tsinghua Shenzhen International Graduate School whose curriculum integrates data science with multiple disciplines, with research focused on artificial intelligence, operations research and statistics, management science, computational imaging, smart grids, robotics, Internet-of-Things and related emerging fields, emphasising interdisciplinary collaboration across natural sciences, engineering, management and social sciences and combining foundational research with practical application.",
+            "sourceKey": "programme-page"
+          },
+          "durationMonths": null,
+          "campus": "Tsinghua Shenzhen International Graduate School",
+          "language": "English",
+          "officialUrl": "https://www.sigs.tsinghua.edu.cn/en/2024/1230/c7587a99293/page.htm",
+          "domains": ["applied-ai", "data-science"],
+          "sources": [
+            {
+              "key": "programme-page",
+              "url": "https://www.sigs.tsinghua.edu.cn/en/2024/1230/c7587a99293/page.htm",
+              "sourceType": "PROGRAM_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-31T13:37:17.000Z"
+            }
+          ],
+          "intakes": [
+            {
+              "key": "2026-september",
+              "year": 2026,
+              "month": 9,
+              "status": "CLOSED",
+              "applicationWindows": [
+                {
+                  "key": "main-round",
+                  "roundName": null,
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "EXPECTED",
+                  "verification": "EXPECTED",
+                  "sourceKey": "programme-page",
+                  "lastVerifiedAt": "2026-07-31T13:37:17.000Z"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "key": "tbsi-joint-master-data-science",
+          "name": "Tsinghua-UC Berkeley Joint Master Program in Data Science",
+          "degreeType": "MASTER",
+          "summary": {
+            "text": "A joint master's programme at the Tsinghua-Berkeley Shenzhen Institute (TBSI), established in 2014 by UC Berkeley, Tsinghua University and the Shenzhen municipal government, committed to developing applied talents with outstanding engineering leadership and entrepreneurial competencies. Students who meet the degree requirements of both universities are awarded a Tsinghua University master's degree in Data Science and a UC Berkeley master's degree in Engineering Leadership within 2.5 to 3 years, with supervision by advisors from both universities and an industry adviser.",
+            "sourceKey": "programme-overview"
+          },
+          "durationMonths": null,
+          "campus": "Shenzhen",
+          "language": null,
+          "officialUrl": "https://goglobal.tsinghua.edu.cn/en/program/p5mYOgnLoNRD",
+          "domains": ["data-science"],
+          "sources": [
+            {
+              "key": "programme-overview",
+              "url": "https://goglobal.tsinghua.edu.cn/en/program/p5mYOgnLoNRD",
+              "sourceType": "PROGRAM_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-31T13:37:17.000Z"
+            }
+          ],
+          "intakes": [
+            {
+              "key": "2027-september",
+              "year": 2027,
+              "month": 9,
+              "status": "PLANNED",
+              "applicationWindows": [
+                {
+                  "key": "main-round",
+                  "roundName": null,
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "NOT_PUBLISHED",
+                  "verification": "OFFICIAL",
+                  "sourceKey": "programme-overview",
+                  "lastVerifiedAt": "2026-07-31T13:37:17.000Z"
                 }
               ]
             }

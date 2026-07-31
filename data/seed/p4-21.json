@@ -4,6 +4,7 @@
   "domains": [
     { "slug": "applied-ai", "name": "Applied AI" },
     { "slug": "computer-science", "name": "Computer Science" },
+    { "slug": "data-science", "name": "Data Science" },
     { "slug": "machine-learning", "name": "Machine Learning" }
   ],
   "universities": [
@@ -88,6 +89,146 @@
                   "verification": "EXPECTED",
                   "sourceKey": "meng-application",
                   "lastVerifiedAt": "2026-07-31T12:22:02.000Z"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "key": "meng-operations-research-and-information-engineering",
+          "name": "Master of Engineering in Operations Research and Information Engineering",
+          "degreeType": "MASTER",
+          "summary": {
+            "text": "A one-year Master of Engineering at Cornell Tech in New York City combining optimization methods, probabilistic analysis, machine learning, data science and modeling under uncertainty. Alongside technical courses, students complete Studio courses in entrepreneurship and product management, working in cross-disciplinary teams to develop usable solutions for real corporations and create their own startups, with an optional AI and Decision Making certificate available for expertise in machine learning and decision-making.",
+            "sourceKey": "programme-page"
+          },
+          "durationMonths": 12,
+          "campus": null,
+          "language": null,
+          "officialUrl": "https://tech.cornell.edu/programs/masters-programs/master-in-operations-research-and-information-engineering",
+          "domains": ["data-science", "machine-learning"],
+          "sources": [
+            {
+              "key": "programme-page",
+              "url": "https://tech.cornell.edu/programs/masters-programs/master-in-operations-research-and-information-engineering",
+              "sourceType": "PROGRAM_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-31T13:36:55.000Z"
+            },
+            {
+              "key": "meng-application",
+              "url": "https://tech.cornell.edu/admissions/meng-application/",
+              "sourceType": "ADMISSIONS_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-31T13:36:55.000Z"
+            }
+          ],
+          "intakes": [
+            {
+              "key": "2027-august",
+              "year": 2027,
+              "month": 8,
+              "status": "PLANNED",
+              "applicationWindows": [
+                {
+                  "key": "priority-round",
+                  "roundName": "Priority Deadline",
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "EXPECTED",
+                  "verification": "EXPECTED",
+                  "sourceKey": "meng-application",
+                  "lastVerifiedAt": "2026-07-31T13:36:55.000Z"
+                },
+                {
+                  "key": "second-round",
+                  "roundName": "Round Deadline",
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "EXPECTED",
+                  "verification": "EXPECTED",
+                  "sourceKey": "meng-application",
+                  "lastVerifiedAt": "2026-07-31T13:36:55.000Z"
+                },
+                {
+                  "key": "rolling-round",
+                  "roundName": "Rolling Deadline",
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "EXPECTED",
+                  "verification": "EXPECTED",
+                  "sourceKey": "meng-application",
+                  "lastVerifiedAt": "2026-07-31T13:36:55.000Z"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "key": "meng-data-science-and-decision-analytics",
+          "name": "Master of Engineering in Data Science and Decision Analytics",
+          "degreeType": "MASTER",
+          "summary": {
+            "text": "A one-year Master of Engineering at Cornell Tech in New York City focused on the data-to-algorithms-to-decisions pipeline, drawing on machine learning, optimization and statistics through courses such as Applied Machine Learning, Deep Learning, Introduction to Generative Models and Optimization for AI. Students also complete Studio courses — an essential component of every Cornell Tech programme — working in cross-disciplinary teams with computer science, engineering, business and law students to solve real business problems faced by tech companies.",
+            "sourceKey": "programme-page"
+          },
+          "durationMonths": 12,
+          "campus": null,
+          "language": null,
+          "officialUrl": "https://tech.cornell.edu/programs/masters-programs/data-science-decision-analytics",
+          "domains": ["applied-ai", "data-science", "machine-learning"],
+          "sources": [
+            {
+              "key": "programme-page",
+              "url": "https://tech.cornell.edu/programs/masters-programs/data-science-decision-analytics",
+              "sourceType": "PROGRAM_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-31T13:36:55.000Z"
+            },
+            {
+              "key": "meng-application",
+              "url": "https://tech.cornell.edu/admissions/meng-application/",
+              "sourceType": "ADMISSIONS_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-31T13:36:55.000Z"
+            }
+          ],
+          "intakes": [
+            {
+              "key": "2027-august",
+              "year": 2027,
+              "month": 8,
+              "status": "PLANNED",
+              "applicationWindows": [
+                {
+                  "key": "priority-round",
+                  "roundName": "Priority Deadline",
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "EXPECTED",
+                  "verification": "EXPECTED",
+                  "sourceKey": "meng-application",
+                  "lastVerifiedAt": "2026-07-31T13:36:55.000Z"
+                },
+                {
+                  "key": "second-round",
+                  "roundName": "Round Deadline",
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "EXPECTED",
+                  "verification": "EXPECTED",
+                  "sourceKey": "meng-application",
+                  "lastVerifiedAt": "2026-07-31T13:36:55.000Z"
+                },
+                {
+                  "key": "rolling-round",
+                  "roundName": "Rolling Deadline",
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "EXPECTED",
+                  "verification": "EXPECTED",
+                  "sourceKey": "meng-application",
+                  "lastVerifiedAt": "2026-07-31T13:36:55.000Z"
                 }
               ]
             }

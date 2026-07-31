@@ -4,7 +4,9 @@
   "domains": [
     { "slug": "artificial-intelligence", "name": "Artificial Intelligence" },
     { "slug": "computer-science", "name": "Computer Science" },
-    { "slug": "cybersecurity", "name": "Cybersecurity" }
+    { "slug": "cybersecurity", "name": "Cybersecurity" },
+    { "slug": "data-science", "name": "Data Science" },
+    { "slug": "machine-learning", "name": "Machine Learning" }
   ],
   "universities": [
     {
@@ -54,6 +56,73 @@
                   "verification": "OFFICIAL",
                   "sourceKey": "programme-details",
                   "lastVerifiedAt": "2026-07-30T00:00:00.000Z"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "key": "master-of-data-science",
+          "name": "Master of Data Science (MDASC)",
+          "degreeType": "MASTER",
+          "summary": {
+            "text": "A 72-credit taught master's admitting students each September, offered full-time over 1.5 years or part-time over 2.5 years. Compulsory courses cover computational intelligence, statistical inference, database systems and advanced statistical modelling, complemented by electives drawn from computer science and statistics course lists and a capstone data science project or practicum.",
+            "sourceKey": "programme-structure"
+          },
+          "durationMonths": 18,
+          "campus": null,
+          "language": null,
+          "officialUrl": "https://mdasc.cds.hku.hk/",
+          "domains": ["computer-science", "data-science", "machine-learning"],
+          "sources": [
+            {
+              "key": "programme-page",
+              "url": "https://mdasc.cds.hku.hk/",
+              "sourceType": "PROGRAM_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-31T13:37:32.000Z"
+            },
+            {
+              "key": "programme-structure",
+              "url": "https://mdasc.cds.hku.hk/programme/",
+              "sourceType": "PROGRAM_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-31T13:37:32.000Z"
+            },
+            {
+              "key": "admissions-page",
+              "url": "https://mdasc.cds.hku.hk/admissions/",
+              "sourceType": "ADMISSIONS_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-31T13:37:32.000Z"
+            }
+          ],
+          "intakes": [
+            {
+              "key": "2026-september",
+              "year": 2026,
+              "month": 9,
+              "status": "PLANNED",
+              "applicationWindows": [
+                {
+                  "key": "round-1-main",
+                  "roundName": "Round 1 (Main)",
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "EXPECTED",
+                  "verification": "EXPECTED",
+                  "sourceKey": "admissions-page",
+                  "lastVerifiedAt": "2026-07-31T13:37:32.000Z"
+                },
+                {
+                  "key": "round-2-clearing",
+                  "roundName": "Round 2 (Clearing)",
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "EXPECTED",
+                  "verification": "EXPECTED",
+                  "sourceKey": "admissions-page",
+                  "lastVerifiedAt": "2026-07-31T13:37:32.000Z"
                 }
               ]
             }
