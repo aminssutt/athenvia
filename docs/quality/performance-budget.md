@@ -89,7 +89,19 @@ hourly and on visibility change, and a new deployment waits for explicit user co
 (`SKIP_WAITING` + one-time reload). `responseAllowsStorage()` refuses to store any
 response marked `private` or `no-store`.
 
-### CRITICAL finding: shell precache can fail the whole install in production
+### CRITICAL finding (FIXED): shell precache can fail the whole install in production
+
+> **Status: FIXED** in the same PR that merged this section. `cacheShell()` now
+> precaches in two phases — `/offline`, the manifest and the static icons remain
+> hard install requirements, while the remaining shell pages are cached
+> best-effort with `Promise.allSettled` — and `/home` was removed from
+> `shellPagePaths` entirely (it can never be stored, and offline navigations to
+> it already fall back to `/offline`). Verified against a production build
+> (`next build` + `next start`): with the old worker, `pwa.spec.ts` fails
+> exactly as described below; with the fix, install, activation and the update
+> flow all pass despite the `no-store` header. The e2e assertion now checks
+> `/home` is **not** in the shell cache. The original analysis is kept below
+> for the record.
 
 `cacheShell()` precaches `shellUrls` with `Promise.all(...)`, and `fetchAndCache()`
 **throws** when a response is not storable. `shellPagePaths` includes `/home`, which is
