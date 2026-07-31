@@ -1,0 +1,107 @@
+{
+  "$schema": "./seed.schema.json",
+  "schemaVersion": 1,
+  "domains": [
+    { "slug": "applied-ai", "name": "Applied AI" },
+    { "slug": "computer-science", "name": "Computer Science" },
+    { "slug": "machine-learning", "name": "Machine Learning" }
+  ],
+  "universities": [
+    {
+      "key": "columbia-university",
+      "name": "Columbia University",
+      "countryCode": "US",
+      "city": "New York",
+      "officialDomain": "columbia.edu",
+      "officialWebsite": "https://www.columbia.edu/",
+      "aliases": ["Columbia", "Columbia University in the City of New York"],
+      "programs": [
+        {
+          "key": "ms-computer-science",
+          "name": "Master of Science in Computer Science",
+          "degreeType": "MASTER",
+          "summary": {
+            "text": "A 30-point Master of Science in Computer Science offered by the Computer Science Department at Columbia University's School of Engineering and Applied Science, requiring courses at the 4000 level or above with at least 6 points of technical courses at the 6000 level, and offering eight tracks including Machine Learning, Natural Language Processing, Computer Security and Software Systems.",
+            "sourceKey": "program-page"
+          },
+          "durationMonths": null,
+          "campus": null,
+          "language": null,
+          "officialUrl": "https://www.cs.columbia.edu/education/ms/",
+          "domains": ["applied-ai", "computer-science", "machine-learning"],
+          "sources": [
+            {
+              "key": "program-page",
+              "url": "https://www.cs.columbia.edu/education/ms/",
+              "sourceType": "PROGRAM_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-31T12:20:01.000Z"
+            },
+            {
+              "key": "ml-track-page",
+              "url": "https://www.cs.columbia.edu/education/ms/machinelearning/",
+              "sourceType": "PROGRAM_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-31T12:20:01.000Z"
+            },
+            {
+              "key": "admissions-page",
+              "url": "https://www.cs.columbia.edu/education/admissions8/",
+              "sourceType": "ADMISSIONS_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-31T12:20:01.000Z"
+            }
+          ],
+          "intakes": [
+            {
+              "key": "2027-january",
+              "year": 2027,
+              "month": 1,
+              "status": "PLANNED",
+              "applicationWindows": [
+                {
+                  "key": "main-round",
+                  "roundName": null,
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "EXPECTED",
+                  "verification": "EXPECTED",
+                  "sourceKey": "admissions-page",
+                  "lastVerifiedAt": "2026-07-31T12:20:01.000Z"
+                }
+              ]
+            },
+            {
+              "key": "2027-september",
+              "year": 2027,
+              "month": 9,
+              "status": "PLANNED",
+              "applicationWindows": [
+                {
+                  "key": "priority-round",
+                  "roundName": "Priority deadline",
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "EXPECTED",
+                  "verification": "EXPECTED",
+                  "sourceKey": "admissions-page",
+                  "lastVerifiedAt": "2026-07-31T12:20:01.000Z"
+                },
+                {
+                  "key": "final-round",
+                  "roundName": "Final deadline",
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "EXPECTED",
+                  "verification": "EXPECTED",
+                  "sourceKey": "admissions-page",
+                  "lastVerifiedAt": "2026-07-31T12:20:01.000Z"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
