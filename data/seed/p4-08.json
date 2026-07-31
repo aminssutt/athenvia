@@ -1,0 +1,71 @@
+{
+  "$schema": "./seed.schema.json",
+  "schemaVersion": 1,
+  "domains": [
+    { "slug": "computer-science", "name": "Computer Science" },
+    { "slug": "machine-learning", "name": "Machine Learning" }
+  ],
+  "universities": [
+    {
+      "key": "tsinghua",
+      "name": "Tsinghua University",
+      "countryCode": "CN",
+      "city": "Beijing",
+      "officialDomain": "tsinghua.edu.cn",
+      "officialWebsite": "https://www.tsinghua.edu.cn/en/",
+      "aliases": ["Tsinghua", "THU"],
+      "programs": [
+        {
+          "key": "master-advanced-computing",
+          "name": "Master in Advanced Computing",
+          "degreeType": "MASTER",
+          "summary": {
+            "text": "A two-year, English-taught master's programme in Advanced Computing offered by Tsinghua University's Department of Computer Science and Technology, covering cutting-edge computer science topics including machine learning, big data and human-computer interaction, in a department that has established joint labs with industry partners such as IBM, Intel and Microsoft.",
+            "sourceKey": "programme-overview"
+          },
+          "durationMonths": 24,
+          "campus": null,
+          "language": "English",
+          "officialUrl": "https://ac.cs.tsinghua.edu.cn/",
+          "domains": ["computer-science", "machine-learning"],
+          "sources": [
+            {
+              "key": "programme-overview",
+              "url": "https://ac.cs.tsinghua.edu.cn/",
+              "sourceType": "PROGRAM_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-31T12:08:57.000Z"
+            },
+            {
+              "key": "application-page",
+              "url": "https://ac.cs.tsinghua.edu.cn/application.html",
+              "sourceType": "ADMISSIONS_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-31T12:08:57.000Z"
+            }
+          ],
+          "intakes": [
+            {
+              "key": "2026-september",
+              "year": 2026,
+              "month": 9,
+              "status": "CLOSED",
+              "applicationWindows": [
+                {
+                  "key": "second-round",
+                  "roundName": "2nd Round",
+                  "opensAt": "2026-01-01T00:00:00.000Z",
+                  "closesAt": "2026-02-27T09:00:00.000Z",
+                  "publicStatus": "CONFIRMED",
+                  "verification": "OFFICIAL",
+                  "sourceKey": "application-page",
+                  "lastVerifiedAt": "2026-07-31T12:08:57.000Z"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
