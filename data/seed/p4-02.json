@@ -4,7 +4,11 @@
   "domains": [
     { "slug": "entrepreneurship", "name": "Entrepreneurship" },
     { "slug": "innovation", "name": "Innovation" },
-    { "slug": "management", "name": "Management" }
+    { "slug": "management", "name": "Management" },
+    { "slug": "applied-ai", "name": "Applied AI" },
+    { "slug": "computer-science", "name": "Computer Science" },
+    { "slug": "data-science", "name": "Data Science" },
+    { "slug": "machine-learning", "name": "Machine Learning" }
   ],
   "universities": [
     {
@@ -54,6 +58,116 @@
                   "verification": "OFFICIAL",
                   "sourceKey": "programme-page",
                   "lastVerifiedAt": "2026-07-30T00:00:00.000Z"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "key": "mcomp-artificial-intelligence",
+          "name": "Master of Computing in Artificial Intelligence",
+          "degreeType": "MASTER",
+          "summary": {
+            "text": "A 40-unit master's offering coursework and dissertation options that provide breadth-and-depth training in advanced AI principles, algorithms and applications. Essential courses span the sub-areas of perception, reasoning and planning, learning and optimization, and AI governance, with electives extending into vision, speech, language processing, data analytics and robotics.",
+            "sourceKey": "programme-page"
+          },
+          "durationMonths": 18,
+          "campus": "Singapore",
+          "language": null,
+          "officialUrl": "https://www.comp.nus.edu.sg/programmes/pg/mcomp-ai/",
+          "domains": ["applied-ai", "computer-science", "machine-learning"],
+          "sources": [
+            {
+              "key": "programme-page",
+              "url": "https://www.comp.nus.edu.sg/programmes/pg/mcomp-ai/",
+              "sourceType": "PROGRAM_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-31T13:37:32.000Z"
+            },
+            {
+              "key": "application-page",
+              "url": "https://www.comp.nus.edu.sg/programmes/pg/mcomp-ai/application/",
+              "sourceType": "ADMISSIONS_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-31T13:37:32.000Z"
+            }
+          ],
+          "intakes": [
+            {
+              "key": "2026-august",
+              "year": 2026,
+              "month": 8,
+              "status": "PLANNED",
+              "applicationWindows": [
+                {
+                  "key": "main-application-period",
+                  "roundName": null,
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "EXPECTED",
+                  "verification": "EXPECTED",
+                  "sourceKey": "application-page",
+                  "lastVerifiedAt": "2026-07-31T13:37:32.000Z"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "key": "msc-data-science-and-machine-learning",
+          "name": "MSc in Data Science and Machine Learning",
+          "degreeType": "MASTER",
+          "summary": {
+            "text": "A 40-unit MSc combining five core courses in big data fundamentals, optimisation algorithms, data management, machine learning principles and deep learning with elective courses offered by the Mathematics Department together with computer science, statistics and quantitative finance. Available full-time or part-time with an August intake each year.",
+            "sourceKey": "programme-page"
+          },
+          "durationMonths": null,
+          "campus": "Singapore",
+          "language": null,
+          "officialUrl": "https://www.math.nus.edu.sg/pg/dsml/",
+          "domains": ["data-science", "machine-learning"],
+          "sources": [
+            {
+              "key": "programme-page",
+              "url": "https://www.math.nus.edu.sg/pg/dsml/",
+              "sourceType": "PROGRAM_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-31T13:37:32.000Z"
+            },
+            {
+              "key": "prospective-students",
+              "url": "https://www.math.nus.edu.sg/cdsml/ms-dsml/dsml-prospective-students/",
+              "sourceType": "ADMISSIONS_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-31T13:37:32.000Z"
+            }
+          ],
+          "intakes": [
+            {
+              "key": "2027-august",
+              "year": 2027,
+              "month": 8,
+              "status": "PLANNED",
+              "applicationWindows": [
+                {
+                  "key": "early-admission-cycle",
+                  "roundName": "Early Admission Cycle",
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "EXPECTED",
+                  "verification": "EXPECTED",
+                  "sourceKey": "prospective-students",
+                  "lastVerifiedAt": "2026-07-31T13:37:32.000Z"
+                },
+                {
+                  "key": "regular-admission-cycle",
+                  "roundName": "Regular Admission Cycle",
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "EXPECTED",
+                  "verification": "EXPECTED",
+                  "sourceKey": "prospective-students",
+                  "lastVerifiedAt": "2026-07-31T13:37:32.000Z"
                 }
               ]
             }

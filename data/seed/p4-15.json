@@ -4,6 +4,7 @@
   "domains": [
     { "slug": "applied-ai", "name": "Applied AI" },
     { "slug": "computer-science", "name": "Computer Science" },
+    { "slug": "data-science", "name": "Data Science" },
     { "slug": "machine-learning", "name": "Machine Learning" }
   ],
   "universities": [
@@ -71,6 +72,66 @@
                   "verification": "EXPECTED",
                   "sourceKey": "master-admission-criteria",
                   "lastVerifiedAt": "2026-07-31T12:14:59.000Z"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "key": "msc-data-science",
+          "name": "Master of Science in Data Science",
+          "degreeType": "MASTER",
+          "summary": {
+            "text": "A 120 ECTS Master's programme taught in English and offered jointly by the schools of Computer and Communication Sciences, Basic Sciences (Mathematics) and Engineering (Electrical Engineering). The curriculum spans data science from the foundations to implementation, from algorithms to database architecture, and from information theory to machine learning.",
+            "sourceKey": "program-page"
+          },
+          "durationMonths": null,
+          "campus": null,
+          "language": "English",
+          "officialUrl": "https://www.epfl.ch/education/master/programs/data-science/",
+          "domains": ["computer-science", "data-science", "machine-learning"],
+          "sources": [
+            {
+              "key": "program-page",
+              "url": "https://www.epfl.ch/education/master/programs/data-science/",
+              "sourceType": "PROGRAM_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-31T13:33:50.000Z"
+            },
+            {
+              "key": "master-admission-criteria",
+              "url": "https://www.epfl.ch/education/admission/admission-2/master-admission-criteria-application/",
+              "sourceType": "ADMISSIONS_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-31T13:33:50.000Z"
+            }
+          ],
+          "intakes": [
+            {
+              "key": "2027-september",
+              "year": 2027,
+              "month": 9,
+              "status": "PLANNED",
+              "applicationWindows": [
+                {
+                  "key": "first-round",
+                  "roundName": "First application period (mid-November to 15 December)",
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "EXPECTED",
+                  "verification": "EXPECTED",
+                  "sourceKey": "master-admission-criteria",
+                  "lastVerifiedAt": "2026-07-31T13:33:50.000Z"
+                },
+                {
+                  "key": "second-round",
+                  "roundName": "Second application period (16 December to 31 March)",
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "EXPECTED",
+                  "verification": "EXPECTED",
+                  "sourceKey": "master-admission-criteria",
+                  "lastVerifiedAt": "2026-07-31T13:33:50.000Z"
                 }
               ]
             }
