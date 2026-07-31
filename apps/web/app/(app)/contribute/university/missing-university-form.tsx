@@ -6,6 +6,7 @@ import { useState } from "react";
 import { Brand } from "@/components/brand";
 import { MobileNavigation } from "@/components/mobile-navigation";
 
+import { universitySubmissionApiTransport } from "./api-transport";
 import styles from "./missing-university.module.css";
 import { MissingUniversitySubmissionSchema, submitMissingUniversity } from "./submission";
 
@@ -67,7 +68,10 @@ export function MissingUniversityForm({ prefilledName }: MissingUniversityFormPr
     }
 
     setIsSubmitting(true);
-    const submissionResult = await submitMissingUniversity(parsedSubmission.data);
+    const submissionResult = await submitMissingUniversity(
+      parsedSubmission.data,
+      universitySubmissionApiTransport,
+    );
     setResult(submissionResult);
     setIsSubmitting(false);
   }

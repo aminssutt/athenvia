@@ -26,7 +26,8 @@ test("creates one pending auditable review for every proposed shared record", as
   assert.equal(writes.length, 1);
   assert.deepEqual(writes[0], {
     data: {
-      createdByWorker: true,
+      createdByUserId: "user-1",
+      createdByWorker: false,
       entityId: "submission-1",
       entityType: "UNIVERSITY_SUBMISSION",
       fieldName: SUBMISSION_REVIEW_FIELD,

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { AdminReviewConflictError, decideAdminReviewWith } from "./service";
+import { AdminReviewConflictError, decideAdminReviewWith, describeCreator } from "./service";
 
 function fakeDatabase(competitors: number, revisionOverrides: Record<string, unknown> = {}) {
   const transaction = {
@@ -28,6 +28,44 @@ function fakeDatabase(competitors: number, revisionOverrides: Record<string, unk
     transaction,
   };
 }
+
+describe("review card provenance", () => {
+  it("labels worker-created revisions as the verification worker", () => {
+    expect(
+      describeCreator({ createdBy: null, createdByWorker: true, fieldName: "submissionReview" }),
+    ).toBe("Athenvia verification worker");
+  });
+
+  it("labels a student submission with the contributor's email", () => {
+    expect(
+      describeCreator({
+        createdBy: { email: "student@example.com" },
+        createdByWorker: false,
+        fieldName: "submissionReview",
+      }),
+    ).toBe("a student (student@example.com)");
+  });
+
+  it("keeps an anonymized contributor neutral", () => {
+    expect(
+      describeCreator({
+        createdBy: { email: "deleted-user-1@deleted.invalid" },
+        createdByWorker: false,
+        fieldName: "submissionReview",
+      }),
+    ).toBe("a student (account deleted)");
+  });
+
+  it("labels other human revisions with the reviewer's email", () => {
+    expect(
+      describeCreator({
+        createdBy: { email: "admin@example.com" },
+        createdByWorker: false,
+        fieldName: "reviewDecision",
+      }),
+    ).toBe("admin@example.com");
+  });
+});
 
 describe("admin review decisions", () => {
   it("cannot approve while a competing pending value remains", async () => {
