@@ -3,6 +3,10 @@ import { createHmac, randomUUID } from "node:crypto";
 
 import Redis from "ioredis";
 
+import { createWebLogger } from "../../../lib/observability";
+
+const logger = createWebLogger();
+
 async function main() {
   const redisUrl = process.env.REDIS_URL;
   if (!redisUrl) {
@@ -49,7 +53,7 @@ async function main() {
 void main().then(
   () => process.exit(0),
   (error: unknown) => {
-    console.error(error);
+    logger.error({ error, event: "web.redis_smoke_failed" }, "Submission Redis smoke failed");
     process.exit(1);
   },
 );

@@ -1,6 +1,8 @@
 import { unfollowProgram } from "@athenvia/database";
 import { z } from "zod";
 
+import { logRequestError } from "@/lib/observability";
+
 import {
   authenticatedUserId,
   isTrustedMutationOrigin,
@@ -54,8 +56,11 @@ export async function DELETE(request: Request, context: RouteContext): Promise<R
       headers: mutationResponseHeaders(),
     });
   } catch (error) {
-    const requestId = crypto.randomUUID();
-    console.error(`[watchlist:${requestId}] unfollow failed`, error);
+    logRequestError(request, {
+      code: "WATCHLIST_UNFOLLOW_FAILED",
+      error,
+      route: "/api/watchlist/[watchlistId]",
+    });
     return errorResponse(
       "WATCHLIST_UNAVAILABLE",
       "The watchlist could not be updated right now. Try again soon.",

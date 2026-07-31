@@ -4,8 +4,9 @@ import type { Logger } from "pino";
 import type { z } from "zod";
 
 import type { VerificationJobData, VerificationStage } from "./queue-contracts";
-import { verificationQueueContracts } from "./queue-contracts";
+import { VERIFICATION_DEAD_LETTER_QUEUE_NAME, verificationQueueContracts } from "./queue-contracts";
 import { deadLetterJobId } from "./queue-policy";
+import { jobCorrelationFields } from "./observability";
 import {
   discoveryQueue,
   fetchQueue,
@@ -53,7 +54,9 @@ async function routeFinalFailure<DataType extends VerificationJobData>(
 
   logger.error(
     {
+      correlationId: `${configuration.queue.name}:${jobId}`,
       deadLetterJobId: deadLetter.id,
+      event: "worker.job_dead_lettered",
       sourceJobId: jobId,
       sourceQueue: configuration.queue.name,
       attemptsMade: sourceJob.attemptsMade,
@@ -74,6 +77,7 @@ function listenForFinalFailures<DataType extends VerificationJobData>(
       logger.error(
         {
           error,
+          event: "worker.dead_letter_routing_failed",
           sourceJobId: jobId,
           sourceQueue: configuration.queue.name,
         },
@@ -86,7 +90,7 @@ function listenForFinalFailures<DataType extends VerificationJobData>(
   events.on("retries-exhausted", route);
   events.on("error", (error) => {
     logger.error(
-      { error, sourceQueue: configuration.queue.name },
+      { error, event: "worker.queue_error", sourceQueue: configuration.queue.name },
       "Verification queue event listener failed",
     );
   });
@@ -162,13 +166,12 @@ export function createDeadLetterProcessor(logger: Logger) {
     }
 
     const [stageName, contract] = stage;
-    const payload = contract.schema.parse(job.data);
-    const identifier = Object.values(payload)[0];
+    contract.schema.parse(job.data);
+    const jobLogger = logger.child(jobCorrelationFields(VERIFICATION_DEAD_LETTER_QUEUE_NAME, job));
 
-    logger.error(
+    jobLogger.error(
       {
-        deadLetterJobId: job.id,
-        recordId: identifier,
+        event: "worker.dead_letter_retained",
         sourceStage: stageName,
       },
       "Verification job retained in dead-letter queue",

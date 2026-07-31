@@ -1,5 +1,7 @@
 import type { PendingUniversitySubmissionInput } from "@athenvia/database";
 
+import { logRequestError } from "@/lib/observability";
+
 import { resolveCountryCode } from "./country";
 import type { UniversitySubmissionRateLimit } from "./rate-limit";
 import { universitySubmissionRateLimitHeaders } from "./rate-limit";
@@ -98,7 +100,12 @@ export function createUniversitySubmissionPostHandler(
     let userId: string | null;
     try {
       userId = await dependencies.getAuthenticatedUserId();
-    } catch {
+    } catch (error) {
+      logRequestError(request, {
+        code: "UNIVERSITY_SUBMISSION_AUTH_LOOKUP_FAILED",
+        error,
+        route: "/api/university-submissions",
+      });
       return errorResponse(
         "SUBMISSION_UNAVAILABLE",
         "University submissions are unavailable right now. Please try again soon.",
@@ -216,7 +223,12 @@ export function createUniversitySubmissionPostHandler(
           headers: rateLimitHeaders,
         },
       );
-    } catch {
+    } catch (error) {
+      logRequestError(request, {
+        code: "UNIVERSITY_SUBMISSION_PERSISTENCE_FAILED",
+        error,
+        route: "/api/university-submissions",
+      });
       return errorResponse(
         "SUBMISSION_UNAVAILABLE",
         "University submissions are unavailable right now. Please try again soon.",

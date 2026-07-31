@@ -2,6 +2,8 @@ import { createHmac } from "node:crypto";
 
 import Redis from "ioredis";
 
+import { logOperationalWarning } from "@/lib/observability";
+
 const USER_LIMIT = 5;
 const CLIENT_LIMIT = 20;
 const WINDOW_MS = 60 * 60 * 1_000;
@@ -183,7 +185,7 @@ async function takeFromRedis(
     );
   } catch {
     if (!state.warnedAboutFallback) {
-      console.warn("[university-submission] RATE_LIMIT_REDIS_FALLBACK");
+      logOperationalWarning("university-submission-rate-limit", "RATE_LIMIT_REDIS_FALLBACK");
       state.warnedAboutFallback = true;
     }
     return null;

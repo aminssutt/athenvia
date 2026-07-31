@@ -11,6 +11,8 @@ x-database-environment: &database-environment
 
 x-app-environment: &app-environment
   <<: *database-environment
+  ATHENVIA_IMAGE_TAG: ${ATHENVIA_IMAGE_TAG:-latest}
+  LOG_LEVEL: ${LOG_LEVEL:-info}
   REDIS_URL: redis://:${REDIS_PASSWORD:?REDIS_PASSWORD is required}@redis:6379
 
 services:

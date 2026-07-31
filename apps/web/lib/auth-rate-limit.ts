@@ -2,6 +2,8 @@ import { createHmac, randomBytes } from "node:crypto";
 
 import Redis from "ioredis";
 
+import { logOperationalWarning } from "./observability";
+
 const CLIENT_LIMIT = 5;
 const CLIENT_WINDOW_MS = 10 * 60 * 1000;
 const EMAIL_LIMIT = 3;
@@ -130,7 +132,7 @@ async function takeFromRedis(clientKey: string, emailKey: string): Promise<boole
     return result === 1;
   } catch {
     if (!globalForAuthRedis.athenviaAuthRedisWarningShown) {
-      console.warn("[auth] RATE_LIMIT_REDIS_FALLBACK");
+      logOperationalWarning("auth-rate-limit", "RATE_LIMIT_REDIS_FALLBACK");
       globalForAuthRedis.athenviaAuthRedisWarningShown = true;
     }
     return null;

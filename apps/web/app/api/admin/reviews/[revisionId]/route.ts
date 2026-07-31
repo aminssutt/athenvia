@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 
+import { logRequestError } from "@/lib/observability";
+
 import { AdminReviewConflictError, AdminReviewNotFoundError, decideAdminReview } from "../service";
 import { isTrustedAdminWrite, resolveAdminAccess } from "../security";
 
@@ -16,26 +18,27 @@ export async function POST(request: Request, context: RouteContext) {
   if (!isTrustedAdminWrite(request)) {
     return json({ error: "Invalid request origin." }, 403);
   }
-  const access = await resolveAdminAccess();
-  if (access.status === "UNAUTHENTICATED") {
-    return json({ error: "Authentication required." }, 401);
-  }
-  if (access.status === "FORBIDDEN") {
-    return json({ error: "Administrator access required." }, 403);
-  }
 
-  let decision: "APPROVE" | "REJECT";
   try {
-    const body = (await request.json()) as { decision?: unknown };
-    if (body.decision !== "APPROVE" && body.decision !== "REJECT") {
-      throw new TypeError("Invalid decision.");
+    const access = await resolveAdminAccess();
+    if (access.status === "UNAUTHENTICATED") {
+      return json({ error: "Authentication required." }, 401);
     }
-    decision = body.decision;
-  } catch {
-    return json({ error: "Decision must be APPROVE or REJECT." }, 400);
-  }
+    if (access.status === "FORBIDDEN") {
+      return json({ error: "Administrator access required." }, 403);
+    }
 
-  try {
+    let decision: "APPROVE" | "REJECT";
+    try {
+      const body = (await request.json()) as { decision?: unknown };
+      if (body.decision !== "APPROVE" && body.decision !== "REJECT") {
+        throw new TypeError("Invalid decision.");
+      }
+      decision = body.decision;
+    } catch {
+      return json({ error: "Decision must be APPROVE or REJECT." }, 400);
+    }
+
     const { revisionId } = await context.params;
     await decideAdminReview(revisionId, access.principal.id, decision);
     return json({ status: decision === "APPROVE" ? "APPROVED" : "REJECTED" });
@@ -46,6 +49,11 @@ export async function POST(request: Request, context: RouteContext) {
     if (error instanceof AdminReviewNotFoundError) {
       return json({ error: error.message }, 404);
     }
-    throw error;
+    logRequestError(request, {
+      code: "ADMIN_REVIEW_DECISION_FAILED",
+      error,
+      route: "/api/admin/reviews/[revisionId]",
+    });
+    return json({ error: "Admin review updates are unavailable right now. Try again soon." }, 503);
   }
 }

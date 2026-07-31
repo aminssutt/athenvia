@@ -1,5 +1,7 @@
 import { ActiveUniversityNotFoundError } from "@athenvia/database";
 
+import { logRequestError } from "@/lib/observability";
+
 import { ProgramSubmissionRequestSchema } from "./schema";
 
 import type { PendingProgramSubmission, PendingProgramSubmissionInput } from "@athenvia/database";
@@ -128,8 +130,11 @@ export function createProgramSubmissionPostHandler(
         );
       }
 
-      const requestId = crypto.randomUUID();
-      console.error(`[program-submission:${requestId}] persistence failed`, error);
+      logRequestError(request, {
+        code: "PROGRAM_SUBMISSION_PERSISTENCE_FAILED",
+        error,
+        route: "/api/program-submissions",
+      });
       return errorResponse(
         "SUBMISSION_UNAVAILABLE",
         "The program suggestion could not be saved. Try again soon.",

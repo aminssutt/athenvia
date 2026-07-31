@@ -1,5 +1,4 @@
 import { Worker } from "bullmq";
-import pino from "pino";
 
 import {
   dispatchDueNotificationDeliveries,
@@ -20,15 +19,21 @@ import { allQueues, redisConnection } from "./queues";
 import { notificationQueue } from "./queues";
 import { vapidConfiguration } from "./config";
 import { WebPushNotificationTransport } from "./web-push-transport";
+import {
+  clearWorkerHeartbeat,
+  refreshWorkerHeartbeat,
+  WORKER_HEARTBEAT_INTERVAL_MS,
+} from "./heartbeat";
+import { createWorkerLogger, jobCorrelationFields } from "./observability";
 
-const logger = pino({ name: "athenvia-worker" });
+const logger = createWorkerLogger();
 
 const notificationTransport = new WebPushNotificationTransport(vapidConfiguration);
 const notificationWorker = new Worker<NotificationDeliveryJobData>(
   notificationDeliveryQueueContract.queueName,
   (job) =>
     processNotificationDeliveryJob(job, {
-      logger,
+      logger: logger.child(jobCorrelationFields(notificationDeliveryQueueContract.queueName, job)),
       preparer: prismaClaimedNotificationPreparer,
       repository: prismaNotificationDeliveryRepository,
       transport: notificationTransport,
@@ -40,7 +45,38 @@ const notificationWorker = new Worker<NotificationDeliveryJobData>(
 );
 
 notificationWorker.on("failed", (job, error) => {
-  logger.error({ errorName: error.name, jobId: job?.id }, "Notification delivery job failed");
+  logger.error(
+    {
+      ...(job
+        ? jobCorrelationFields(notificationDeliveryQueueContract.queueName, job, "settled")
+        : {}),
+      error,
+      event: "worker.job_failed",
+      queue: notificationDeliveryQueueContract.queueName,
+    },
+    "Notification delivery job failed",
+  );
+});
+
+notificationWorker.on("completed", (job) => {
+  logger.info(
+    {
+      ...jobCorrelationFields(notificationDeliveryQueueContract.queueName, job, "settled"),
+      event: "worker.job_completed",
+    },
+    "Notification delivery job completed",
+  );
+});
+
+notificationWorker.on("error", (error) => {
+  logger.error(
+    {
+      error,
+      event: "worker.queue_error",
+      queue: notificationDeliveryQueueContract.queueName,
+    },
+    "Notification worker error",
+  );
 });
 
 let dispatchTask: Promise<void> | null = null;
@@ -135,15 +171,39 @@ const deadLetterWorker = new Worker<VerificationJobData>(
 );
 
 deadLetterWorker.on("failed", (job, error) => {
-  logger.error({ jobId: job?.id, error }, "Dead-letter retention job failed");
+  logger.error(
+    {
+      ...(job ? jobCorrelationFields(VERIFICATION_DEAD_LETTER_QUEUE_NAME, job, "settled") : {}),
+      error,
+      event: "worker.job_failed",
+      queue: VERIFICATION_DEAD_LETTER_QUEUE_NAME,
+    },
+    "Dead-letter retention job failed",
+  );
+});
+
+deadLetterWorker.on("error", (error) => {
+  logger.error(
+    { error, event: "worker.queue_error", queue: VERIFICATION_DEAD_LETTER_QUEUE_NAME },
+    "Dead-letter worker error",
+  );
 });
 
 const deadLetterRouting = attachVerificationDeadLetterRouting(logger);
+let heartbeatInterval: NodeJS.Timeout | null = null;
+let shuttingDown = false;
 
 const shutdown = async (signal: string) => {
-  logger.info({ signal }, "Worker shutdown requested");
+  if (shuttingDown) {
+    return;
+  }
+  shuttingDown = true;
+  logger.info({ event: "worker.shutdown", signal }, "Worker shutdown requested");
   clearInterval(dispatchInterval);
   clearInterval(reminderSweepInterval);
+  if (heartbeatInterval) {
+    clearInterval(heartbeatInterval);
+  }
   await Promise.all([dispatchTask ?? Promise.resolve(), reminderSweepTask ?? Promise.resolve()]);
   await Promise.all([
     notificationWorker.close(),
@@ -151,6 +211,7 @@ const shutdown = async (signal: string) => {
     deadLetterRouting.close(),
   ]);
   await Promise.all(allQueues.map((queue) => queue.close()));
+  await clearWorkerHeartbeat(redisConnection).catch(() => undefined);
   await redisConnection.quit();
   process.exit(0);
 };
@@ -158,9 +219,40 @@ const shutdown = async (signal: string) => {
 process.on("SIGINT", () => void shutdown("SIGINT"));
 process.on("SIGTERM", () => void shutdown("SIGTERM"));
 
-logger.info(
-  {
-    queues: ["discovery", "fetch", "parse", "review", "notifications"],
-  },
-  "Athenvia worker is ready",
-);
+process.on("uncaughtException", (error) => {
+  logger.fatal({ error, event: "worker.uncaught_exception" }, "Uncaught worker exception");
+  process.exit(1);
+});
+
+process.on("unhandledRejection", (error) => {
+  logger.fatal({ error, event: "worker.unhandled_rejection" }, "Unhandled worker rejection");
+  process.exit(1);
+});
+
+async function markWorkerReady(): Promise<void> {
+  await Promise.all([
+    notificationWorker.waitUntilReady(),
+    deadLetterWorker.waitUntilReady(),
+    deadLetterRouting.waitUntilReady(),
+  ]);
+  await refreshWorkerHeartbeat(redisConnection);
+  heartbeatInterval = setInterval(() => {
+    void refreshWorkerHeartbeat(redisConnection).catch((error: unknown) => {
+      logger.error({ error, event: "worker.heartbeat_failed" }, "Worker heartbeat refresh failed");
+    });
+  }, WORKER_HEARTBEAT_INTERVAL_MS);
+  heartbeatInterval.unref();
+
+  logger.info(
+    {
+      event: "worker.ready",
+      queues: ["discovery", "fetch", "parse", "review", "notifications"],
+    },
+    "Athenvia worker is ready",
+  );
+}
+
+void markWorkerReady().catch((error: unknown) => {
+  logger.fatal({ error, event: "worker.startup_failed" }, "Worker readiness failed");
+  process.exit(1);
+});
