@@ -1,5 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
+import { E2E_BASE_URL, webServerEnvironment } from "./tests/e2e/helpers/test-env";
+
 export default defineConfig({
   testDir: "./tests/e2e",
   fullyParallel: true,
@@ -7,8 +9,14 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   reporter: process.env.CI ? "github" : "list",
   workers: process.env.CI ? 1 : undefined,
+  expect: {
+    // The suite runs against `next dev`: the very first navigation to a route
+    // compiles it on demand, which can exceed the 5s default under parallel
+    // workers on a cold server.
+    timeout: 15_000,
+  },
   use: {
-    baseURL: "http://127.0.0.1:3100",
+    baseURL: E2E_BASE_URL,
     trace: "on-first-retry",
   },
   projects: [
@@ -20,13 +28,8 @@ export default defineConfig({
   webServer: {
     command:
       "corepack pnpm --filter @athenvia/database db:generate && npm run dev -- --hostname 127.0.0.1 --port 3100",
-    env: {
-      AUTH_SECRET: process.env.AUTH_SECRET ?? "athenvia-e2e-only-secret-not-for-production",
-      GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID ?? "athenvia-e2e.apps.googleusercontent.com",
-      GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET ?? "athenvia-e2e-google-secret",
-      NEXTAUTH_URL: "http://127.0.0.1:3100",
-    },
-    url: "http://127.0.0.1:3100",
+    env: webServerEnvironment(),
+    url: E2E_BASE_URL,
     reuseExistingServer: false,
     timeout: 120_000,
   },

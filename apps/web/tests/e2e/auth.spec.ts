@@ -56,7 +56,8 @@ test("keeps anonymous device state and shows a generic magic-link response", asy
   await page.getByLabel("Email address").fill("student@example.com");
   await page.getByRole("button", { name: "Email me a sign-in link" }).click();
 
-  await expect(page).toHaveURL(/\/sign-in\/check-email$/);
+  // First navigation into /sign-in/check-email may wait on a dev-server compile.
+  await expect(page).toHaveURL(/\/sign-in\/check-email$/, { timeout: 15_000 });
   await expect(page.getByRole("heading", { name: "Check your inbox." })).toBeVisible();
   await expect(page.getByText("student@example.com")).toHaveCount(0);
   await expect
