@@ -137,6 +137,7 @@
 }
 
 .programCard {
+  position: relative;
   display: grid;
   gap: 1rem;
   border: 1px solid var(--border-soft);
@@ -183,6 +184,23 @@
   color: inherit;
   text-decoration-thickness: 0.08em;
   text-underline-offset: 0.2rem;
+}
+
+/* The whole card is the tap target — on a phone the title alone is far too
+   small to hit. The overlay keeps a single link in the accessibility tree
+   rather than duplicating one per card region. */
+.programLink::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+
+/* Only interactive content needs to sit above the overlay; raising the static
+   blocks would carve holes back out of the tap target. */
+.programCard .programCardAction {
+  position: relative;
+  z-index: 1;
 }
 
 .programMetadata {
