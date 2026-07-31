@@ -5,23 +5,23 @@ Ticket: [P5-14] Complete the launch checklist (#105). Status recorded on
 
 ## MVP success conditions
 
-| Condition | Status | Evidence |
-| --- | --- | --- |
-| Catalogue live: ~20 universities, 40–60 source-backed programmes | ✅ 21 / 51 | #85, `docs/data/data-quality-report.md` |
-| Every programme has an official summary and source | ✅ 51/51 | Data-quality report (100% coverage, all official) |
-| Canonical URLs verified, no third-party aggregators | ✅ 166 URLs | #86 closing comment |
-| Core journey works: first launch → search → detail → Follow | ✅ | #93, `docs/quality/launch-test-passes.md`, 45/45 e2e |
-| Install journey: Safari guidance, standalone routing, desktop fallback | ✅ (device pass pending) | #92, launch-test-passes report |
-| Web Push opt-in only after explicit action; delivery exactly once | ✅ (device pass pending) | #94; worker delivery suite |
-| Community contribution: submit → review → approve → reuse | ✅ | #95 (form transport fixed after the P0 pass caught it) |
-| Date integrity: no invented dates, conflicts blocked from publication | ✅ | Seed rules; #88/#89/#90 worker test suites |
-| Accessibility: WCAG 2.2 AA review, no blocking defect | ✅ | #101 review + #190 fixes, 17 a11y e2e tests |
-| Performance: mobile budget met on all routes | ✅ ≤ 100.3 kB gz | #102, `docs/quality/performance-budget.md` |
-| PWA offline: service worker installs in production | ✅ | Fix #199, proven against a production build |
-| Security: launch review with zero P0/P1 findings | ✅ | #100 review; P2/P3 findings fixed in #192 |
-| Dependencies: zero known high/critical advisories | ✅ | #104 scanning + #188 remediation (`pnpm audit --prod` clean) |
-| Observability: structured logs, request correlation, uptime checks | ✅ | #99, `docs/operations/observability.md` |
-| Production stack boots end to end (migrate + seed + healthchecks) | ✅ | Full local prod-compose smoke: all healthy, health 200, worker heartbeat 200, catalogue served |
+| Condition                                                              | Status                   | Evidence                                                                                       |
+| ---------------------------------------------------------------------- | ------------------------ | ---------------------------------------------------------------------------------------------- |
+| Catalogue live: ~20 universities, 40–60 source-backed programmes       | ✅ 21 / 51               | #85, `docs/data/data-quality-report.md`                                                        |
+| Every programme has an official summary and source                     | ✅ 51/51                 | Data-quality report (100% coverage, all official)                                              |
+| Canonical URLs verified, no third-party aggregators                    | ✅ 166 URLs              | #86 closing comment                                                                            |
+| Core journey works: first launch → search → detail → Follow            | ✅                       | #93, `docs/quality/launch-test-passes.md`, 45/45 e2e                                           |
+| Install journey: Safari guidance, standalone routing, desktop fallback | ✅ (device pass pending) | #92, launch-test-passes report                                                                 |
+| Web Push opt-in only after explicit action; delivery exactly once      | ✅ (device pass pending) | #94; worker delivery suite                                                                     |
+| Community contribution: submit → review → approve → reuse              | ✅                       | #95 (form transport fixed after the P0 pass caught it)                                         |
+| Date integrity: no invented dates, conflicts blocked from publication  | ✅                       | Seed rules; #88/#89/#90 worker test suites                                                     |
+| Accessibility: WCAG 2.2 AA review, no blocking defect                  | ✅                       | #101 review + #190 fixes, 17 a11y e2e tests                                                    |
+| Performance: mobile budget met on all routes                           | ✅ ≤ 100.3 kB gz         | #102, `docs/quality/performance-budget.md`                                                     |
+| PWA offline: service worker installs in production                     | ✅                       | Fix #199, proven against a production build                                                    |
+| Security: launch review with zero P0/P1 findings                       | ✅                       | #100 review; P2/P3 findings fixed in #192                                                      |
+| Dependencies: zero known high/critical advisories                      | ✅                       | #104 scanning + #188 remediation (`pnpm audit --prod` clean)                                   |
+| Observability: structured logs, request correlation, uptime checks     | ✅                       | #99, `docs/operations/observability.md`                                                        |
+| Production stack boots end to end (migrate + seed + healthchecks)      | ✅                       | Full local prod-compose smoke: all healthy, health 200, worker heartbeat 200, catalogue served |
 
 ## Remaining non-blocking items (accepted for launch)
 
