@@ -2,9 +2,18 @@
   "$schema": "./seed.schema.json",
   "schemaVersion": 1,
   "domains": [
-    { "slug": "applied-ai", "name": "Applied AI" },
-    { "slug": "data-science", "name": "Data Science" },
-    { "slug": "machine-learning", "name": "Machine Learning" }
+    {
+      "slug": "applied-ai",
+      "name": "Applied AI"
+    },
+    {
+      "slug": "data-science",
+      "name": "Data Science"
+    },
+    {
+      "slug": "machine-learning",
+      "name": "Machine Learning"
+    }
   ],
   "universities": [
     {
@@ -42,7 +51,7 @@
               "url": "https://mitsloan.mit.edu/master-of-business-analytics/admissions",
               "sourceType": "ADMISSIONS_PAGE",
               "isOfficial": true,
-              "lastCheckedAt": "2026-07-31T12:20:34.000Z"
+              "lastCheckedAt": "2026-07-31T17:56:49.000Z"
             },
             {
               "key": "oge-program-listing",
@@ -63,11 +72,11 @@
                   "key": "main-round",
                   "roundName": null,
                   "opensAt": null,
-                  "closesAt": null,
-                  "publicStatus": "EXPECTED",
-                  "verification": "EXPECTED",
+                  "closesAt": "2027-01-05T20:00:00.000Z",
+                  "publicStatus": "CONFIRMED",
+                  "verification": "OFFICIAL",
                   "sourceKey": "admissions-page",
-                  "lastVerifiedAt": "2026-07-31T12:20:34.000Z"
+                  "lastVerifiedAt": "2026-07-31T17:56:49.000Z"
                 }
               ]
             }

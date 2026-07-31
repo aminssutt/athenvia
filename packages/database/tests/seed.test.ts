@@ -25,6 +25,10 @@ async function expectInvalid(seed: SeedFile, message: RegExp): Promise<void> {
   );
 }
 
+async function expectValid(seed: SeedFile): Promise<void> {
+  await parseSeedJson(JSON.stringify(seed), "test-seed.json");
+}
+
 class MemorySeedWriter implements SeedWriter {
   readonly applicationWindows = new Map<string, unknown>();
   readonly domains = new Map<string, unknown>();
@@ -171,12 +175,27 @@ describe("source-backed seed v1 validation", () => {
   it("enforces the one-status ApplicationWindow model without inventing dates", async () => {
     const baseline = await readSeedFile(sampleUrl);
 
-    const partialConfirmed = copy(baseline);
-    const partialWindow =
-      partialConfirmed.universities[0]!.programs[0]!.intakes[0]!.applicationWindows[0]!;
-    partialWindow.publicStatus = "CONFIRMED";
-    partialWindow.opensAt = "2026-10-01T00:00:00.000Z";
-    await expectInvalid(partialConfirmed, /requires both opensAt and closesAt/u);
+    // A published deadline is confirmable on its own: universities rarely
+    // publish an exact opening instant, and discarding the deadline over a
+    // missing opening threw away the fact students act on.
+    const deadlineOnly = copy(baseline);
+    const deadlineOnlyWindow =
+      deadlineOnly.universities[0]!.programs[0]!.intakes[0]!.applicationWindows[0]!;
+    deadlineOnlyWindow.publicStatus = "CONFIRMED";
+    deadlineOnlyWindow.verification = "OFFICIAL";
+    deadlineOnlyWindow.opensAt = null;
+    deadlineOnlyWindow.closesAt = "2027-01-05T22:00:00.000Z";
+    deadlineOnlyWindow.lastVerifiedAt = "2026-07-30T00:00:00.000Z";
+    await expectValid(deadlineOnly);
+
+    const emptyConfirmed = copy(baseline);
+    const emptyWindow =
+      emptyConfirmed.universities[0]!.programs[0]!.intakes[0]!.applicationWindows[0]!;
+    emptyWindow.publicStatus = "CONFIRMED";
+    emptyWindow.verification = "OFFICIAL";
+    emptyWindow.opensAt = null;
+    emptyWindow.closesAt = null;
+    await expectInvalid(emptyConfirmed, /requires at least one exact instant/u);
 
     const exactExpected = copy(baseline);
     const expectedWindow =

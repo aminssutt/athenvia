@@ -51,6 +51,42 @@ function record() {
 }
 
 describe("public programme detail service", () => {
+  it("skips an intake whose deadlines have all passed", () => {
+    const now = new Date("2026-07-31T18:00:00.000Z");
+    const withClosedCycle = record();
+    const upcoming = structuredClone(withClosedCycle.intakes[0]);
+    withClosedCycle.intakes[0]!.year = 2026;
+    withClosedCycle.intakes[0]!.month = 9;
+    withClosedCycle.intakes[0]!.applicationWindows[0]!.closesAt = new Date(
+      "2026-04-30T04:00:00.000Z",
+    ) as never;
+    withClosedCycle.intakes[0]!.applicationWindows[0]!.publicStatus = "CONFIRMED";
+    withClosedCycle.intakes.push(upcoming);
+
+    const detail = presentProgramDetail(withClosedCycle as never, now);
+
+    // The expired cycle must not be presented as the next deadline.
+    expect(detail?.intakeLabel).toBe("August 2027");
+    expect(detail?.nextWindow?.closesAt ?? null).toBeNull();
+  });
+
+  it("prefers the first deadline that has not passed within an intake", () => {
+    const now = new Date("2026-07-31T18:00:00.000Z");
+    const multiRound = record();
+    const passedRound = structuredClone(multiRound.intakes[0]!.applicationWindows[0]!);
+    passedRound.id = "44444444-4444-4444-8444-444444444444";
+    passedRound.closesAt = new Date("2026-01-05T22:00:00.000Z") as never;
+    passedRound.publicStatus = "CONFIRMED";
+    const openRound = multiRound.intakes[0]!.applicationWindows[0]!;
+    openRound.closesAt = new Date("2027-01-05T22:00:00.000Z") as never;
+    openRound.publicStatus = "CONFIRMED";
+    multiRound.intakes[0]!.applicationWindows = [passedRound, openRound];
+
+    const detail = presentProgramDetail(multiRound as never, now);
+
+    expect(detail?.nextWindow?.closesAt).toBe("2027-01-05T22:00:00.000Z");
+  });
+
   it("maps only the public sourced detail fields", () => {
     const detail = presentProgramDetail(record() as never);
 

@@ -2,10 +2,22 @@
   "$schema": "./seed.schema.json",
   "schemaVersion": 1,
   "domains": [
-    { "slug": "applied-ai", "name": "Applied AI" },
-    { "slug": "computer-science", "name": "Computer Science" },
-    { "slug": "data-science", "name": "Data Science" },
-    { "slug": "machine-learning", "name": "Machine Learning" }
+    {
+      "slug": "applied-ai",
+      "name": "Applied AI"
+    },
+    {
+      "slug": "computer-science",
+      "name": "Computer Science"
+    },
+    {
+      "slug": "data-science",
+      "name": "Data Science"
+    },
+    {
+      "slug": "machine-learning",
+      "name": "Machine Learning"
+    }
   ],
   "universities": [
     {
@@ -43,7 +55,7 @@
               "url": "https://tech.cornell.edu/admissions/meng-application/",
               "sourceType": "ADMISSIONS_PAGE",
               "isOfficial": true,
-              "lastCheckedAt": "2026-07-31T12:22:02.000Z"
+              "lastCheckedAt": "2026-07-31T17:56:49.000Z"
             },
             {
               "key": "admissions-faqs",
@@ -64,31 +76,31 @@
                   "key": "priority-round",
                   "roundName": "Priority Deadline",
                   "opensAt": null,
-                  "closesAt": null,
-                  "publicStatus": "EXPECTED",
-                  "verification": "EXPECTED",
+                  "closesAt": "2027-01-05T22:00:00.000Z",
+                  "publicStatus": "CONFIRMED",
+                  "verification": "OFFICIAL",
                   "sourceKey": "meng-application",
-                  "lastVerifiedAt": "2026-07-31T12:22:02.000Z"
+                  "lastVerifiedAt": "2026-07-31T17:56:49.000Z"
                 },
                 {
                   "key": "second-round",
                   "roundName": "Round Deadline",
                   "opensAt": null,
-                  "closesAt": null,
-                  "publicStatus": "EXPECTED",
-                  "verification": "EXPECTED",
+                  "closesAt": "2027-02-02T22:00:00.000Z",
+                  "publicStatus": "CONFIRMED",
+                  "verification": "OFFICIAL",
                   "sourceKey": "meng-application",
-                  "lastVerifiedAt": "2026-07-31T12:22:02.000Z"
+                  "lastVerifiedAt": "2026-07-31T17:56:49.000Z"
                 },
                 {
                   "key": "rolling-round",
                   "roundName": "Rolling Deadline",
                   "opensAt": null,
-                  "closesAt": null,
-                  "publicStatus": "EXPECTED",
-                  "verification": "EXPECTED",
+                  "closesAt": "2027-04-01T21:00:00.000Z",
+                  "publicStatus": "CONFIRMED",
+                  "verification": "OFFICIAL",
                   "sourceKey": "meng-application",
-                  "lastVerifiedAt": "2026-07-31T12:22:02.000Z"
+                  "lastVerifiedAt": "2026-07-31T17:56:49.000Z"
                 }
               ]
             }
@@ -120,7 +132,7 @@
               "url": "https://tech.cornell.edu/admissions/meng-application/",
               "sourceType": "ADMISSIONS_PAGE",
               "isOfficial": true,
-              "lastCheckedAt": "2026-07-31T13:36:55.000Z"
+              "lastCheckedAt": "2026-07-31T17:56:49.000Z"
             }
           ],
           "intakes": [
@@ -134,31 +146,31 @@
                   "key": "priority-round",
                   "roundName": "Priority Deadline",
                   "opensAt": null,
-                  "closesAt": null,
-                  "publicStatus": "EXPECTED",
-                  "verification": "EXPECTED",
+                  "closesAt": "2027-01-05T22:00:00.000Z",
+                  "publicStatus": "CONFIRMED",
+                  "verification": "OFFICIAL",
                   "sourceKey": "meng-application",
-                  "lastVerifiedAt": "2026-07-31T13:36:55.000Z"
+                  "lastVerifiedAt": "2026-07-31T17:56:49.000Z"
                 },
                 {
                   "key": "second-round",
                   "roundName": "Round Deadline",
                   "opensAt": null,
-                  "closesAt": null,
-                  "publicStatus": "EXPECTED",
-                  "verification": "EXPECTED",
+                  "closesAt": "2027-02-02T22:00:00.000Z",
+                  "publicStatus": "CONFIRMED",
+                  "verification": "OFFICIAL",
                   "sourceKey": "meng-application",
-                  "lastVerifiedAt": "2026-07-31T13:36:55.000Z"
+                  "lastVerifiedAt": "2026-07-31T17:56:49.000Z"
                 },
                 {
                   "key": "rolling-round",
                   "roundName": "Rolling Deadline",
                   "opensAt": null,
-                  "closesAt": null,
-                  "publicStatus": "EXPECTED",
-                  "verification": "EXPECTED",
+                  "closesAt": "2027-04-01T21:00:00.000Z",
+                  "publicStatus": "CONFIRMED",
+                  "verification": "OFFICIAL",
                   "sourceKey": "meng-application",
-                  "lastVerifiedAt": "2026-07-31T13:36:55.000Z"
+                  "lastVerifiedAt": "2026-07-31T17:56:49.000Z"
                 }
               ]
             }
@@ -190,7 +202,7 @@
               "url": "https://tech.cornell.edu/admissions/meng-application/",
               "sourceType": "ADMISSIONS_PAGE",
               "isOfficial": true,
-              "lastCheckedAt": "2026-07-31T13:36:55.000Z"
+              "lastCheckedAt": "2026-07-31T17:56:49.000Z"
             }
           ],
           "intakes": [
@@ -204,31 +216,31 @@
                   "key": "priority-round",
                   "roundName": "Priority Deadline",
                   "opensAt": null,
-                  "closesAt": null,
-                  "publicStatus": "EXPECTED",
-                  "verification": "EXPECTED",
+                  "closesAt": "2027-01-05T22:00:00.000Z",
+                  "publicStatus": "CONFIRMED",
+                  "verification": "OFFICIAL",
                   "sourceKey": "meng-application",
-                  "lastVerifiedAt": "2026-07-31T13:36:55.000Z"
+                  "lastVerifiedAt": "2026-07-31T17:56:49.000Z"
                 },
                 {
                   "key": "second-round",
                   "roundName": "Round Deadline",
                   "opensAt": null,
-                  "closesAt": null,
-                  "publicStatus": "EXPECTED",
-                  "verification": "EXPECTED",
+                  "closesAt": "2027-02-02T22:00:00.000Z",
+                  "publicStatus": "CONFIRMED",
+                  "verification": "OFFICIAL",
                   "sourceKey": "meng-application",
-                  "lastVerifiedAt": "2026-07-31T13:36:55.000Z"
+                  "lastVerifiedAt": "2026-07-31T17:56:49.000Z"
                 },
                 {
                   "key": "rolling-round",
                   "roundName": "Rolling Deadline",
                   "opensAt": null,
-                  "closesAt": null,
-                  "publicStatus": "EXPECTED",
-                  "verification": "EXPECTED",
+                  "closesAt": "2027-04-01T21:00:00.000Z",
+                  "publicStatus": "CONFIRMED",
+                  "verification": "OFFICIAL",
                   "sourceKey": "meng-application",
-                  "lastVerifiedAt": "2026-07-31T13:36:55.000Z"
+                  "lastVerifiedAt": "2026-07-31T17:56:49.000Z"
                 }
               ]
             }

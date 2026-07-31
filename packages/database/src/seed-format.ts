@@ -246,9 +246,14 @@ function collectSemanticIssues(seed: SeedFile): string[] {
           const hasOpening = window.opensAt !== null;
           const hasDeadline = window.closesAt !== null;
           if (window.publicStatus === "CONFIRMED") {
-            if (!hasOpening || !hasDeadline) {
+            // Universities publish deadlines; they almost never publish an
+            // exact opening instant. Requiring both discarded the exact,
+            // officially sourced deadline students actually act on, so one
+            // confirmed instant is enough and a null field simply reads as
+            // "not published yet".
+            if (!hasOpening && !hasDeadline) {
               issues.push(
-                `${windowPath} CONFIRMED requires both opensAt and closesAt because ApplicationWindow has one shared publicStatus`,
+                `${windowPath} CONFIRMED requires at least one exact instant, normally closesAt`,
               );
             }
             if (window.verification !== "OFFICIAL" && window.verification !== "VERIFIED") {

@@ -77,8 +77,40 @@ type PublicProgramDetailRecord = Prisma.ProgramGetPayload<{
 
 export type ProgramDetailClient = Pick<typeof database, "program">;
 
-export function presentProgramDetail(record: PublicProgramDetailRecord): ProgramDetail | null {
-  const primaryIntake = record.intakes[0];
+type DetailIntake = PublicProgramDetailRecord["intakes"][number];
+type DetailWindow = DetailIntake["applicationWindows"][number];
+
+/**
+ * A window is still worth showing when its deadline has not passed, or when no
+ * deadline is published yet. The database orders windows by `closesAt`, which
+ * on its own would surface an expired deadline as the next one.
+ */
+function isActionableWindow(window: DetailWindow, now: Date): boolean {
+  return window.closesAt === null || window.closesAt.getTime() > now.getTime();
+}
+
+function selectPrimaryIntake(intakes: DetailIntake[], now: Date): DetailIntake | undefined {
+  return (
+    intakes.find((intake) =>
+      intake.applicationWindows.some((window) => isActionableWindow(window, now)),
+    ) ??
+    intakes.at(-1) ??
+    intakes[0]
+  );
+}
+
+function selectNextWindow(intake: DetailIntake, now: Date): DetailWindow | undefined {
+  return (
+    intake.applicationWindows.find((window) => isActionableWindow(window, now)) ??
+    intake.applicationWindows[0]
+  );
+}
+
+export function presentProgramDetail(
+  record: PublicProgramDetailRecord,
+  now: Date = new Date(),
+): ProgramDetail | null {
+  const primaryIntake = selectPrimaryIntake(record.intakes, now);
   const summarySourceUrl =
     record.summary?.source.isOfficial && record.summary.source.programId === record.id
       ? safeOfficialUrl(record.summary.source.url)
@@ -100,7 +132,7 @@ export function presentProgramDetail(record: PublicProgramDetailRecord): Program
     })),
     location: record.campus ?? record.university.city,
     name: record.name,
-    nextWindow: toPublicApplicationWindow(primaryIntake.applicationWindows[0], record.id),
+    nextWindow: toPublicApplicationWindow(selectNextWindow(primaryIntake, now), record.id),
     summary: {
       officialSourceUrl: summarySourceUrl,
       text: record.summary.text,
