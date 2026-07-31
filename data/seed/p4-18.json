@@ -1,0 +1,71 @@
+{
+  "$schema": "./seed.schema.json",
+  "schemaVersion": 1,
+  "domains": [
+    { "slug": "applied-ai", "name": "Applied AI" },
+    { "slug": "computer-science", "name": "Computer Science" }
+  ],
+  "universities": [
+    {
+      "key": "uc-berkeley",
+      "name": "University of California, Berkeley",
+      "countryCode": "US",
+      "city": "Berkeley",
+      "officialDomain": "berkeley.edu",
+      "officialWebsite": "https://www.berkeley.edu/",
+      "aliases": ["UC Berkeley", "Berkeley"],
+      "programs": [
+        {
+          "key": "meng-eecs",
+          "name": "Master of Engineering in Electrical Engineering and Computer Sciences (MEng)",
+          "degreeType": "MASTER",
+          "summary": {
+            "text": "A professional master's degree completed in one academic year for students who plan to join the engineering profession following graduation. Study combines a technical concentration — options include data science, computer systems, robotics and embedded software, signal processing and communications, and visual computing and computer graphics — with courses in engineering leadership and a team-oriented capstone project.",
+            "sourceKey": "program-page"
+          },
+          "durationMonths": null,
+          "campus": "Berkeley",
+          "language": null,
+          "officialUrl": "https://eecs.berkeley.edu/academics/graduate/industry-programs/meng/",
+          "domains": ["applied-ai", "computer-science"],
+          "sources": [
+            {
+              "key": "program-page",
+              "url": "https://eecs.berkeley.edu/academics/graduate/industry-programs/meng/",
+              "sourceType": "PROGRAM_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-31T12:20:57.000Z"
+            },
+            {
+              "key": "grad-division-program",
+              "url": "https://grad.berkeley.edu/program/electrical-engineering-computer-sciences-meng/",
+              "sourceType": "ADMISSIONS_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-31T12:20:57.000Z"
+            }
+          ],
+          "intakes": [
+            {
+              "key": "2027-august",
+              "year": 2027,
+              "month": 8,
+              "status": "PLANNED",
+              "applicationWindows": [
+                {
+                  "key": "main-round",
+                  "roundName": null,
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "NOT_PUBLISHED",
+                  "verification": "OFFICIAL",
+                  "sourceKey": "grad-division-program",
+                  "lastVerifiedAt": "2026-07-31T12:20:57.000Z"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
