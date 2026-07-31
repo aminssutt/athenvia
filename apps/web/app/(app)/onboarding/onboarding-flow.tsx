@@ -118,8 +118,13 @@ export function OnboardingFlow() {
         </p>
       </header>
 
+      {/* key={step} makes React remount the section on a step change instead of
+          patching the existing one, which is what lets the CSS entrance in
+          .screen replay. It is the whole step transition: no animation library,
+          no extra state, and the heading focus in moveToStep still runs after
+          the new node is committed. */}
       {step === 1 ? (
-        <section className={styles.screen} aria-labelledby="onboarding-intro-title">
+        <section key="intro" className={styles.screen} aria-labelledby="onboarding-intro-title">
           <IntroIllustration />
           <div className={styles.copy}>
             <p className={styles.eyebrow}>Welcome to Athenvia</p>
@@ -152,7 +157,7 @@ export function OnboardingFlow() {
           </div>
         </section>
       ) : (
-        <section className={styles.screen} aria-labelledby="onboarding-intake-title">
+        <section key="intake" className={styles.screen} aria-labelledby="onboarding-intake-title">
           <div className={styles.copy}>
             <p className={styles.eyebrow}>Make dates more relevant</p>
             <h1 id="onboarding-intake-title" ref={headingRef} tabIndex={-1}>

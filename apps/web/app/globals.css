@@ -5,6 +5,59 @@
   --border-strong: #97877e;
 }
 
+/* Shared motion primitives — global copy.
+   These four names are the app's entire vocabulary of movement, and each CSS
+   Module redeclares the ones it uses verbatim. That duplication is deliberate,
+   not an oversight: Turbopack scopes *every* animation name inside a module,
+   including names it did not declare, so `animation: athenvia-rise` written in
+   a module compiles to `…module__hash__athenvia-rise` and would silently match
+   no keyframes at all. Redeclaring locally is what makes the scoping resolve.
+   Keep the definitions below and their per-module copies identical.
+
+   Every keyframe animates transform and opacity only: both are handled by the
+   compositor, so a reveal never triggers layout or paint. Elements keep their
+   final (visible) styles in the base rule and the animation supplies only the
+   "before" state, which means a dropped, unmatched or disabled animation
+   always lands on the correct end state. */
+@keyframes athenvia-rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 0.75rem, 0);
+  }
+}
+
+@keyframes athenvia-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes athenvia-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.88);
+  }
+}
+
+/* Skeleton sheen. A gradient overlay slides across a clipped bar, so the
+   shimmer costs one composited transform per frame instead of repainting a
+   background-position on every tick. */
+@keyframes athenvia-sheen {
+  from {
+    transform: translate3d(-100%, 0, 0);
+  }
+
+  to {
+    transform: translate3d(100%, 0, 0);
+  }
+}
+
+@keyframes athenvia-spin {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
 * {
   box-sizing: border-box;
 }
@@ -37,6 +90,8 @@ a {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* The ring itself never animates: it must be at full contrast on the very
+   first frame it appears, including for users who disabled motion. */
 :focus-visible {
   outline: 3px solid var(--focus-ring);
   outline-offset: 3px;
@@ -103,6 +158,20 @@ a {
   color: white;
   font-weight: 700;
   text-decoration: none;
+  transition:
+    transform var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out);
+}
+
+.primary-button:hover {
+  background: var(--chocolate);
+}
+
+/* Press feedback lives on transform so the button never reflows its
+   neighbours, and the scale is small enough to read as pressure rather than
+   as the control shrinking. */
+.primary-button:active {
+  transform: scale(0.97);
 }
 
 .preview,
@@ -111,7 +180,7 @@ a {
   border: 1px solid var(--border-soft);
   border-radius: var(--radius-lg);
   background: var(--surface);
-  box-shadow: 0 18px 50px rgb(95 64 50 / 8%);
+  box-shadow: var(--shadow-floating);
 }
 
 .preview {
@@ -261,7 +330,8 @@ a {
   border-radius: var(--radius-lg);
   padding: clamp(1.4rem, 6vw, 2rem);
   background: var(--surface);
-  box-shadow: 0 18px 50px rgb(95 64 50 / 8%);
+  box-shadow: var(--shadow-floating);
+  animation: athenvia-rise var(--duration-slow) var(--ease-out) backwards;
 }
 
 .auth-card h1,
@@ -287,6 +357,8 @@ a {
   font-weight: 750;
 }
 
+/* --border-strong is the >= 3:1 non-text contrast token (WCAG 1.4.11); the
+   focus state may only darken it, never lighten it. */
 .auth-form input {
   min-height: 3.5rem;
   width: 100%;
@@ -296,6 +368,14 @@ a {
   background: var(--background);
   color: var(--text-primary);
   font: inherit;
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out);
+}
+
+.auth-form input:focus {
+  border-color: var(--chocolate-dark);
+  background: var(--surface);
 }
 
 .auth-form input::placeholder {
@@ -322,11 +402,20 @@ a {
   color: var(--text-primary);
   font: inherit;
   font-weight: 750;
+  transition:
+    transform var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out),
+    opacity var(--duration-fast) var(--ease-out);
 }
 
 .google-auth-button:hover:not(:disabled) {
   border-color: var(--chocolate);
   background: var(--background);
+}
+
+.google-auth-button:active:not(:disabled) {
+  transform: scale(0.985);
 }
 
 .google-auth-button:disabled {
@@ -362,6 +451,8 @@ a {
   font-weight: 700;
 }
 
+/* Confirmation marks earn the one emphasised curve in the system: this is the
+   moment the user finds out something worked. */
 .auth-mail-mark {
   display: grid;
   width: 3rem;
@@ -372,6 +463,8 @@ a {
   color: var(--chocolate-dark);
   font-size: 1.25rem;
   font-weight: 800;
+  animation: athenvia-pop var(--duration-slow) var(--ease-emphasis) backwards;
+  animation-delay: var(--duration-fast);
 }
 
 .offline-shell {
@@ -387,7 +480,8 @@ a {
   border-radius: var(--radius-lg);
   padding: clamp(1.5rem, 6vw, 2rem);
   background: var(--surface);
-  box-shadow: 0 18px 50px rgb(95 64 50 / 8%);
+  box-shadow: var(--shadow-floating);
+  animation: athenvia-rise var(--duration-slow) var(--ease-out) backwards;
 }
 
 .offline-card h1,
@@ -436,7 +530,10 @@ a {
   border-radius: var(--radius-lg);
   padding: 0.9rem;
   background: var(--surface);
-  box-shadow: 0 18px 50px rgb(95 64 50 / 18%);
+  box-shadow: var(--shadow-overlay);
+  /* The banner interrupts, so it announces itself by sliding up from the edge
+     it is docked to rather than appearing on top of the content. */
+  animation: athenvia-rise var(--duration-slow) var(--ease-out) backwards;
 }
 
 .update-notice p {
@@ -462,13 +559,44 @@ a {
   font: inherit;
   font-size: 0.86rem;
   font-weight: 700;
+  transition:
+    transform var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out);
 }
 
+.update-notice button:hover {
+  background: var(--chocolate);
+}
+
+.update-notice button:active {
+  transform: scale(0.96);
+}
+
+/* Single global kill switch for motion.
+   Every animated rule in the app — global, CSS Module, current or future — is
+   neutralised here, so no component can ship motion that escapes the user's
+   OS-level preference.
+
+   Durations collapse to 0.01ms rather than `none`, which keeps transitionend /
+   animationend listeners firing and keeps `animation-fill-mode: backwards`
+   entrances from leaving anything stuck at opacity 0. Delays are zeroed too:
+   a staggered reveal with its delay intact would still hide list items behind
+   a visible pause, and iteration counts are clamped so looping animations
+   (skeleton sheen, spinners) run once and stop instead of thrashing.
+
+   One narrow exemption is allowed: a busy indicator that is the only signal
+   that a request is still running may re-assert a slow loop with `!important`,
+   because freezing it reads as a hung interface. Settings' `.spinner` does
+   exactly that. Decorative motion never qualifies. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
+    animation-delay: 0ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
     scroll-behavior: auto !important;
+    transition-delay: 0ms !important;
     transition-duration: 0.01ms !important;
   }
 }

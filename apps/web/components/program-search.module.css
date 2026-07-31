@@ -1,12 +1,31 @@
+/* Local copies of the shared motion primitives from app/globals.css — see the
+   note there: a CSS Module can only reference keyframes it declares itself. */
+@keyframes athenvia-rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 0.75rem, 0);
+  }
+}
+
+@keyframes athenvia-fade {
+  from {
+    opacity: 0;
+  }
+}
+
 .search {
   min-width: 0;
   max-width: 100%;
   padding-bottom: 2rem;
 }
 
+/* Continues the /search masthead stagger (search.module.css) so the page
+   resolves as one movement rather than as a header plus a widget. */
 .form {
   display: grid;
   gap: 0.55rem;
+  animation: athenvia-rise var(--duration-base) var(--ease-out) backwards;
+  animation-delay: calc(var(--stagger-step) * 3);
 }
 
 .label {
@@ -14,6 +33,8 @@
   font-weight: 750;
 }
 
+/* --border-strong is the >= 3:1 non-text contrast token (WCAG 1.4.11). The
+   focus-within state only ever darkens it. */
 .inputRow {
   position: relative;
   display: grid;
@@ -23,23 +44,62 @@
   border: 1px solid var(--border-strong);
   border-radius: 1.15rem;
   background: var(--surface);
-  box-shadow: 0 1rem 3rem rgb(95 64 50 / 7%);
+  box-shadow: var(--shadow-raised);
   transition:
-    border-color 150ms ease,
-    box-shadow 150ms ease;
+    border-color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out);
 }
 
 .inputRow:focus-within {
   border-color: var(--chocolate);
   box-shadow:
     0 0 0 3px rgb(139 98 74 / 13%),
-    0 1rem 3rem rgb(95 64 50 / 8%);
+    var(--shadow-raised);
+}
+
+/* In-flight indicator: the bottom border fills, then fades, and repeats.
+   Anchored at the row's bottom edge so it never collides with the input, the
+   clear control, or the submit button once it wraps to its own line on narrow
+   screens. Inset horizontally to stop inside the corner radius. */
+.inputRow[data-loading]::after {
+  content: "";
+  position: absolute;
+  right: 1.15rem;
+  bottom: 0;
+  left: 1.15rem;
+  height: 2px;
+  border-radius: var(--radius-pill);
+  background: var(--chocolate);
+  transform-origin: left center;
+  animation: search-progress 1.2s var(--ease-in-out) infinite;
+}
+
+@keyframes search-progress {
+  from {
+    opacity: 1;
+    transform: scaleX(0);
+  }
+
+  60% {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+
+  to {
+    opacity: 0;
+    transform: scaleX(1);
+  }
 }
 
 .searchIcon {
   display: grid;
   place-items: center;
   color: var(--text-secondary);
+  transition: color var(--duration-fast) var(--ease-out);
+}
+
+.inputRow:focus-within .searchIcon {
+  color: var(--chocolate-dark);
 }
 
 .searchIcon svg {
@@ -85,11 +145,22 @@
   color: var(--text-secondary);
   cursor: pointer;
   font-size: 1.5rem;
+  /* The control only exists while the field has a value, so it arrives rather
+     than being revealed — a fade keeps it from popping into the row. */
+  animation: athenvia-fade var(--duration-fast) var(--ease-out);
+  transition:
+    transform var(--duration-instant) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
 }
 
 .clearButton:hover {
   background: var(--surface-soft);
   color: var(--text-primary);
+}
+
+.clearButton:active {
+  transform: scale(0.88);
 }
 
 .submitButton {
@@ -104,6 +175,18 @@
   font: inherit;
   font-size: 0.85rem;
   font-weight: 750;
+  transition:
+    transform var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out),
+    opacity var(--duration-fast) var(--ease-out);
+}
+
+.submitButton:hover:not(:disabled) {
+  background: var(--chocolate);
+}
+
+.submitButton:active:not(:disabled) {
+  transform: scale(0.96);
 }
 
 .submitButton:disabled {
@@ -180,9 +263,10 @@
   font-weight: 700;
   white-space: nowrap;
   transition:
-    border-color 150ms ease,
-    background-color 150ms ease,
-    color 150ms ease;
+    transform var(--duration-instant) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
 }
 
 .filterChip input:checked + span {
@@ -191,6 +275,8 @@
   color: white;
 }
 
+/* The focus ring is painted by the visible chip on behalf of its
+   visually-hidden radio; it must never be softened or delayed. */
 .filterChip input:focus-visible + span {
   outline: 3px solid var(--focus-ring);
   outline-offset: 3px;
@@ -198,6 +284,10 @@
 
 .filterChip:hover span {
   border-color: var(--chocolate);
+}
+
+.filterChip:active span {
+  transform: scale(0.94);
 }
 
 .filterHelp {
@@ -208,6 +298,8 @@
 
 .suggestions {
   margin-top: 2rem;
+  animation: athenvia-rise var(--duration-base) var(--ease-out) backwards;
+  animation-delay: var(--stagger-step);
 }
 
 .suggestions > p {
@@ -239,6 +331,9 @@
   cursor: pointer;
   font: inherit;
   text-align: left;
+  transition:
+    transform var(--duration-instant) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out);
 }
 
 .suggestionList button:first-child {
@@ -249,6 +344,10 @@
   background: var(--surface-soft);
 }
 
+.suggestionList button:active {
+  transform: scale(0.99);
+}
+
 .suggestionList svg {
   width: 1.15rem;
   height: 1.15rem;
@@ -257,6 +356,12 @@
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-width: 1.7;
+  transition: transform var(--duration-base) var(--ease-out);
+}
+
+/* The arrow leans toward where the tap will take you. */
+.suggestionList button:hover svg {
+  transform: translate3d(0.2rem, 0, 0);
 }
 
 .results {
@@ -279,12 +384,49 @@
   font-size: 0.78rem;
 }
 
+.resultsHeading {
+  animation: athenvia-fade var(--duration-fast) var(--ease-out) backwards;
+}
+
 .results ul {
   display: grid;
   gap: 0.85rem;
   margin: 0.85rem 0 0;
   padding: 0;
   list-style: none;
+}
+
+/* Staggered reveal.
+   Results replace a skeleton, so they need a beat of movement to register as
+   "these are new" — but the stagger is capped: past the sixth row the delay
+   stops growing, otherwise a long result set would take longer to finish
+   appearing than the request took to answer. Rows below the fold have already
+   settled by the time they are scrolled to, so nothing animates on scroll. */
+.results li {
+  --result-index: 0;
+
+  animation: athenvia-rise var(--duration-base) var(--ease-out) backwards;
+  animation-delay: calc(var(--result-index) * var(--stagger-step));
+}
+
+.results li:nth-child(2) {
+  --result-index: 1;
+}
+
+.results li:nth-child(3) {
+  --result-index: 2;
+}
+
+.results li:nth-child(4) {
+  --result-index: 3;
+}
+
+.results li:nth-child(5) {
+  --result-index: 4;
+}
+
+.results li:nth-child(n + 6) {
+  --result-index: 5;
 }
 
 .statePanel {
@@ -316,7 +458,27 @@
 
 @media (prefers-reduced-motion: reduce) {
   .inputRow,
-  .filterChip span {
+  .filterChip span,
+  .submitButton,
+  .clearButton,
+  .searchIcon,
+  .suggestionList button,
+  .suggestionList svg {
     transition: none;
+  }
+
+  .form,
+  .suggestions,
+  .resultsHeading,
+  .results li,
+  .clearButton {
+    animation: none;
+  }
+
+  /* The sweeping fill is the only purely decorative loading cue here; the
+     button label ("Searching…") and the aria-live region carry the state, so
+     dropping the bar loses nothing. */
+  .inputRow[data-loading]::after {
+    display: none;
   }
 }

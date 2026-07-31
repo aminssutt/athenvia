@@ -1,3 +1,18 @@
+/* Local copies of the shared motion primitives from app/globals.css — see the
+   note there: a CSS Module can only reference keyframes it declares itself. */
+@keyframes athenvia-rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 0.75rem, 0);
+  }
+}
+
+@keyframes athenvia-spin {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
 .appFrame {
   display: grid;
   width: min(100%, 30rem);
@@ -12,13 +27,43 @@
   padding: max(1.25rem, env(safe-area-inset-top)) 1.25rem 2rem;
 }
 
+/* Route entrance — see the note in home.module.css. The animation is scoped to
+   the page's own blocks, never to <main>: .primaryAction inside it is
+   position: sticky, and an animated transform on an ancestor would make it
+   drift against the viewport while the entrance plays. */
 .siteHeader {
   padding: 1rem 0 2.5rem;
+  animation: athenvia-rise var(--duration-base) var(--ease-out) backwards;
 }
 
 .program {
   display: grid;
   gap: 1rem;
+}
+
+/* Only the content blocks are listed by name. A `.program > *` rule would also
+   catch the sticky follow panel and the push-permission sheet, neither of
+   which should be moved by a page entrance. --block-index is set positionally
+   but only ever consumed by the three classes below. */
+.programHeader,
+.card,
+.sourceCard {
+  --block-index: 0;
+
+  animation: athenvia-rise var(--duration-base) var(--ease-out) backwards;
+  animation-delay: calc(var(--block-index) * var(--stagger-step));
+}
+
+.program > *:nth-child(2) {
+  --block-index: 1;
+}
+
+.program > *:nth-child(3) {
+  --block-index: 2;
+}
+
+.program > *:nth-child(n + 4) {
+  --block-index: 3;
 }
 
 .programHeader {
@@ -54,7 +99,7 @@
   border-radius: var(--radius-lg);
   padding: 1.1rem;
   background: var(--surface);
-  box-shadow: 0 12px 36px rgb(95 64 50 / 7%);
+  box-shadow: var(--shadow-raised);
 }
 
 .card {
@@ -85,6 +130,12 @@
   font-size: 0.88rem;
   font-weight: 750;
   text-underline-offset: 0.18em;
+  transition: color var(--duration-fast) var(--ease-out);
+}
+
+.inlineSourceLink:hover,
+.sourceLink:hover {
+  color: var(--chocolate);
 }
 
 .details,
@@ -129,11 +180,12 @@
 
 .domains li {
   border-radius: var(--radius-pill);
-  padding: 0.4rem 0.65rem;
+  padding: 0.4rem 0.7rem;
   background: var(--surface-soft);
   color: var(--chocolate-dark);
   font-size: 0.75rem;
   font-weight: 700;
+  line-height: 1.35;
 }
 
 .sectionHeading {
@@ -187,6 +239,7 @@
   font-size: 0.875rem;
   font-weight: 750;
   text-underline-offset: 0.2rem;
+  transition: color var(--duration-fast) var(--ease-out);
 }
 
 .missingSource {
@@ -223,14 +276,31 @@
   background: var(--surface);
   color: var(--text-primary);
   font: inherit;
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    opacity var(--duration-fast) var(--ease-out);
 }
 
+.followPanel select:hover:not(:disabled) {
+  border-color: var(--chocolate-light);
+}
+
+.followPanel select:disabled {
+  opacity: 0.6;
+}
+
+/* The primary action of the whole app, so it is the one control that gets a
+   full three-state treatment: idle, in flight, done. Both state glyphs are
+   ::before with an empty content string — drawn, never written — so neither
+   one leaks into the button's accessible name, which stays exactly the label
+   rendered by follow-program.tsx. */
 .followPanel button {
   display: inline-flex;
   width: 100%;
   min-height: 3.5rem;
   align-items: center;
   justify-content: center;
+  gap: 0.5rem;
   border: 0;
   border-radius: var(--radius-pill);
   background: var(--chocolate-dark);
@@ -238,16 +308,62 @@
   cursor: pointer;
   font: inherit;
   font-weight: 750;
+  transition:
+    transform var(--duration-fast) var(--ease-out),
+    background-color var(--duration-base) var(--ease-out),
+    opacity var(--duration-fast) var(--ease-out);
 }
 
 .followPanel button:hover:not(:disabled, [aria-disabled="true"]) {
   background: var(--chocolate);
 }
 
+.followPanel button:active:not(:disabled, [aria-disabled="true"]) {
+  transform: scale(0.98);
+}
+
 .followPanel button:disabled,
 .followPanel button[aria-disabled="true"] {
   cursor: default;
   opacity: 0.82;
+}
+
+/* In flight: a spinner leads the label. ::before is inline in the flex row, so
+   it participates in the layout once and then only rotates. */
+.followPanel button[data-phase="optimistic"]::before {
+  content: "";
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid color-mix(in srgb, var(--surface) 45%, transparent);
+  border-top-color: var(--surface);
+  border-radius: 50%;
+  animation: athenvia-spin 0.7s linear infinite;
+}
+
+/* Done: the button stops being an action and becomes a confirmation. The tick
+   is two borders on a rotated box rather than a character, so it adds no text
+   to the accessible name and scales with the button instead of with a font. */
+.followPanel button[data-phase="followed"] {
+  background: var(--chocolate);
+  opacity: 1;
+}
+
+.followPanel button[data-phase="followed"]::before {
+  content: "";
+  width: 0.4rem;
+  height: 0.75rem;
+  margin-bottom: 0.2rem;
+  border: solid var(--surface);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+  animation: follow-confirm var(--duration-base) var(--ease-emphasis) backwards;
+}
+
+@keyframes follow-confirm {
+  from {
+    opacity: 0;
+    transform: rotate(45deg) scale(0.3);
+  }
 }
 
 .followMessage,
@@ -265,6 +381,7 @@
 .followSuccess {
   color: var(--chocolate-dark);
   font-weight: 750;
+  animation: athenvia-rise var(--duration-base) var(--ease-out);
 }
 
 .followError {
@@ -276,6 +393,7 @@
   padding: 0.65rem 0.75rem;
   background: var(--danger-soft);
   color: var(--text-primary);
+  animation: athenvia-rise var(--duration-base) var(--ease-out);
 }
 
 .followError a {
@@ -283,6 +401,11 @@
   color: var(--chocolate-dark);
   font-size: 0.82rem;
   font-weight: 750;
+  transition: color var(--duration-fast) var(--ease-out);
+}
+
+.followError a:hover {
+  color: var(--chocolate);
 }
 
 .visuallyHidden {
@@ -299,5 +422,35 @@
   .main {
     padding-right: 1.5rem;
     padding-left: 1.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .siteHeader,
+  .programHeader,
+  .card,
+  .sourceCard,
+  .followSuccess,
+  .followError {
+    animation: none;
+  }
+
+  .followPanel select,
+  .followPanel button,
+  .sourceLink,
+  .inlineSourceLink,
+  .followError a {
+    transition: none;
+  }
+
+  /* The tick still appears — it is state, not decoration — but it appears
+     instead of springing in. The spinner would freeze mid-turn, so it is
+     dropped entirely; "Following…" already carries the state in text. */
+  .followPanel button[data-phase="followed"]::before {
+    animation: none;
+  }
+
+  .followPanel button[data-phase="optimistic"]::before {
+    display: none;
   }
 }

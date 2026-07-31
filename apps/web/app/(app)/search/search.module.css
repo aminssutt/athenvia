@@ -1,3 +1,12 @@
+/* Local copy of the shared motion primitive from app/globals.css — see the
+   note there: a CSS Module can only reference keyframes it declares itself. */
+@keyframes athenvia-rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 0.75rem, 0);
+  }
+}
+
 .appFrame {
   display: grid;
   width: min(100%, 34rem);
@@ -16,8 +25,14 @@
   text-decoration: none;
 }
 
+/* Route entrance — see the note in home.module.css. The masthead resolves
+   top-to-bottom so the display headline is the first thing to settle. */
 .heading {
   padding: clamp(2.75rem, 10vh, 5.5rem) 0 1.5rem;
+}
+
+.heading > * {
+  animation: athenvia-rise var(--duration-base) var(--ease-out) backwards;
 }
 
 .heading p {
@@ -36,6 +51,7 @@
   font-weight: 500;
   letter-spacing: -0.06em;
   line-height: 0.95;
+  animation-delay: var(--stagger-step);
 }
 
 .heading span {
@@ -44,4 +60,11 @@
   margin-top: 1rem;
   color: var(--text-secondary);
   line-height: 1.6;
+  animation-delay: calc(var(--stagger-step) * 2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .heading > * {
+    animation: none;
+  }
 }

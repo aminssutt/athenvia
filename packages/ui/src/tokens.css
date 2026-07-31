@@ -17,4 +17,29 @@
   --radius-md: 1rem;
   --radius-lg: 1.5rem;
   --radius-pill: 999px;
+
+  /* Elevation. Three fixed steps instead of ad-hoc shadows per component, so
+     cards, sheets and the update banner read as the same material. */
+  --shadow-raised: 0 0.75rem 2.25rem rgb(95 64 50 / 7%);
+  --shadow-floating: 0 1.125rem 3.125rem rgb(95 64 50 / 8%);
+  --shadow-overlay: 0 1.125rem 3.125rem rgb(95 64 50 / 18%);
+
+  /* Motion.
+     Athenvia is a calm utility, so movement confirms an action instead of
+     performing. Everything decelerates: --ease-out settles hard without
+     overshooting, --ease-emphasis adds one restrained overshoot reserved for
+     success moments. Anything a finger triggers stays under a quarter second,
+     so the interface never feels like it is making the user wait. */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-emphasis: cubic-bezier(0.34, 1.4, 0.64, 1);
+  --duration-instant: 90ms;
+  --duration-fast: 150ms;
+  --duration-base: 220ms;
+  --duration-slow: 380ms;
+
+  /* Delay between two neighbours in a staggered reveal. Six items cost 200 ms
+     of stagger on top of the item duration, which is about where a list stops
+     reading as "arriving" and starts reading as "slow". */
+  --stagger-step: 40ms;
 }
