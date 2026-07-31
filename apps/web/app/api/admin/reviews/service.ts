@@ -1,4 +1,4 @@
-import { database, type Prisma } from "@athenvia/database";
+import { database, SUBMISSION_REVIEW_FIELD, type Prisma } from "@athenvia/database";
 
 export type AdminReviewItem = {
   conflictKey: string | null;
@@ -33,6 +33,29 @@ export class AdminReviewNotFoundError extends Error {
   }
 }
 
+/**
+ * Human-readable provenance for the review card ("Proposed by …").
+ * Submission reviews are filed by the contributing student, so they read
+ * "a student (email)" rather than a reviewer identity; an anonymized account
+ * keeps the neutral label without leaking the placeholder address.
+ */
+export function describeCreator(revision: {
+  createdBy: { email: string } | null;
+  createdByWorker: boolean;
+  fieldName: string;
+}): string {
+  if (revision.createdByWorker) {
+    return "Athenvia verification worker";
+  }
+  if (revision.fieldName === SUBMISSION_REVIEW_FIELD) {
+    const email = revision.createdBy?.email;
+    return email && !email.endsWith("@deleted.invalid")
+      ? `a student (${email})`
+      : "a student (account deleted)";
+  }
+  return revision.createdBy?.email ?? "Unknown reviewer";
+}
+
 export async function listPendingAdminReviews(): Promise<AdminReviewItem[]> {
   const revisions = await database.dataRevision.findMany({
     where: { changeStatus: "PENDING" },
@@ -57,9 +80,7 @@ export async function listPendingAdminReviews(): Promise<AdminReviewItem[]> {
   return revisions.map((revision) => ({
     conflictKey: revision.conflictKey,
     createdAt: revision.createdAt.toISOString(),
-    creator: revision.createdByWorker
-      ? "Athenvia verification worker"
-      : (revision.createdBy?.email ?? "Unknown reviewer"),
+    creator: describeCreator(revision),
     entityId: revision.entityId,
     entityType: revision.entityType,
     fieldName: revision.fieldName,

@@ -6,6 +6,7 @@ import { useState } from "react";
 import { Brand } from "@/components/brand";
 import { MobileNavigation } from "@/components/mobile-navigation";
 
+import { programSubmissionApiTransport } from "./api-transport";
 import styles from "./missing-program.module.css";
 import {
   approvedDomains,
@@ -76,7 +77,10 @@ export function MissingProgramForm({ university }: MissingProgramFormProps) {
     }
 
     setIsSubmitting(true);
-    const submissionResult = await submitMissingProgram(parsedSubmission.data);
+    const submissionResult = await submitMissingProgram(
+      parsedSubmission.data,
+      programSubmissionApiTransport,
+    );
     setResult(submissionResult);
     setIsSubmitting(false);
   }
