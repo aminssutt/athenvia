@@ -72,6 +72,63 @@
               ]
             }
           ]
+        },
+        {
+          "key": "ms-computer-science-and-engineering",
+          "name": "Master's Program in Computer Science and Engineering",
+          "degreeType": "MASTER",
+          "summary": {
+            "text": "The graduate programme of Seoul National University's Department of Computer Science and Engineering in the College of Engineering aims to nurture global talents in computer science equipped with excellence, creativity and communication skills, developing graduates able to adjust to radically changing environments on a rigid theoretical and technological base, create new technology with high added value through interdisciplinary studies, and understand the digital economy and solve real-world problems through academic-industrial cooperation.",
+            "sourceKey": "programme-overview"
+          },
+          "durationMonths": null,
+          "campus": null,
+          "language": null,
+          "officialUrl": "https://cse.snu.ac.kr/en",
+          "domains": ["computer-science"],
+          "sources": [
+            {
+              "key": "programme-overview",
+              "url": "https://eng.snu.ac.kr/en/academics/graduate-programs/computer-science-and-engineering",
+              "sourceType": "PROGRAM_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-31T13:37:17.000Z"
+            },
+            {
+              "key": "department-graduate-admissions",
+              "url": "https://cse.snu.ac.kr/en/admissions/international/graduate",
+              "sourceType": "ADMISSIONS_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-31T13:37:17.000Z"
+            },
+            {
+              "key": "graduate-admissions-notice",
+              "url": "https://en.snu.ac.kr/admission/overview/notice?md=v&bbsidx=172490",
+              "sourceType": "ADMISSIONS_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-31T13:37:17.000Z"
+            }
+          ],
+          "intakes": [
+            {
+              "key": "2027-march",
+              "year": 2027,
+              "month": 3,
+              "status": "PLANNED",
+              "applicationWindows": [
+                {
+                  "key": "international-admissions",
+                  "roundName": "2027 Spring graduate international admissions",
+                  "opensAt": "2026-07-06T01:00:00.000Z",
+                  "closesAt": "2026-07-09T08:00:00.000Z",
+                  "publicStatus": "CONFIRMED",
+                  "verification": "OFFICIAL",
+                  "sourceKey": "graduate-admissions-notice",
+                  "lastVerifiedAt": "2026-07-31T13:37:17.000Z"
+                }
+              ]
+            }
+          ]
         }
       ]
     }

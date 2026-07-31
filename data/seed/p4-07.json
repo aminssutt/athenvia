@@ -4,6 +4,7 @@
   "domains": [
     { "slug": "applied-ai", "name": "Applied AI" },
     { "slug": "computer-science", "name": "Computer Science" },
+    { "slug": "data-science", "name": "Data Science" },
     { "slug": "machine-learning", "name": "Machine Learning" }
   ],
   "universities": [
@@ -61,6 +62,49 @@
                   "verification": "OFFICIAL",
                   "sourceKey": "programme-catalog",
                   "lastVerifiedAt": "2026-07-30T13:46:55.825Z"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "key": "msc-big-data-technology",
+          "name": "Master of Science in Big Data Technology",
+          "degreeType": "MASTER",
+          "summary": {
+            "text": "A master's programme of at least 30 credits integrating computer science and mathematics disciplines to address the important aspects of big data and its real-world use. Students complete 12 credits of core coursework covering big data infrastructure, integration, storage and analytics, plus 18 credits of electives spanning data management, machine learning and privacy, full-time over one year or part-time over two years.",
+            "sourceKey": "programme-catalog"
+          },
+          "durationMonths": 12,
+          "campus": null,
+          "language": null,
+          "officialUrl": "https://prog-crs.hkust.edu.hk/pgprog/2026-27/msc-bdt",
+          "domains": ["computer-science", "data-science", "machine-learning"],
+          "sources": [
+            {
+              "key": "programme-catalog",
+              "url": "https://prog-crs.hkust.edu.hk/pgprog/2026-27/msc-bdt",
+              "sourceType": "PROGRAM_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-31T13:37:32.000Z"
+            }
+          ],
+          "intakes": [
+            {
+              "key": "2026-september",
+              "year": 2026,
+              "month": 9,
+              "status": "PLANNED",
+              "applicationWindows": [
+                {
+                  "key": "rolling-admission",
+                  "roundName": null,
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "EXPECTED",
+                  "verification": "EXPECTED",
+                  "sourceKey": "programme-catalog",
+                  "lastVerifiedAt": "2026-07-31T13:37:32.000Z"
                 }
               ]
             }
