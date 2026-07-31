@@ -9,6 +9,11 @@
 **/tests
 **/test-results
 **/*.test.*
+# Test-runner configs must follow their tests out of the image: they are still
+# type-checked by `next build`, and any import into the excluded tests/ tree
+# would break the production build.
+**/playwright.config.ts
+**/vitest.config.ts
 **/*.log
 **/*.tsbuildinfo
 

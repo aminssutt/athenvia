@@ -1,0 +1,186 @@
+# Athenvia — Dokploy deployment.
+#
+#   docker compose -f docker-compose.dokploy.yml up -d --build
+#
+# Differences from docker-compose.prod.yml, all of them required by Dokploy:
+#
+#   1. No top-level `networks:` block. Traefik reaches the routed service
+#      through the shared `dokploy-network` it attaches itself; a service that
+#      only lives on a private bridge is unreachable and its domain never
+#      resolves.
+#   2. Service-specific network aliases. `postgres` and `redis` are the most
+#      collision-prone names on a shared network, so web and worker address
+#      `athenvia-postgres` / `athenvia-redis` instead of ever risking another
+#      Dokploy application's database.
+#   3. No `image:` keys. With an image name set, a deploy that does not pass
+#      `--build` tries to pull `athenvia-web:<tag>` from a registry where it
+#      does not exist, and only the pullable services (postgres, redis) start.
+#   4. No YAML anchors or `x-` extension fields, and no `${VAR:?message}`
+#      required-variable syntax: both are valid Compose but not every renderer
+#      handles them, and a parse failure here is silent and total.
+#
+# Set every variable below in the Dokploy Environment tab. Domain: attach it to
+# service `web`, port `3000`, and let Dokploy/Traefik terminate TLS.
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-athenvia}
+      POSTGRES_USER: ${POSTGRES_USER:-athenvia}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    expose:
+      - "5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      default:
+        aliases:
+          - athenvia-postgres
+    healthcheck:
+      test: ["CMD-SHELL", 'pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+    security_opt:
+      - no-new-privileges:true
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes", "--requirepass", "${REDIS_PASSWORD}"]
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    expose:
+      - "6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      default:
+        aliases:
+          - athenvia-redis
+    healthcheck:
+      test: ["CMD-SHELL", 'REDISCLI_AUTH="$$REDIS_PASSWORD" redis-cli --no-auth-warning ping']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 5s
+    security_opt:
+      - no-new-privileges:true
+
+  # One-shot: applies Prisma migrations then runs the idempotent catalogue seed.
+  # web and worker wait for it to exit successfully.
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: migrate
+      args:
+        NEXT_PUBLIC_APP_URL: ${APP_URL}
+        NEXT_PUBLIC_ATHENVIA_DEPLOYMENT_ID: ${ATHENVIA_IMAGE_TAG:-dokploy}
+    restart: "no"
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${POSTGRES_USER:-athenvia}:${POSTGRES_PASSWORD}@athenvia-postgres:5432/${POSTGRES_DB:-athenvia}
+    command:
+      [
+        "sh",
+        "-c",
+        "./packages/database/node_modules/.bin/prisma migrate deploy --schema=packages/database/prisma/schema.prisma && ./packages/database/node_modules/.bin/tsx packages/database/src/seed.ts",
+      ]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    security_opt:
+      - no-new-privileges:true
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: web
+      args:
+        # BUILD-time, not runtime: next build bakes the public origin into the
+        # client bundle. Changing APP_URL needs a REBUILD, not a restart.
+        NEXT_PUBLIC_APP_URL: ${APP_URL}
+        NEXT_PUBLIC_ATHENVIA_DEPLOYMENT_ID: ${ATHENVIA_IMAGE_TAG:-dokploy}
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      HOSTNAME: 0.0.0.0
+      PORT: 3000
+      DATABASE_URL: postgresql://${POSTGRES_USER:-athenvia}:${POSTGRES_PASSWORD}@athenvia-postgres:5432/${POSTGRES_DB:-athenvia}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@athenvia-redis:6379
+      ATHENVIA_IMAGE_TAG: ${ATHENVIA_IMAGE_TAG:-dokploy}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      NEXTAUTH_URL: ${APP_URL}
+      NEXT_PUBLIC_APP_URL: ${APP_URL}
+      AUTH_SECRET: ${AUTH_SECRET}
+      AUTH_EMAIL_FROM: ${AUTH_EMAIL_FROM}
+      AUTH_EMAIL_SERVER: ${AUTH_EMAIL_SERVER:-}
+      AUTH_RESEND_API_KEY: ${AUTH_RESEND_API_KEY:-}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      ATHENVIA_ADMIN_EMAILS: ${ATHENVIA_ADMIN_EMAILS}
+      VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY}
+      SEARCH_RATE_LIMIT_SALT: ${SEARCH_RATE_LIMIT_SALT:-}
+      PROGRAM_SUBMISSION_RATE_LIMIT_SALT: ${PROGRAM_SUBMISSION_RATE_LIMIT_SALT:-}
+      UNIVERSITY_SUBMISSION_RATE_LIMIT_SALT: ${UNIVERSITY_SUBMISSION_RATE_LIMIT_SALT:-}
+      PUSH_SUBSCRIPTION_RATE_LIMIT_SALT: ${PUSH_SUBSCRIPTION_RATE_LIMIT_SALT:-}
+    # Dokploy/Traefik routes the public domain to this internal port. Do not
+    # publish it on the host: Dokploy already binds host port 3000.
+    expose:
+      - "3000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000/api/health').then((response) => { if (!response.ok) process.exit(1); }).catch(() => process.exit(1))",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    stop_grace_period: 30s
+    security_opt:
+      - no-new-privileges:true
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: worker
+      args:
+        NEXT_PUBLIC_APP_URL: ${APP_URL}
+        NEXT_PUBLIC_ATHENVIA_DEPLOYMENT_ID: ${ATHENVIA_IMAGE_TAG:-dokploy}
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${POSTGRES_USER:-athenvia}:${POSTGRES_PASSWORD}@athenvia-postgres:5432/${POSTGRES_DB:-athenvia}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@athenvia-redis:6379
+      ATHENVIA_IMAGE_TAG: ${ATHENVIA_IMAGE_TAG:-dokploy}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY}
+      VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY}
+      VAPID_SUBJECT: ${VAPID_SUBJECT}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    stop_grace_period: 45s
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  postgres_data:
+  redis_data:
