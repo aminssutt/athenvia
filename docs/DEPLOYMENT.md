@@ -123,10 +123,30 @@ rotation.
 
 ## Dokploy deployment
 
+Dokploy uses its own Compose file, `docker-compose.dokploy.yml`, not
+`docker-compose.prod.yml`. The two describe the same stack; the Dokploy variant
+drops four things that a Dokploy deployment cannot tolerate, each of which was
+observed to fail in practice:
+
+| Dropped                                    | Why                                                                                                                                                                                                                                                          |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| The private `backend` network              | Traefik routes through the shared `dokploy-network` it attaches itself. A service that only lives on a private bridge is unreachable, and its domain never resolves.                                                                                         |
+| `image:` on the built services             | With an image name set, a deploy that does not pass `--build` tries to pull `athenvia-web:<tag>` from a registry where it does not exist. Only the pullable services (PostgreSQL, Redis) then start — the classic "only postgres and redis show up" symptom. |
+| YAML anchors and `x-` extension fields     | Valid Compose, but not every renderer in the chain handles merge keys, and a parse failure is silent.                                                                                                                                                        |
+| `${VAR:?message}` required-variable syntax | Same reason: it aborts the whole render when a variable is missing, with no useful surfacing.                                                                                                                                                                |
+
+`web` and `worker` therefore reach the datastores through the
+`athenvia-postgres` and `athenvia-redis` network aliases rather than the bare
+`postgres` / `redis` service names, which are the most collision-prone names on
+a network shared with other Dokploy applications.
+
+`docker-compose.prod.yml` stays the reference for a plain Docker host, where the
+private network and pinned image tags are the better setup.
+
 1. Create a project and production environment in Dokploy.
 2. Add a **Docker Compose** service from the Git repository.
 3. Select the `main` branch and set the Compose path to
-   `docker-compose.prod.yml`.
+   `docker-compose.dokploy.yml`.
 4. Paste the root `.env` key/value set into the service Environment screen.
 5. In Dokploy's **Domains** screen, add the HTTPS domain to service `web`, port
    `3000`. Do not add manual Traefik labels and do not add domains to PostgreSQL,
