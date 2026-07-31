@@ -5,7 +5,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   LimitReachedError: class LimitReachedError extends Error {},
   OwnershipConflictError: class OwnershipConflictError extends Error {},
+  checkPushSubscriptionRateLimit: vi.fn(),
   getServerSession: vi.fn(),
+  resolvesToPublicAddresses: vi.fn(),
   revokePushSubscription: vi.fn(),
   storePushSubscription: vi.fn(),
   userFindUnique: vi.fn(),
@@ -29,6 +31,17 @@ vi.mock("next-auth", () => ({
 
 vi.mock("@/lib/auth", () => ({
   authOptions: {},
+}));
+
+vi.mock("./endpoint-safety", () => ({
+  resolvesToPublicAddresses: mocks.resolvesToPublicAddresses,
+}));
+
+vi.mock("./rate-limit", () => ({
+  checkPushSubscriptionRateLimit: mocks.checkPushSubscriptionRateLimit,
+  pushSubscriptionRateLimitHeaders: (rateLimit: { retryAfterSeconds: number }) => ({
+    "Retry-After": String(rateLimit.retryAfterSeconds),
+  }),
 }));
 
 import { DELETE, POST } from "./route";
@@ -69,6 +82,13 @@ describe("authenticated push subscription mutations", () => {
     vi.clearAllMocks();
     mocks.storePushSubscription.mockResolvedValue(undefined);
     mocks.revokePushSubscription.mockResolvedValue(undefined);
+    mocks.resolvesToPublicAddresses.mockResolvedValue(true);
+    mocks.checkPushSubscriptionRateLimit.mockResolvedValue({
+      allowed: true,
+      limit: 20,
+      remaining: 19,
+      retryAfterSeconds: 1,
+    });
     delete process.env.NEXTAUTH_URL;
     mocks.getServerSession.mockResolvedValue({
       user: { email: "student@example.test" },
@@ -204,6 +224,60 @@ describe("authenticated push subscription mutations", () => {
 
     expect(response.status).toBe(400);
     expect(mocks.storePushSubscription).not.toHaveBeenCalled();
+  });
+
+  it("rejects an endpoint that resolves to a non-public address before storing it", async () => {
+    mocks.resolvesToPublicAddresses.mockResolvedValue(false);
+
+    const response = await POST(
+      mutationRequest("POST", { endpoint, keys: { auth, p256dh: p256dh() } }),
+    );
+
+    expect(response.status).toBe(400);
+    expect(mocks.resolvesToPublicAddresses).toHaveBeenCalledWith(endpoint);
+    expect(mocks.storePushSubscription).not.toHaveBeenCalled();
+  });
+
+  it("rate limits subscribe attempts per authenticated user", async () => {
+    mocks.checkPushSubscriptionRateLimit.mockResolvedValue({
+      allowed: false,
+      limit: 20,
+      remaining: 0,
+      retryAfterSeconds: 300,
+    });
+
+    const response = await POST(
+      mutationRequest("POST", { endpoint, keys: { auth, p256dh: p256dh() } }),
+    );
+
+    expect(response.status).toBe(429);
+    expect(response.headers.get("retry-after")).toBe("300");
+    expect(mocks.checkPushSubscriptionRateLimit).toHaveBeenCalledWith(expect.any(Request), userId);
+    expect(mocks.storePushSubscription).not.toHaveBeenCalled();
+  });
+
+  it("rate limits revoke attempts per authenticated user", async () => {
+    mocks.checkPushSubscriptionRateLimit.mockResolvedValue({
+      allowed: false,
+      limit: 20,
+      remaining: 0,
+      retryAfterSeconds: 60,
+    });
+
+    const response = await DELETE(mutationRequest("DELETE", { endpoint }));
+
+    expect(response.status).toBe(429);
+    expect(response.headers.get("retry-after")).toBe("60");
+    expect(mocks.revokePushSubscription).not.toHaveBeenCalled();
+  });
+
+  it("revokes without requiring the stored endpoint to still resolve", async () => {
+    mocks.resolvesToPublicAddresses.mockResolvedValue(false);
+
+    const response = await DELETE(mutationRequest("DELETE", { endpoint }));
+
+    expect(response.status).toBe(204);
+    expect(mocks.revokePushSubscription).toHaveBeenCalledWith(userId, endpoint);
   });
 
   it("accepts the native expirationTime field but stores only server-owned metadata", async () => {

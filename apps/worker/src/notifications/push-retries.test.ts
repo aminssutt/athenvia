@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
+import { PushEndpointResolutionError, UnsafePushEndpointError } from "../push-endpoint-safety";
 import {
   classifyWebPushFailure,
   deliverWebPushWithRetry,
@@ -22,6 +23,14 @@ describe("Web Push failure classification", () => {
     for (const statusCode of [400, 401, 403, 409, 413]) {
       assert.equal(classifyWebPushFailure({ statusCode }), "PERMANENT");
     }
+  });
+
+  it("revokes subscriptions whose endpoint resolved to a non-public address", () => {
+    assert.equal(classifyWebPushFailure(new UnsafePushEndpointError()), "INVALID_SUBSCRIPTION");
+  });
+
+  it("retries safely when the endpoint hostname could not be resolved", () => {
+    assert.equal(classifyWebPushFailure(new PushEndpointResolutionError()), "TRANSIENT");
   });
 
   it("treats response-less and malformed errors as indeterminate", () => {

@@ -25,17 +25,17 @@ medium, **P3** low.
 
 ## Domain checklist
 
-| Domain                              | Status | Summary                                                                                                                                                                          |
-| ----------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Authentication / session            | ✅     | Database sessions, secure cookies in prod, ownership always resolved from the session identity, admin gated by env allowlist + DB lookup.                                        |
-| Authorization / IDOR                | ✅     | Watchlist, notifications, push, and settings all scope Prisma queries by the session `userId`; identifiers are never taken from the request body.                                |
-| CSRF                                | ✅     | Every state-changing route verifies `Origin` + `Sec-Fetch-Site`; the magic-link POST additionally validates the NextAuth double-submit token with a constant-time compare.       |
-| SSRF (worker source fetch)          | ✅     | Approved-host allowlist, DNS pinning, private/reserved-range rejection (IPv4 + IPv6), redirect re-validation, no HTTPS→HTTP downgrade.                                           |
-| SSRF (web push delivery)            | ❌     | User-controlled push endpoint is sent from the worker with no DNS resolution or private-range check (P2-01).                                                                     |
-| Open redirect (auth)                | ❌     | `safeAuthRedirect` relative-URL guard is bypassable, yielding an external redirect (P2-02).                                                                                      |
-| Rate limiting                       | ⚠️     | Search, submissions, and magic-link are limited; push mutation endpoints are not, despite the baseline requiring it (P3-01). IP keys trust spoofable forwarding headers (P3-02). |
-| Private-data isolation in responses | ✅     | No email/token/endpoint leakage in user-facing API responses; admin-only responses expose reviewer email inside the gated admin surface only.                                    |
-| Logging / redaction                 | ✅     | Allowlist log formatters plus pino redaction; request IDs regenerated server-side; raw path and error message never logged.                                                      |
+| Domain                              | Status | Summary                                                                                                                                                                    |
+| ----------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Authentication / session            | ✅     | Database sessions, secure cookies in prod, ownership always resolved from the session identity, admin gated by env allowlist + DB lookup.                                  |
+| Authorization / IDOR                | ✅     | Watchlist, notifications, push, and settings all scope Prisma queries by the session `userId`; identifiers are never taken from the request body.                          |
+| CSRF                                | ✅     | Every state-changing route verifies `Origin` + `Sec-Fetch-Site`; the magic-link POST additionally validates the NextAuth double-submit token with a constant-time compare. |
+| SSRF (worker source fetch)          | ✅     | Approved-host allowlist, DNS pinning, private/reserved-range rejection (IPv4 + IPv6), redirect re-validation, no HTTPS→HTTP downgrade.                                     |
+| SSRF (web push delivery)            | ✅     | Fixed: push endpoints are DNS-resolved and checked against private/reserved ranges at registration and again at send time (P2-01).                                         |
+| Open redirect (auth)                | ✅     | Fixed: `safeAuthRedirect` now resolves every candidate against the base URL and requires an exact origin match (P2-02).                                                    |
+| Rate limiting                       | ✅     | Search, submissions, magic-link, and push mutations are limited (P3-01 fixed). Forwarding headers are normalized to the trusted proxy hop in `proxy.ts` (P3-02 fixed).     |
+| Private-data isolation in responses | ✅     | No email/token/endpoint leakage in user-facing API responses; admin-only responses expose reviewer email inside the gated admin surface only.                              |
+| Logging / redaction                 | ✅     | Allowlist log formatters plus pino redaction; request IDs regenerated server-side; raw path and error message never logged.                                                |
 
 ## Findings
 
@@ -47,8 +47,11 @@ medium, **P3** low.
 - P3: 2
 
 No P0 or P1 issues were found. The auth, CSRF, IDOR, and worker-fetch SSRF
-surfaces are in good shape. The two P2 items are a bypassable auth redirect and
+surfaces are in good shape. The two P2 items were a bypassable auth redirect and
 a blind SSRF vector on the push-delivery path.
+
+**Status update:** all four findings (P2-01, P2-02, P3-01, P3-02) have been
+fixed; each finding below records its resolution.
 
 ---
 
@@ -80,6 +83,24 @@ Recommendation: apply the same DNS-resolution + `isPublicAddress`-style check to
 push endpoints before persisting and, ideally, again at send time; or restrict
 endpoints to a known allowlist of push-service hosts. Reuse the existing
 `safe-url.ts` / `network-policy.ts` primitives rather than duplicating logic.
+
+**Status: fixed.** DNS-resolution + public-address validation was chosen over a
+strict host allowlist so legitimate push services keep working without an
+operational allowlist to maintain. At registration,
+`apps/web/app/api/push/subscriptions/endpoint-safety.ts` resolves the endpoint
+hostname (reusing `isPublicNetworkAddress` from
+`apps/web/app/api/university-submissions/safe-url.ts`) and the route rejects
+any endpoint with a non-public address. At send time — because DNS can change
+or be rebound between registration and delivery —
+`apps/worker/src/push-endpoint-safety.ts` (reusing `isPublicAddress` from
+`apps/worker/src/fetch/network-policy.ts`) re-validates inside
+`WebPushNotificationTransport.send`; an endpoint resolving to a non-public
+address raises `UnsafePushEndpointError`, which `classifyWebPushFailure` maps
+to `INVALID_SUBSCRIPTION` so the subscription is revoked. Transient DNS
+failures raise `PushEndpointResolutionError` and are classified `TRANSIENT`
+(no request was made, so retrying is safe). Covered by
+`endpoint-safety.test.ts`, `route.test.ts`, `push-endpoint-safety.test.ts`,
+`web-push-transport.test.ts`, and `push-retries.test.ts`.
 
 ---
 
@@ -113,6 +134,13 @@ origin before returning (i.e. fold the relative branch into the same
 origin-equality check the absolute branch already uses). Add the table above as
 regression tests.
 
+**Status: fixed.** `safeAuthRedirect` (`apps/web/lib/auth-config.ts`) now
+resolves every candidate against the base URL with `new URL(url, base)` and
+returns it only when `destination.origin === base.origin`; everything else
+falls through to `/home`. The bypass table above (backslash, double-backslash,
+tab, newline, and carriage-return variants) is covered as regression tests in
+`apps/web/lib/auth-config.test.ts`.
+
 ---
 
 ### P3-01 — Push subscription mutation endpoints are not rate-limited
@@ -129,6 +157,14 @@ than unbounded growth. Still a documented-requirement gap.
 
 Recommendation: apply the existing fixed-window limiter (user + client key) to
 both methods, mirroring the submission endpoints.
+
+**Status: fixed.** `apps/web/app/api/push/subscriptions/rate-limit.ts` mirrors
+the university-submission limiter (Redis fixed window with a bounded in-memory
+fallback, HMAC-opaque user + client keys, optional
+`PUSH_SUBSCRIPTION_RATE_LIMIT_SALT`): 20 mutations per user and 60 per client
+per 10 minutes. Both `POST` and `DELETE` return 429 with `RateLimit-*` and
+`Retry-After` headers when exceeded. Covered by `rate-limit.test.ts` and
+`route.test.ts`.
 
 ---
 
@@ -152,6 +188,20 @@ Recommendation: derive the client IP from a trusted hop count / the proxy's
 authoritative header only, and document that the reverse proxy must overwrite
 `x-forwarded-for` at ingress. This is partly a deployment concern (Dokploy /
 reverse-proxy configuration) and should be verified there as well.
+
+**Status: fixed.** `apps/web/proxy.ts` — which already regenerates
+`x-request-id` — now also normalizes the forwarding headers for every `/api/*`
+request before any handler sees them: the production deployment
+(`docker-compose.prod.yml`) fronts the app with a single reverse proxy that
+appends the real client address as the _last_ `x-forwarded-for` entry, so the
+proxy keeps only that final hop, rewrites `x-forwarded-for` and `x-real-ip` to
+it, and drops `cf-connecting-ip` entirely (no Cloudflare in front of this
+deployment). When no forwarding header is present (direct/dev traffic) the
+headers are removed so limiters fall back to the shared `"unknown"` key rather
+than a client-chosen one. Existing rate-limit key derivations needed no change.
+Covered by `apps/web/lib/proxy.test.ts`. Operationally, the reverse proxy in
+front of `web` must keep appending the client address to `x-forwarded-for`
+(the default for Traefik and nginx `proxy_add_x_forwarded_for`).
 
 ---
 
@@ -210,9 +260,14 @@ reverse-proxy configuration) and should be verified there as well.
 
 ## Suggested follow-up tickets
 
-1. P2-02 open redirect — tighten `safeAuthRedirect` and add the bypass table as
-   tests. (Cheapest, highest certainty; do first.)
-2. P2-01 push-endpoint SSRF — reuse `safe-url` / `network-policy` DNS + public
-   address checks for push endpoints at store and send time.
-3. P3-01 push rate limiting.
-4. P3-02 trusted-hop IP derivation + proxy ingress hardening.
+All four follow-ups below have been completed; see the per-finding status notes
+above for implementation and test references.
+
+1. ~~P2-02 open redirect — tighten `safeAuthRedirect` and add the bypass table
+   as tests.~~ Done.
+2. ~~P2-01 push-endpoint SSRF — reuse `safe-url` / `network-policy` DNS +
+   public address checks for push endpoints at store and send time.~~ Done.
+3. ~~P3-01 push rate limiting.~~ Done.
+4. ~~P3-02 trusted-hop IP derivation + proxy ingress hardening.~~ Done
+   (application side; keep verifying the reverse-proxy ingress configuration on
+   deployment changes).

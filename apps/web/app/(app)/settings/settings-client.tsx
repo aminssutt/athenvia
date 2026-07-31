@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { signOut } from "next-auth/react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import {
   DEFAULT_DEADLINE_REMINDER_DAYS,
@@ -61,6 +61,22 @@ export function SettingsClient() {
   const [notice, setNotice] = useState<string | null>(null);
   const [deletePanelOpen, setDeletePanelOpen] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState("");
+  const deleteTriggerRef = useRef<HTMLButtonElement>(null);
+  const deleteConfirmationInputRef = useRef<HTMLInputElement>(null);
+  const deletePanelWasOpenRef = useRef(false);
+
+  // Swapping the trigger button for the confirmation panel (and back on Cancel)
+  // unmounts the focused element; move focus explicitly so it never falls back
+  // to <body> (WCAG 2.4.3).
+  useEffect(() => {
+    if (deletePanelOpen) {
+      deleteConfirmationInputRef.current?.focus();
+    } else if (deletePanelWasOpenRef.current) {
+      deleteTriggerRef.current?.focus();
+    }
+
+    deletePanelWasOpenRef.current = deletePanelOpen;
+  }, [deletePanelOpen]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -474,6 +490,7 @@ export function SettingsClient() {
               className={styles.dangerOutlineButton}
               type="button"
               disabled={busyAction !== null}
+              ref={deleteTriggerRef}
               onClick={() => setDeletePanelOpen(true)}
             >
               Delete my account
@@ -487,6 +504,7 @@ export function SettingsClient() {
                 id="delete-confirmation"
                 autoComplete="off"
                 spellCheck="false"
+                ref={deleteConfirmationInputRef}
                 value={deleteConfirmation}
                 onChange={(event) => setDeleteConfirmation(event.target.value)}
               />

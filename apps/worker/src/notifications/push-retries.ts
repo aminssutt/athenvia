@@ -1,3 +1,5 @@
+import { PushEndpointResolutionError, UnsafePushEndpointError } from "../push-endpoint-safety";
+
 export const MAX_WEB_PUSH_ATTEMPTS = 3;
 export const WEB_PUSH_RETRY_DELAYS_MILLISECONDS = [2_000, 4_000] as const;
 
@@ -30,6 +32,17 @@ function statusCodeFrom(error: unknown): number | null {
  * retrying could deliver the same notification twice.
  */
 export function classifyWebPushFailure(error: unknown): PushFailureKind {
+  if (error instanceof UnsafePushEndpointError) {
+    // The endpoint resolved to a non-public address: revoke it like a dead
+    // subscription so the worker never POSTs toward internal networks.
+    return "INVALID_SUBSCRIPTION";
+  }
+  if (error instanceof PushEndpointResolutionError) {
+    // DNS failed before any request was made, so retrying cannot deliver the
+    // notification twice and must not revoke the subscription.
+    return "TRANSIENT";
+  }
+
   const statusCode = statusCodeFrom(error);
   if (statusCode === null) {
     return "INDETERMINATE";

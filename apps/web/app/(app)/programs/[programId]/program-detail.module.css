@@ -240,11 +240,12 @@
   font-weight: 750;
 }
 
-.followPanel button:hover:not(:disabled) {
+.followPanel button:hover:not(:disabled, [aria-disabled="true"]) {
   background: var(--chocolate);
 }
 
-.followPanel button:disabled {
+.followPanel button:disabled,
+.followPanel button[aria-disabled="true"] {
   cursor: default;
   opacity: 0.82;
 }

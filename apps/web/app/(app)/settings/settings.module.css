@@ -253,7 +253,7 @@
   border: 0;
   border-radius: var(--radius-pill);
   padding: 0.18rem;
-  background: var(--border-soft);
+  background: var(--border-strong);
   cursor: pointer;
   transition: background 150ms ease;
 }

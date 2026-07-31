@@ -20,7 +20,7 @@
   grid-template-columns: 2.9rem minmax(0, 1fr) auto auto;
   align-items: center;
   min-height: 3.75rem;
-  border: 1px solid var(--border-soft);
+  border: 1px solid var(--border-strong);
   border-radius: 1.15rem;
   background: var(--surface);
   box-shadow: 0 1rem 3rem rgb(95 64 50 / 7%);
@@ -62,7 +62,7 @@
 }
 
 .inputRow input::placeholder {
-  color: #97877e;
+  color: var(--text-secondary);
   opacity: 1;
 }
 

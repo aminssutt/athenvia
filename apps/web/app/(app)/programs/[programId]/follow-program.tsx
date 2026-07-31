@@ -100,10 +100,13 @@ export function FollowProgram({ intakes, programId }: FollowProgramProps) {
             </div>
           ) : null}
 
+          {/* aria-disabled (with the guard in followSelectedIntake) keeps the
+              button focusable while the request runs, so keyboard focus is not
+              dropped to <body> mid-operation (WCAG 2.4.3). */}
           <button
             type="button"
             onClick={() => void followSelectedIntake()}
-            disabled={phase === "optimistic" || phase === "followed"}
+            aria-disabled={phase === "optimistic" || phase === "followed"}
           >
             {phase === "optimistic"
               ? "Following…"

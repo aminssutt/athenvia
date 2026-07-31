@@ -111,7 +111,7 @@
 .field select {
   width: 100%;
   min-height: 3.25rem;
-  border: 1px solid var(--border-soft);
+  border: 1px solid var(--border-strong);
   border-radius: var(--radius-md);
   padding: 0.75rem 0.9rem;
   background: var(--surface);
@@ -125,7 +125,7 @@
 
 .field input::placeholder {
   color: var(--text-secondary);
-  opacity: 0.8;
+  opacity: 1;
 }
 
 .field :is(input, select)[aria-invalid="true"] {
