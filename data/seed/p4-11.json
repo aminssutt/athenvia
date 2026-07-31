@@ -72,6 +72,106 @@
               ]
             }
           ]
+        },
+        {
+          "key": "msc-computing",
+          "name": "MSc Computing",
+          "degreeType": "MASTER",
+          "summary": {
+            "text": "A one-year, full-time conversion master's at Imperial's South Kensington Campus for graduates with first-class degrees in disciplines other than computing who want to add computing qualifications to their portfolio, retrain in IT or prepare for PhD study. The programme covers programming principles, computer systems and software systems engineering, offers five elective modules from specialised areas such as machine learning, computer vision, databases and cryptography, and concludes with a substantial individual project over the final five months.",
+            "sourceKey": "programme-page"
+          },
+          "durationMonths": 12,
+          "campus": "South Kensington Campus",
+          "language": null,
+          "officialUrl": "https://www.imperial.ac.uk/study/courses/postgraduate-taught/computing/",
+          "domains": ["computer-science"],
+          "sources": [
+            {
+              "key": "programme-page",
+              "url": "https://www.imperial.ac.uk/study/courses/postgraduate-taught/computing/",
+              "sourceType": "PROGRAM_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-31T13:37:17.000Z"
+            },
+            {
+              "key": "admissions-deadlines",
+              "url": "https://www.imperial.ac.uk/study/apply/postgraduate-taught/application-process/deadlines/",
+              "sourceType": "ADMISSIONS_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-31T13:37:17.000Z"
+            }
+          ],
+          "intakes": [
+            {
+              "key": "2026-september",
+              "year": 2026,
+              "month": 9,
+              "status": "PLANNED",
+              "applicationWindows": [
+                {
+                  "key": "main-round",
+                  "roundName": null,
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "NOT_PUBLISHED",
+                  "verification": "OFFICIAL",
+                  "sourceKey": "admissions-deadlines",
+                  "lastVerifiedAt": "2026-07-31T13:37:17.000Z"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "key": "msc-computing-artificial-intelligence-and-machine-learning",
+          "name": "MSc Computing (Artificial Intelligence and Machine Learning)",
+          "degreeType": "MASTER",
+          "summary": {
+            "text": "A one-year, full-time specialist master's at Imperial's South Kensington Campus for graduates with first-class honours including a substantial computing component. The curriculum combines core modules including Mathematics for Machine Learning and an individual project with electives spanning deep learning, natural language processing, computer vision and reinforcement learning, plus broader computing subjects such as security, distributed systems and quantum computing, assessed through written exams, coursework, lab reports, presentations and a dissertation.",
+            "sourceKey": "programme-page"
+          },
+          "durationMonths": 12,
+          "campus": "South Kensington Campus",
+          "language": null,
+          "officialUrl": "https://www.imperial.ac.uk/study/courses/postgraduate-taught/computing-artificial-intelligence-msc/",
+          "domains": ["applied-ai", "computer-science", "machine-learning"],
+          "sources": [
+            {
+              "key": "programme-page",
+              "url": "https://www.imperial.ac.uk/study/courses/postgraduate-taught/computing-artificial-intelligence-msc/",
+              "sourceType": "PROGRAM_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-31T13:37:17.000Z"
+            },
+            {
+              "key": "admissions-deadlines",
+              "url": "https://www.imperial.ac.uk/study/apply/postgraduate-taught/application-process/deadlines/",
+              "sourceType": "ADMISSIONS_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-31T13:37:17.000Z"
+            }
+          ],
+          "intakes": [
+            {
+              "key": "2026-september",
+              "year": 2026,
+              "month": 9,
+              "status": "PLANNED",
+              "applicationWindows": [
+                {
+                  "key": "main-round",
+                  "roundName": null,
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "NOT_PUBLISHED",
+                  "verification": "OFFICIAL",
+                  "sourceKey": "admissions-deadlines",
+                  "lastVerifiedAt": "2026-07-31T13:37:17.000Z"
+                }
+              ]
+            }
+          ]
         }
       ]
     }

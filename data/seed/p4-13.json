@@ -4,6 +4,7 @@
   "domains": [
     { "slug": "applied-ai", "name": "Applied AI" },
     { "slug": "computer-science", "name": "Computer Science" },
+    { "slug": "data-science", "name": "Data Science" },
     { "slug": "machine-learning", "name": "Machine Learning" }
   ],
   "universities": [
@@ -97,6 +98,49 @@
                   "verification": "OFFICIAL",
                   "sourceKey": "course-directory",
                   "lastVerifiedAt": "2026-07-31T12:15:45.000Z"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "key": "mphil-data-intensive-science",
+          "name": "MPhil in Data Intensive Science",
+          "degreeType": "MASTER",
+          "summary": {
+            "text": "A ten-month, full-time taught MPhil based in the Department of Physics that trains students to design data analysis pipelines for complex scientific datasets. The course covers statistical analysis, machine learning techniques and advanced computer programming using modern software development practices, emphasising open science standards, reproducibility and critical evaluation of data science tools for research applications.",
+            "sourceKey": "course-directory"
+          },
+          "durationMonths": 10,
+          "campus": null,
+          "language": null,
+          "officialUrl": "https://www.postgraduate.study.cam.ac.uk/courses/directory/pcphmpdis",
+          "domains": ["data-science", "machine-learning"],
+          "sources": [
+            {
+              "key": "course-directory",
+              "url": "https://www.postgraduate.study.cam.ac.uk/courses/directory/pcphmpdis",
+              "sourceType": "PROGRAM_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-31T13:33:50.000Z"
+            }
+          ],
+          "intakes": [
+            {
+              "key": "2027-october",
+              "year": 2027,
+              "month": 10,
+              "status": "PLANNED",
+              "applicationWindows": [
+                {
+                  "key": "main-round",
+                  "roundName": null,
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "NOT_PUBLISHED",
+                  "verification": "OFFICIAL",
+                  "sourceKey": "course-directory",
+                  "lastVerifiedAt": "2026-07-31T13:33:50.000Z"
                 }
               ]
             }
