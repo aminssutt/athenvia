@@ -229,8 +229,9 @@ trap - EXIT
 unset RESTORE_PASSWORD
 ```
 
-Ticket `#98` owns scheduled backup automation, retention, and recurring restore
-drills. Until that automation is live, these manual steps are required.
+The scheduled Dokploy backup, retention policy, and recurring restore drill are
+defined in [`backups.md`](./backups.md). The manual steps above remain required
+immediately before a destructive migration.
 
 ## 3. Apply the forward migration
 

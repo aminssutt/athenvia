@@ -17,6 +17,15 @@ See `data/seed/README.md` for the v1 provenance, date-status and stable-key
 contract. Imports use deterministic identities, serialize through an advisory
 lock and never delete records omitted from a later file.
 
+## Backup restoration verification
+
+`verify-postgres-backup.sh /absolute/path/to/backup.sql.gz` restores a Dokploy
+PostgreSQL backup into a disposable PostgreSQL 16 container and validates
+migration history, every application table and catalogue data without logging
+secrets or row contents. The container has no network access and uses a pinned
+official image. See `docs/operations/backups.md` for the production schedule,
+retention and monthly drill.
+
 ## GitHub roadmap automation
 
 - `create-roadmap-issues.ps1` creates the approved issue catalogue idempotently and closes
