@@ -1,0 +1,108 @@
+{
+  "$schema": "./seed.schema.json",
+  "schemaVersion": 1,
+  "domains": [
+    { "slug": "applied-ai", "name": "Applied AI" },
+    { "slug": "computer-science", "name": "Computer Science" },
+    { "slug": "machine-learning", "name": "Machine Learning" }
+  ],
+  "universities": [
+    {
+      "key": "cambridge",
+      "name": "University of Cambridge",
+      "countryCode": "GB",
+      "city": "Cambridge",
+      "officialDomain": "cam.ac.uk",
+      "officialWebsite": "https://www.cam.ac.uk/",
+      "aliases": ["Cambridge"],
+      "programs": [
+        {
+          "key": "mphil-advanced-computer-science",
+          "name": "MPhil in Advanced Computer Science",
+          "degreeType": "MASTER",
+          "summary": {
+            "text": "A nine-month, full-time master's programme from the Department of Computer Science and Technology, designed as preparation for undertaking a PhD programme in computer science. Students select five taught modules from advanced topics, take a mandatory course in research skills and undertake a research project over two terms, submitted as a project report.",
+            "sourceKey": "course-directory"
+          },
+          "durationMonths": 9,
+          "campus": null,
+          "language": null,
+          "officialUrl": "https://www.postgraduate.study.cam.ac.uk/courses/directory/cscsmpacs",
+          "domains": ["computer-science", "machine-learning"],
+          "sources": [
+            {
+              "key": "course-directory",
+              "url": "https://www.postgraduate.study.cam.ac.uk/courses/directory/cscsmpacs",
+              "sourceType": "PROGRAM_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-31T12:15:45.000Z"
+            }
+          ],
+          "intakes": [
+            {
+              "key": "2027-october",
+              "year": 2027,
+              "month": 10,
+              "status": "PLANNED",
+              "applicationWindows": [
+                {
+                  "key": "main-round",
+                  "roundName": null,
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "NOT_PUBLISHED",
+                  "verification": "OFFICIAL",
+                  "sourceKey": "course-directory",
+                  "lastVerifiedAt": "2026-07-31T12:15:45.000Z"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "key": "mphil-machine-learning-and-machine-intelligence",
+          "name": "MPhil in Machine Learning and Machine Intelligence",
+          "degreeType": "MASTER",
+          "summary": {
+            "text": "An eleven-month, full-time MPhil taught from within the Information Engineering Division of the Department of Engineering, teaching the state of the art in machine learning and machine intelligence. Students follow one of five specialised pathways, including machine learning, speech and language processing, and computer vision and robotics, which define the area of the dissertation.",
+            "sourceKey": "course-directory"
+          },
+          "durationMonths": 11,
+          "campus": null,
+          "language": null,
+          "officialUrl": "https://www.postgraduate.study.cam.ac.uk/courses/directory/egegmpmsl",
+          "domains": ["applied-ai", "machine-learning"],
+          "sources": [
+            {
+              "key": "course-directory",
+              "url": "https://www.postgraduate.study.cam.ac.uk/courses/directory/egegmpmsl",
+              "sourceType": "PROGRAM_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-31T12:15:45.000Z"
+            }
+          ],
+          "intakes": [
+            {
+              "key": "2027-october",
+              "year": 2027,
+              "month": 10,
+              "status": "PLANNED",
+              "applicationWindows": [
+                {
+                  "key": "main-round",
+                  "roundName": null,
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "NOT_PUBLISHED",
+                  "verification": "OFFICIAL",
+                  "sourceKey": "course-directory",
+                  "lastVerifiedAt": "2026-07-31T12:15:45.000Z"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
