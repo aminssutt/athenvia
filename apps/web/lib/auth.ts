@@ -16,6 +16,7 @@ import {
   SESSION_UPDATE_AGE_SECONDS,
 } from "@/lib/auth-config";
 import { sendMagicLink } from "@/lib/auth-email";
+import { logAuthenticationEvent } from "@/lib/observability";
 
 const googleAuthConfiguration = resolveGoogleAuthConfiguration();
 const providers: NextAuthOptions["providers"] = [
@@ -36,7 +37,7 @@ if (googleAuthConfiguration) {
     }),
   );
 } else if (hasPartialGoogleAuthConfiguration()) {
-  console.warn("[auth] Google OAuth disabled: configure both credential variables.");
+  logAuthenticationEvent("warn", "GOOGLE_OAUTH_PARTIAL_CONFIGURATION");
 }
 
 export const authOptions: NextAuthOptions = {
@@ -63,10 +64,10 @@ export const authOptions: NextAuthOptions = {
   },
   logger: {
     error(code) {
-      console.error(`[auth] ${code}`);
+      logAuthenticationEvent("error", code);
     },
     warn(code) {
-      console.warn(`[auth] ${code}`);
+      logAuthenticationEvent("warn", code);
     },
     debug() {
       // Authentication debug payloads can contain personal data. Never log them.

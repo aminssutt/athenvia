@@ -9,6 +9,8 @@ import {
 } from "@athenvia/database";
 import { z } from "zod";
 
+import { logRequestError } from "@/lib/observability";
+
 import { authenticatedPushUserId, isTrustedPushMutationOrigin } from "./request-security";
 
 export const dynamic = "force-dynamic";
@@ -146,14 +148,18 @@ function isJsonRequest(request: Request): boolean {
 }
 
 async function authenticatedUserIdOrResponse(
+  request: Request,
   unauthorizedMessage: string,
 ): Promise<Response | string> {
   try {
     const userId = await authenticatedPushUserId();
     return userId ?? errorResponse("UNAUTHORIZED", unauthorizedMessage, 401);
-  } catch {
-    const requestId = crypto.randomUUID();
-    console.error(`[push-subscriptions:${requestId}] authenticated owner lookup failed`);
+  } catch (error) {
+    logRequestError(request, {
+      code: "PUSH_OWNER_LOOKUP_FAILED",
+      error,
+      route: "/api/push/subscriptions",
+    });
     return errorResponse(
       "PUSH_SUBSCRIPTION_UNAVAILABLE",
       "Push notification settings are not available right now. Try again soon.",
@@ -172,6 +178,7 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   const authenticatedUser = await authenticatedUserIdOrResponse(
+    request,
     "Sign in before enabling push notifications.",
   );
   if (authenticatedUser instanceof Response) {
@@ -205,8 +212,11 @@ export async function POST(request: Request): Promise<Response> {
       );
     }
 
-    const requestId = crypto.randomUUID();
-    console.error(`[push-subscriptions:${requestId}] subscription mutation failed`);
+    logRequestError(request, {
+      code: "PUSH_SUBSCRIPTION_STORE_FAILED",
+      error,
+      route: "/api/push/subscriptions",
+    });
     return errorResponse(
       "PUSH_SUBSCRIPTION_UNAVAILABLE",
       "The push subscription could not be saved right now. Try again soon.",
@@ -225,6 +235,7 @@ export async function DELETE(request: Request): Promise<Response> {
   }
 
   const authenticatedUser = await authenticatedUserIdOrResponse(
+    request,
     "Sign in before changing push notifications.",
   );
   if (authenticatedUser instanceof Response) {
@@ -239,9 +250,12 @@ export async function DELETE(request: Request): Promise<Response> {
   try {
     await revokePushSubscription(authenticatedUser, body.data.endpoint);
     return emptyResponse(204);
-  } catch {
-    const requestId = crypto.randomUUID();
-    console.error(`[push-subscriptions:${requestId}] revocation mutation failed`);
+  } catch (error) {
+    logRequestError(request, {
+      code: "PUSH_SUBSCRIPTION_REVOKE_FAILED",
+      error,
+      route: "/api/push/subscriptions",
+    });
     return errorResponse(
       "PUSH_SUBSCRIPTION_UNAVAILABLE",
       "The push subscription could not be revoked right now. Try again soon.",

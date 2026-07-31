@@ -2,6 +2,8 @@ import { database } from "@athenvia/database";
 import Redis from "ioredis";
 import { NextResponse } from "next/server";
 
+import { logRequestError } from "@/lib/observability";
+
 import { checkHealth } from "./check";
 
 export const dynamic = "force-dynamic";
@@ -33,7 +35,7 @@ async function checkRedis(): Promise<void> {
   }
 }
 
-export async function GET() {
+export async function GET(request = new Request("http://localhost/api/health")) {
   try {
     await checkHealth({
       checkDatabase: () => database.$queryRaw`SELECT 1`,
@@ -41,7 +43,12 @@ export async function GET() {
     });
 
     return NextResponse.json({ status: "ok" }, { headers: responseHeaders });
-  } catch {
+  } catch (error) {
+    logRequestError(request, {
+      code: "WEB_HEALTH_DEPENDENCY_UNAVAILABLE",
+      error,
+      route: "/api/health",
+    });
     return NextResponse.json(
       { status: "unavailable" },
       {

@@ -1,3 +1,5 @@
+import { logRequestError } from "@/lib/observability";
+
 import { getAuthenticatedUser } from "../settings/authenticated-user";
 import { privateJson } from "../settings/http";
 import { loadNotificationHistory } from "./history";
@@ -5,7 +7,9 @@ import { loadNotificationHistory } from "./history";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-export async function GET(_request?: Request): Promise<Response> {
+export async function GET(
+  request = new Request("http://localhost/api/notifications"),
+): Promise<Response> {
   try {
     const user = await getAuthenticatedUser();
 
@@ -16,9 +20,12 @@ export async function GET(_request?: Request): Promise<Response> {
     return privateJson({
       items: await loadNotificationHistory(user.id),
     });
-  } catch {
-    const requestId = crypto.randomUUID();
-    console.error(`[notification-history:${requestId}] private history lookup failed`);
+  } catch (error) {
+    logRequestError(request, {
+      code: "NOTIFICATION_HISTORY_LOOKUP_FAILED",
+      error,
+      route: "/api/notifications",
+    });
     return privateJson(
       {
         error: "Notification history is not available right now. Try again soon.",

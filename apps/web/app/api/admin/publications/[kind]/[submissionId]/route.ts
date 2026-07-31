@@ -6,6 +6,8 @@ import {
 } from "@athenvia/database";
 import { NextResponse } from "next/server";
 
+import { logRequestError } from "@/lib/observability";
+
 import { isTrustedAdminWrite, resolveAdminAccess } from "../../../reviews/security";
 
 type RouteContext = {
@@ -23,16 +25,17 @@ export async function POST(request: Request, context: RouteContext) {
   if (!isTrustedAdminWrite(request)) {
     return json({ error: "Invalid request origin." }, 403);
   }
-  const access = await resolveAdminAccess();
-  if (access.status === "UNAUTHENTICATED") {
-    return json({ error: "Authentication required." }, 401);
-  }
-  if (access.status === "FORBIDDEN") {
-    return json({ error: "Administrator access required." }, 403);
-  }
 
-  const { kind, submissionId } = await context.params;
   try {
+    const access = await resolveAdminAccess();
+    if (access.status === "UNAUTHENTICATED") {
+      return json({ error: "Authentication required." }, 401);
+    }
+    if (access.status === "FORBIDDEN") {
+      return json({ error: "Administrator access required." }, 403);
+    }
+
+    const { kind, submissionId } = await context.params;
     const result =
       kind === "university"
         ? await publishApprovedUniversitySubmission(submissionId)
@@ -56,6 +59,11 @@ export async function POST(request: Request, context: RouteContext) {
     if (error instanceof SubmissionReviewRequiredError) {
       return json({ error: error.message }, 409);
     }
-    throw error;
+    logRequestError(request, {
+      code: "ADMIN_PUBLICATION_FAILED",
+      error,
+      route: "/api/admin/publications/[kind]/[submissionId]",
+    });
+    return json({ error: "Publication is unavailable right now. Try again soon." }, 503);
   }
 }

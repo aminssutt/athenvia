@@ -2,6 +2,7 @@ import { ProgramDetailSchema } from "@athenvia/contracts";
 import { z } from "zod";
 
 import { findPublicProgramDetail } from "@/lib/program-details";
+import { logRequestError } from "@/lib/observability";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -34,7 +35,7 @@ function errorResponse(code: string, message: string, status: number): Response 
   );
 }
 
-export async function GET(_request: Request, context: RouteContext): Promise<Response> {
+export async function GET(request: Request, context: RouteContext): Promise<Response> {
   const { programId } = await context.params;
   if (!ProgramIdentifierSchema.safeParse(programId).success) {
     return errorResponse("INVALID_PROGRAM_ID", "Provide a valid programme identifier.", 400);
@@ -53,9 +54,12 @@ export async function GET(_request: Request, context: RouteContext): Promise<Res
     return Response.json(ProgramDetailSchema.parse(detail), {
       headers: PUBLIC_RESPONSE_HEADERS,
     });
-  } catch {
-    const requestId = crypto.randomUUID();
-    console.error(`[program-detail:${requestId}] catalogue lookup failed`);
+  } catch (error) {
+    logRequestError(request, {
+      code: "PROGRAM_DETAIL_LOOKUP_FAILED",
+      error,
+      route: "/api/programs/[programId]",
+    });
     return errorResponse(
       "PROGRAM_DETAIL_UNAVAILABLE",
       "Programme details are unavailable right now. Try again soon.",

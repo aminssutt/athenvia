@@ -64,20 +64,17 @@ describe("public VAPID key boundary", () => {
 
   it("fails closed with a generic response when public configuration is invalid", async () => {
     process.env.VAPID_PUBLIC_KEY = "invalid";
-    const log = vi.spyOn(console, "error").mockImplementation(() => undefined);
 
     const response = GET();
+    const body = await response.json();
 
     expect(response.status).toBe(503);
-    await expect(response.json()).resolves.toEqual({
+    expect(body).toEqual({
       error: {
         code: "PUSH_CONFIGURATION_UNAVAILABLE",
         message: "Push notifications are not available right now.",
       },
     });
-    expect(log).toHaveBeenCalledWith(
-      expect.stringContaining("vapid-public-key"),
-      expect.not.stringContaining("invalid"),
-    );
+    expect(JSON.stringify(body)).not.toContain("invalid");
   });
 });

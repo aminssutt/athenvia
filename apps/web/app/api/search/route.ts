@@ -6,6 +6,8 @@ import {
 
 import type { SearchErrorResponse } from "@athenvia/contracts";
 
+import { logRequestError } from "@/lib/observability";
+
 import { searchCatalogue } from "./catalogue-search";
 import { decodeSearchCursor } from "./cursor";
 import { checkSearchRateLimit, searchRateLimitHeaders } from "./rate-limit";
@@ -86,8 +88,7 @@ export async function GET(request: Request): Promise<Response> {
     const results = await searchCatalogue(parsedInput.data, offset);
     return Response.json(SearchResponseSchema.parse(results), { headers });
   } catch (error) {
-    const requestId = crypto.randomUUID();
-    console.error(`[search:${requestId}] catalogue query failed`, error);
+    logRequestError(request, { code: "CATALOGUE_QUERY_FAILED", error, route: "/api/search" });
 
     return errorResponse(
       {

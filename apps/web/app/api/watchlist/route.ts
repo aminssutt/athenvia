@@ -1,6 +1,8 @@
 import { followProgram, WatchlistTargetNotFoundError } from "@athenvia/database";
 import { z } from "zod";
 
+import { logRequestError } from "@/lib/observability";
+
 import {
   authenticatedUserId,
   isTrustedMutationOrigin,
@@ -72,8 +74,7 @@ export async function POST(request: Request): Promise<Response> {
       );
     }
 
-    const requestId = crypto.randomUUID();
-    console.error(`[watchlist:${requestId}] follow failed`, error);
+    logRequestError(request, { code: "WATCHLIST_FOLLOW_FAILED", error, route: "/api/watchlist" });
     return errorResponse(
       "WATCHLIST_UNAVAILABLE",
       "The program could not be followed right now. Try again soon.",

@@ -1,8 +1,10 @@
 import { loadPublicVapidKey } from "./public-key";
 
+import { logRequestError } from "@/lib/observability";
+
 export const dynamic = "force-dynamic";
 
-export function GET(): Response {
+export function GET(request = new Request("http://localhost/api/push/vapid-public-key")): Response {
   try {
     return Response.json(
       {
@@ -15,11 +17,11 @@ export function GET(): Response {
       },
     );
   } catch (error) {
-    const requestId = crypto.randomUUID();
-    console.error(
-      `[vapid-public-key:${requestId}] public key configuration is invalid`,
-      error instanceof Error ? error.message : "Unknown configuration error",
-    );
+    logRequestError(request, {
+      code: "VAPID_PUBLIC_KEY_INVALID",
+      error,
+      route: "/api/push/vapid-public-key",
+    });
 
     return Response.json(
       {
