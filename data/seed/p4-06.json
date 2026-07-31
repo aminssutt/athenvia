@@ -37,7 +37,7 @@
               "url": "https://master.cds.hku.hk/msccs/admission/application-details/",
               "sourceType": "PROGRAM_PAGE",
               "isOfficial": true,
-              "lastCheckedAt": "2026-07-30T00:00:00.000Z"
+              "lastCheckedAt": "2026-07-31T17:49:34.000Z"
             }
           ],
           "intakes": [
@@ -51,11 +51,11 @@
                   "key": "2026-27-application",
                   "roundName": null,
                   "opensAt": null,
-                  "closesAt": null,
-                  "publicStatus": "NOT_PUBLISHED",
+                  "closesAt": "2026-04-30T04:00:00.000Z",
+                  "publicStatus": "CONFIRMED",
                   "verification": "OFFICIAL",
                   "sourceKey": "programme-details",
-                  "lastVerifiedAt": "2026-07-30T00:00:00.000Z"
+                  "lastVerifiedAt": "2026-07-31T17:49:34.000Z"
                 }
               ]
             }
