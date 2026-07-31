@@ -11,6 +11,8 @@ import { z } from "zod";
 
 import { logRequestError } from "@/lib/observability";
 
+import { resolvesToPublicAddresses } from "./endpoint-safety";
+import { checkPushSubscriptionRateLimit, pushSubscriptionRateLimitHeaders } from "./rate-limit";
 import { authenticatedPushUserId, isTrustedPushMutationOrigin } from "./request-security";
 
 export const dynamic = "force-dynamic";
@@ -117,7 +119,12 @@ function emptyResponse(status: number): Response {
   });
 }
 
-function errorResponse(code: string, message: string, status: number): Response {
+function errorResponse(
+  code: string,
+  message: string,
+  status: number,
+  headers: Record<string, string> = {},
+): Response {
   return Response.json(
     {
       error: {
@@ -127,7 +134,7 @@ function errorResponse(code: string, message: string, status: number): Response 
     },
     {
       status,
-      headers: RESPONSE_HEADERS,
+      headers: { ...RESPONSE_HEADERS, ...headers },
     },
   );
 }
@@ -168,6 +175,20 @@ async function authenticatedUserIdOrResponse(
   }
 }
 
+async function rateLimitedResponse(request: Request, userId: string): Promise<Response | null> {
+  const rateLimit = await checkPushSubscriptionRateLimit(request, userId);
+  if (rateLimit.allowed) {
+    return null;
+  }
+
+  return errorResponse(
+    "RATE_LIMITED",
+    "Too many push subscription changes. Please wait before trying again.",
+    429,
+    pushSubscriptionRateLimitHeaders(rateLimit),
+  );
+}
+
 export async function POST(request: Request): Promise<Response> {
   if (!isTrustedPushMutationOrigin(request)) {
     return errorResponse("UNTRUSTED_ORIGIN", "This request did not originate from Athenvia.", 403);
@@ -185,8 +206,19 @@ export async function POST(request: Request): Promise<Response> {
     return authenticatedUser;
   }
 
+  const rateLimited = await rateLimitedResponse(request, authenticatedUser);
+  if (rateLimited) {
+    return rateLimited;
+  }
+
   const body = SubscribeRequestSchema.safeParse(await parseBody(request));
   if (!body.success) {
+    return errorResponse("INVALID_REQUEST", "Provide a valid push subscription.", 400);
+  }
+
+  // SSRF guard: never persist an endpoint that resolves to loopback, private,
+  // or otherwise non-public addresses. The worker re-validates at send time.
+  if (!(await resolvesToPublicAddresses(body.data.endpoint))) {
     return errorResponse("INVALID_REQUEST", "Provide a valid push subscription.", 400);
   }
 
@@ -240,6 +272,11 @@ export async function DELETE(request: Request): Promise<Response> {
   );
   if (authenticatedUser instanceof Response) {
     return authenticatedUser;
+  }
+
+  const rateLimited = await rateLimitedResponse(request, authenticatedUser);
+  if (rateLimited) {
+    return rateLimited;
   }
 
   const body = RevokeRequestSchema.safeParse(await parseBody(request));
