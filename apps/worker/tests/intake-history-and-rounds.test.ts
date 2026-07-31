@@ -87,14 +87,34 @@ describe("old intake dates stay off the current intake", () => {
     assert.equal(result?.intakeId, null);
   });
 
-  // GAP (documented, not implemented — see ticket #89 report): without an intake hint, a dated
-  // deadline that already lies in the past (e.g. 2025-01-15 while asOfDate is 2026-07-30) is
-  // currently MATCHED to the current intake. isChronologicallyEligible() only checks that the
-  // intake does not precede the candidate date, and isOldIntake() filters intakes, never the
-  // candidate date itself — so stale un-hinted dates silently rebind to the newest intake.
-  it.todo(
-    "should not attach an un-hinted deadline already in the past to the current intake without review",
-  );
+  it("does not attach an un-hinted deadline already in the past to the current intake without review", () => {
+    // Arrange: a stale page still lists last cycle's deadline without any intake context,
+    // while a current intake with its own round is on file next to the old one.
+    const oldIntake = intake("intake-2025-09", 2025, 9, [
+      { id: "old-regular", roundName: "Regular" },
+    ]);
+    const currentIntake = intake("intake-2026-09", 2026, 9, [
+      { id: "current-regular", roundName: "Regular" },
+    ]);
+
+    // Act: 2025-01-15 lies before asOfDate (2026-07-30) and carries no intake hint.
+    const [result] = match(
+      [
+        {
+          candidate: candidate("The application deadline is 15 January 2025."),
+          evidenceId: "stale-unhinted-deadline",
+        },
+      ],
+      [oldIntake, currentIntake],
+    );
+
+    // Assert: never silently MATCHED to the current intake — surfaced for human review.
+    assert.equal(result?.status, "REVIEW");
+    assert.deepEqual(result?.reasons, ["STALE_CANDIDATE"]);
+    assert.equal(result?.intakeId, null);
+    assert.notEqual(result?.intakeId, currentIntake.id);
+    assert.equal(result?.applicationRoundId, null);
+  });
 });
 
 describe("multiple rounds of one intake stay distinct and ordered", () => {
