@@ -5,9 +5,7 @@ import { expect, test } from "@playwright/test";
 import {
   cleanupContributedUniversities,
   createAuthenticatedActor,
-  deleteActor,
   deleteActorSessions,
-  deleteActorsByEmailPrefix,
   findPublishedUniversity,
   findUniversitySubmission,
   resetUniversitySubmissionRateLimit,
@@ -19,15 +17,19 @@ import { databaseAvailable, E2E_ADMIN_EMAIL, E2E_BASE_URL } from "./helpers/test
 /**
  * P5-04 — University contribution pass (#95).
  *
- * The submission API, review queue, approval and publication pipeline are
- * exercised end to end. The contribute FORM currently never reaches the API
- * (see the expected-failure test below), so the pipeline journey drives the
- * documented API contract directly with a real signed-in session.
+ * The contribute form, submission API, review queue, approval and publication
+ * pipeline are exercised end to end: the form journey submits through the UI
+ * (missing-university-form.tsx now posts via universitySubmissionApiTransport),
+ * and the pipeline journey drives the documented API contract directly with a
+ * real signed-in session.
  */
 
 const RUN_ID = randomUUID().slice(0, 8);
 const UNIVERSITY_NAME_PREFIX = "E2E Contributed University";
-const UNIVERSITY_NAME = `${UNIVERSITY_NAME_PREFIX} ${RUN_ID}`;
+// "Api"/"Form" keep the two journeys' names out of each other's substring
+// space, so the admin-queue card locators match exactly one article each.
+const UNIVERSITY_NAME = `${UNIVERSITY_NAME_PREFIX} Api ${RUN_ID}`;
+const FORM_UNIVERSITY_NAME = `${UNIVERSITY_NAME_PREFIX} Form ${RUN_ID}`;
 // Liechtenstein keeps the duplicate detector away from the seeded catalogue.
 const UNIVERSITY_COUNTRY = "Liechtenstein";
 
@@ -48,9 +50,11 @@ test.describe("university contribution", () => {
 
   test.afterAll(async () => {
     await cleanupContributedUniversities(UNIVERSITY_NAME_PREFIX);
-    await deleteActorsByEmailPrefix("e2e-contributor-");
     if (contributor) {
-      await deleteActor(contributor);
+      // The contributor account stays: submission reviews now record the
+      // student as creator and data_revisions.created_by_user_id is
+      // ON DELETE RESTRICT. Run-scoped emails keep the fixtures apart.
+      await deleteActorSessions(contributor);
     }
     if (admin) {
       // The reviewer account stays: data_revisions.created_by_user_id is
@@ -59,29 +63,22 @@ test.describe("university contribution", () => {
     }
   });
 
-  /**
-   * KNOWN DEFECT — the contribute form never calls the submission API:
-   * app/(app)/contribute/university/missing-university-form.tsx:70 calls
-   * submitMissingUniversity without a transport, and submission.ts:70 then
-   * always answers "unavailable". Once the form is wired to
-   * POST /api/university-submissions this test will report "passed
-   * unexpectedly": remove the test.fail() marker at that moment.
-   */
   test("lets a signed-in student send an unknown university from the form", async ({
     context,
     page,
   }) => {
-    test.fail();
-
     await signInContext(context, contributor, E2E_BASE_URL);
     await page.goto("/contribute/university");
 
     await expect(page.getByRole("heading", { name: "Add a missing university" })).toBeVisible();
-    await page.getByLabel("University name").fill(`${UNIVERSITY_NAME} Form`);
+    await page.getByLabel("University name").fill(FORM_UNIVERSITY_NAME);
     await page.getByLabel("Country").fill(UNIVERSITY_COUNTRY);
     await page.getByRole("button", { name: "Send for review" }).click();
 
     await expect(page.getByRole("heading", { name: "Sent for review" })).toBeVisible();
+
+    // The UI confirmation is backed by a stored PENDING submission row.
+    expect((await findUniversitySubmission(FORM_UNIVERSITY_NAME))?.status).toBe("PENDING");
   });
 
   test("accepts, reviews, approves, publishes and reuses an unknown university", async ({
@@ -125,11 +122,11 @@ test.describe("university contribution", () => {
       await expect(reviewCard).toContainText("UNIVERSITY SUBMISSION");
       await expect(reviewCard).toContainText("submissionReview");
       await expect(reviewCard).toContainText("Pending");
-      // KNOWN DEFECT — provenance: the card reads "Proposed by Athenvia
-      // verification worker" although a student submitted this record
-      // (createSubmissionReview stores createdByWorker: true and no
-      // createdByUserId; packages/database/src/submission-reviews.ts:16).
-      // The contributor only appears as a raw user id inside the payload.
+      // Provenance: the card names the submitting student, never the
+      // verification worker (createSubmissionReview stores the contributor
+      // as createdByUserId with createdByWorker: false).
+      await expect(reviewCard).toContainText(`Proposed by a student (${contributor.email})`);
+      await expect(reviewCard).not.toContainText("Athenvia verification worker");
       await expect(reviewCard).toContainText(contributor.userId);
 
       // 4. Approving records the decision and clears the card. When the
