@@ -300,6 +300,28 @@
   padding-bottom: 0;
 }
 
+.devicePushRow {
+  display: grid;
+  gap: 0.8rem;
+  align-items: start;
+  border-radius: var(--radius-md);
+  padding: 0.9rem;
+  background: var(--surface-soft);
+}
+
+.devicePushRow h4 {
+  margin: 0;
+  font-size: 0.88rem;
+  font-weight: 750;
+}
+
+.devicePushRow p {
+  margin: 0.25rem 0 0;
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
 .dangerZone {
   display: grid;
   gap: 1rem;
