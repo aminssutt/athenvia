@@ -927,7 +927,9 @@ describe("Web Push transport", () => {
       publicKey: "public-test-key",
       subject: "mailto:push@example.test",
     };
-    const transport = new WebPushNotificationTransport(configuration, sender);
+    const transport = new WebPushNotificationTransport(configuration, sender, async () => [
+      "93.184.216.34",
+    ]);
     await transport.send(subscription("one"), payload());
     assert.equal(calls.length, 1);
     assert.equal(calls[0]?.options.TTL, WEB_PUSH_TTL_SECONDS);

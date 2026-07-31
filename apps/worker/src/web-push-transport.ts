@@ -2,6 +2,9 @@ import { createHash } from "node:crypto";
 
 import webPush from "web-push";
 
+import { assertSafePushEndpoint } from "./push-endpoint-safety";
+import { systemHostResolver, type HostResolver } from "./fetch/network-policy";
+
 import type { NotificationPayload } from "@athenvia/contracts";
 import type { VapidConfiguration } from "./vapid-config";
 
@@ -38,9 +41,15 @@ export class WebPushNotificationTransport implements NotificationTransport {
   constructor(
     private readonly configuration: VapidConfiguration,
     private readonly sender: WebPushSender = webPush,
+    private readonly resolver: HostResolver = systemHostResolver,
   ) {}
 
   async send(subscription: ActivePushSubscription, payload: NotificationPayload): Promise<void> {
+    // The endpoint is user-controlled input persisted at registration time.
+    // Re-validate here because DNS may have changed (or been rebound) since:
+    // the endpoint must still resolve exclusively to public addresses.
+    await assertSafePushEndpoint(subscription.endpoint, this.resolver);
+
     await this.sender.sendNotification(
       {
         endpoint: subscription.endpoint,

@@ -24,6 +24,37 @@ describe("API request correlation Proxy", () => {
     expect(response.headers.has("cookie")).toBe(false);
   });
 
+  it("keeps only the reverse-proxy hop of the forwarding headers", () => {
+    const request = new NextRequest("https://athenvia.test/api/search", {
+      headers: {
+        "cf-connecting-ip": "6.6.6.6",
+        "x-forwarded-for": "6.6.6.6, 7.7.7.7, 203.0.113.9",
+        "x-real-ip": "6.6.6.6",
+      },
+    });
+
+    const response = proxy(request);
+
+    expect(response.headers.get("x-middleware-request-x-forwarded-for")).toBe("203.0.113.9");
+    expect(response.headers.get("x-middleware-request-x-real-ip")).toBe("203.0.113.9");
+    expect(response.headers.get("x-middleware-request-cf-connecting-ip")).toBeNull();
+  });
+
+  it("drops client address headers entirely when no proxy hop exists", () => {
+    const request = new NextRequest("https://athenvia.test/api/search", {
+      headers: {
+        "cf-connecting-ip": "6.6.6.6",
+        "x-real-ip": "6.6.6.6",
+      },
+    });
+
+    const response = proxy(request);
+
+    expect(response.headers.get("x-middleware-request-x-forwarded-for")).toBeNull();
+    expect(response.headers.get("x-middleware-request-x-real-ip")).toBeNull();
+    expect(response.headers.get("x-middleware-request-cf-connecting-ip")).toBeNull();
+  });
+
   it("targets only API requests", () => {
     expect(config.matcher).toBe("/api/:path*");
   });
