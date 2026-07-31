@@ -2,6 +2,18 @@ packages:
   - apps/*
   - packages/*
 
+# Security overrides for transitive dependencies (Dependabot high alerts).
+# Remove the effect override once prisma is bumped to >= 7 (Dependabot PR #174).
+overrides:
+  effect: 3.20.0
+  nodemailer: 9.0.3
+  postcss: ^8.5.25
+  sharp: ^0.35.3
+
+peerDependencyRules:
+  allowedVersions:
+    nodemailer: "9"
+
 allowBuilds:
   "@prisma/client": true
   "@prisma/engines": true
