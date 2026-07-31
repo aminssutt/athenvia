@@ -42,7 +42,7 @@
               "url": "https://www.ntu.edu.sg/admissions/graduate/cwadmissionguide/apply-now",
               "sourceType": "ADMISSIONS_PAGE",
               "isOfficial": true,
-              "lastCheckedAt": "2026-07-30T13:36:05.893Z"
+              "lastCheckedAt": "2026-07-31T18:08:14.000Z"
             }
           ],
           "intakes": [
@@ -56,11 +56,11 @@
                   "key": "main-round",
                   "roundName": null,
                   "opensAt": null,
-                  "closesAt": null,
-                  "publicStatus": "NOT_PUBLISHED",
+                  "closesAt": "2026-08-31T12:00:00.000Z",
+                  "publicStatus": "CONFIRMED",
                   "verification": "OFFICIAL",
                   "sourceKey": "admissions-schedule",
-                  "lastVerifiedAt": "2026-07-30T13:36:05.893Z"
+                  "lastVerifiedAt": "2026-07-31T18:08:14.000Z"
                 }
               ]
             }
@@ -92,7 +92,7 @@
               "url": "https://www.ntu.edu.sg/admissions/graduate/cwadmissionguide/apply-now",
               "sourceType": "ADMISSIONS_PAGE",
               "isOfficial": true,
-              "lastCheckedAt": "2026-07-31T13:37:32.000Z"
+              "lastCheckedAt": "2026-07-31T18:08:14.000Z"
             }
           ],
           "intakes": [
@@ -106,11 +106,11 @@
                   "key": "main-round",
                   "roundName": null,
                   "opensAt": null,
-                  "closesAt": null,
-                  "publicStatus": "EXPECTED",
-                  "verification": "EXPECTED",
+                  "closesAt": "2026-08-31T12:00:00.000Z",
+                  "publicStatus": "CONFIRMED",
+                  "verification": "OFFICIAL",
                   "sourceKey": "admissions-schedule",
-                  "lastVerifiedAt": "2026-07-31T13:37:32.000Z"
+                  "lastVerifiedAt": "2026-07-31T18:08:14.000Z"
                 }
               ]
             }

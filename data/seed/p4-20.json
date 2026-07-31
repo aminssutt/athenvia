@@ -108,7 +108,7 @@
               "url": "https://orc.mit.edu/admissions/",
               "sourceType": "ADMISSIONS_PAGE",
               "isOfficial": true,
-              "lastCheckedAt": "2026-07-31T13:36:55.000Z"
+              "lastCheckedAt": "2026-07-31T18:10:09.000Z"
             }
           ],
           "intakes": [
@@ -122,11 +122,11 @@
                   "key": "main-round",
                   "roundName": null,
                   "opensAt": null,
-                  "closesAt": null,
-                  "publicStatus": "EXPECTED",
-                  "verification": "EXPECTED",
+                  "closesAt": "2026-12-01T12:00:00.000Z",
+                  "publicStatus": "CONFIRMED",
+                  "verification": "OFFICIAL",
                   "sourceKey": "admissions-page",
-                  "lastVerifiedAt": "2026-07-31T13:36:55.000Z"
+                  "lastVerifiedAt": "2026-07-31T18:10:09.000Z"
                 }
               ]
             }

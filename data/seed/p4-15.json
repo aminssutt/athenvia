@@ -43,7 +43,7 @@
               "url": "https://www.epfl.ch/education/admission/admission-2/master-admission-criteria-application/",
               "sourceType": "ADMISSIONS_PAGE",
               "isOfficial": true,
-              "lastCheckedAt": "2026-07-31T12:14:59.000Z"
+              "lastCheckedAt": "2026-07-31T18:12:07.000Z"
             }
           ],
           "intakes": [
@@ -57,21 +57,21 @@
                   "key": "first-round",
                   "roundName": "First application period (mid-November to 15 December)",
                   "opensAt": null,
-                  "closesAt": null,
-                  "publicStatus": "EXPECTED",
-                  "verification": "EXPECTED",
+                  "closesAt": "2026-12-15T12:00:00.000Z",
+                  "publicStatus": "CONFIRMED",
+                  "verification": "OFFICIAL",
                   "sourceKey": "master-admission-criteria",
-                  "lastVerifiedAt": "2026-07-31T12:14:59.000Z"
+                  "lastVerifiedAt": "2026-07-31T18:12:07.000Z"
                 },
                 {
                   "key": "second-round",
                   "roundName": "Second application period (16 December to 31 March)",
                   "opensAt": null,
-                  "closesAt": null,
-                  "publicStatus": "EXPECTED",
-                  "verification": "EXPECTED",
+                  "closesAt": "2027-03-31T12:00:00.000Z",
+                  "publicStatus": "CONFIRMED",
+                  "verification": "OFFICIAL",
                   "sourceKey": "master-admission-criteria",
-                  "lastVerifiedAt": "2026-07-31T12:14:59.000Z"
+                  "lastVerifiedAt": "2026-07-31T18:12:07.000Z"
                 }
               ]
             }
@@ -103,7 +103,7 @@
               "url": "https://www.epfl.ch/education/admission/admission-2/master-admission-criteria-application/",
               "sourceType": "ADMISSIONS_PAGE",
               "isOfficial": true,
-              "lastCheckedAt": "2026-07-31T13:33:50.000Z"
+              "lastCheckedAt": "2026-07-31T18:12:07.000Z"
             }
           ],
           "intakes": [
@@ -117,21 +117,21 @@
                   "key": "first-round",
                   "roundName": "First application period (mid-November to 15 December)",
                   "opensAt": null,
-                  "closesAt": null,
-                  "publicStatus": "EXPECTED",
-                  "verification": "EXPECTED",
+                  "closesAt": "2026-12-15T12:00:00.000Z",
+                  "publicStatus": "CONFIRMED",
+                  "verification": "OFFICIAL",
                   "sourceKey": "master-admission-criteria",
-                  "lastVerifiedAt": "2026-07-31T13:33:50.000Z"
+                  "lastVerifiedAt": "2026-07-31T18:12:07.000Z"
                 },
                 {
                   "key": "second-round",
                   "roundName": "Second application period (16 December to 31 March)",
                   "opensAt": null,
-                  "closesAt": null,
-                  "publicStatus": "EXPECTED",
-                  "verification": "EXPECTED",
+                  "closesAt": "2027-03-31T12:00:00.000Z",
+                  "publicStatus": "CONFIRMED",
+                  "verification": "OFFICIAL",
                   "sourceKey": "master-admission-criteria",
-                  "lastVerifiedAt": "2026-07-31T13:33:50.000Z"
+                  "lastVerifiedAt": "2026-07-31T18:12:07.000Z"
                 }
               ]
             }

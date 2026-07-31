@@ -21,6 +21,12 @@ cannot silently disappear during import.
   `opensAt` is the common and correct shape: the product renders the missing
   field as "Not published yet" and schedules reminders on the instants that
   exist. Do not downgrade a published deadline because the opening is unknown.
+- A deadline published as a **day without a time of day** is still confirmed.
+  Store it at `12:00:00.000Z` on the published day. Noon UTC keeps the calendar
+  day identical in every timezone the product formats in, so the rendered date
+  always matches the published one, and it can never fall later than a real
+  end-of-day deadline, so a reminder fires early rather than late. No hour is
+  ever displayed. This normalises a published day; it does not invent one.
 - `EXPECTED` and `NOT_PUBLISHED` carry no exact instant. Never turn a month,
   season or historical pattern into an invented day.
 - `lastVerifiedAt` cannot be later than the supporting source's
