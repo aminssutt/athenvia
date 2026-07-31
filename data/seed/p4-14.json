@@ -1,0 +1,103 @@
+{
+  "$schema": "./seed.schema.json",
+  "schemaVersion": 1,
+  "domains": [
+    { "slug": "computer-science", "name": "Computer Science" },
+    { "slug": "machine-learning", "name": "Machine Learning" }
+  ],
+  "universities": [
+    {
+      "key": "eth-zurich",
+      "name": "ETH Zurich",
+      "countryCode": "CH",
+      "city": "Zurich",
+      "officialDomain": "ethz.ch",
+      "officialWebsite": "https://ethz.ch/",
+      "aliases": [
+        "ETHZ",
+        "Eidgenössische Technische Hochschule Zürich",
+        "Swiss Federal Institute of Technology Zurich"
+      ],
+      "programs": [
+        {
+          "key": "msc-computer-science",
+          "name": "Master of Science ETH in Computer Science",
+          "degreeType": "MASTER",
+          "summary": {
+            "text": "A two-year, 120 ECTS Master of Science ETH taught in English by the Department of Computer Science. Each student completes one of five majors — Data Management Systems, Machine Intelligence, Secure and Reliable Systems, Theoretical Computer Science or Visual and Interactive Computing — in a curriculum closely connected to the department's research groups.",
+            "sourceKey": "degree-programme-page"
+          },
+          "durationMonths": 24,
+          "campus": null,
+          "language": "English",
+          "officialUrl": "https://ethz.ch/en/studies/master/degree-programmes/engineering-sciences/computer-science.html",
+          "domains": ["computer-science", "machine-learning"],
+          "sources": [
+            {
+              "key": "degree-programme-page",
+              "url": "https://ethz.ch/en/studies/master/degree-programmes/engineering-sciences/computer-science.html",
+              "sourceType": "PROGRAM_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-31T12:16:03.000Z"
+            },
+            {
+              "key": "application-dates",
+              "url": "https://ethz.ch/en/studies/master/application/dates.html",
+              "sourceType": "ADMISSIONS_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-31T12:16:03.000Z"
+            }
+          ],
+          "intakes": [
+            {
+              "key": "2026-september",
+              "year": 2026,
+              "month": 9,
+              "status": "CLOSED",
+              "applicationWindows": [
+                {
+                  "key": "international-degrees",
+                  "roundName": "International bachelor's degrees",
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "EXPECTED",
+                  "verification": "EXPECTED",
+                  "sourceKey": "application-dates",
+                  "lastVerifiedAt": "2026-07-31T12:16:03.000Z"
+                },
+                {
+                  "key": "swiss-degrees",
+                  "roundName": "Swiss bachelor's degrees",
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "EXPECTED",
+                  "verification": "EXPECTED",
+                  "sourceKey": "application-dates",
+                  "lastVerifiedAt": "2026-07-31T12:16:03.000Z"
+                }
+              ]
+            },
+            {
+              "key": "2027-september",
+              "year": 2027,
+              "month": 9,
+              "status": "PLANNED",
+              "applicationWindows": [
+                {
+                  "key": "main-round",
+                  "roundName": null,
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "NOT_PUBLISHED",
+                  "verification": "OFFICIAL",
+                  "sourceKey": "application-dates",
+                  "lastVerifiedAt": "2026-07-31T12:16:03.000Z"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

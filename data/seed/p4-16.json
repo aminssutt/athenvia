@@ -1,0 +1,75 @@
+{
+  "$schema": "./seed.schema.json",
+  "schemaVersion": 1,
+  "domains": [
+    { "slug": "applied-ai", "name": "Applied AI" },
+    { "slug": "computer-science", "name": "Computer Science" },
+    { "slug": "machine-learning", "name": "Machine Learning" }
+  ],
+  "universities": [
+    {
+      "key": "ucl",
+      "name": "University College London",
+      "countryCode": "GB",
+      "city": "London",
+      "officialDomain": "ucl.ac.uk",
+      "officialWebsite": "https://www.ucl.ac.uk/",
+      "aliases": ["UCL"],
+      "programs": [
+        {
+          "key": "msc-machine-learning",
+          "name": "Machine Learning MSc",
+          "degreeType": "MASTER",
+          "summary": {
+            "text": "A one-year full-time master's providing a robust foundation in machine learning principles and applications, combining foundational modules with advanced options taught in collaboration with the Gatsby Computational Neuroscience Unit and Google DeepMind, and concluding with a substantial research project and dissertation.",
+            "sourceKey": "programme-page"
+          },
+          "durationMonths": 12,
+          "campus": "London, Bloomsbury",
+          "language": null,
+          "officialUrl": "https://www.ucl.ac.uk/prospective-students/graduate/taught-degrees/machine-learning-msc",
+          "domains": ["applied-ai", "computer-science", "machine-learning"],
+          "sources": [
+            {
+              "key": "programme-page",
+              "url": "https://www.ucl.ac.uk/prospective-students/graduate/taught-degrees/machine-learning-msc",
+              "sourceType": "PROGRAM_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-31T12:19:25.000Z"
+            }
+          ],
+          "intakes": [
+            {
+              "key": "2026-september",
+              "year": 2026,
+              "month": 9,
+              "status": "OPEN",
+              "applicationWindows": [
+                {
+                  "key": "visa-applicants",
+                  "roundName": "Applicants who require a visa",
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "EXPECTED",
+                  "verification": "EXPECTED",
+                  "sourceKey": "programme-page",
+                  "lastVerifiedAt": "2026-07-31T12:19:25.000Z"
+                },
+                {
+                  "key": "non-visa-applicants",
+                  "roundName": "Applicants who do not require a visa",
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "EXPECTED",
+                  "verification": "EXPECTED",
+                  "sourceKey": "programme-page",
+                  "lastVerifiedAt": "2026-07-31T12:19:25.000Z"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
