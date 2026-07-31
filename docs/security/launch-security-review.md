@@ -25,17 +25,17 @@ medium, **P3** low.
 
 ## Domain checklist
 
-| Domain | Status | Summary |
-| ------ | ------ | ------- |
-| Authentication / session | ✅ | Database sessions, secure cookies in prod, ownership always resolved from the session identity, admin gated by env allowlist + DB lookup. |
-| Authorization / IDOR | ✅ | Watchlist, notifications, push, and settings all scope Prisma queries by the session `userId`; identifiers are never taken from the request body. |
-| CSRF | ✅ | Every state-changing route verifies `Origin` + `Sec-Fetch-Site`; the magic-link POST additionally validates the NextAuth double-submit token with a constant-time compare. |
-| SSRF (worker source fetch) | ✅ | Approved-host allowlist, DNS pinning, private/reserved-range rejection (IPv4 + IPv6), redirect re-validation, no HTTPS→HTTP downgrade. |
-| SSRF (web push delivery) | ❌ | User-controlled push endpoint is sent from the worker with no DNS resolution or private-range check (P2-01). |
-| Open redirect (auth) | ❌ | `safeAuthRedirect` relative-URL guard is bypassable, yielding an external redirect (P2-02). |
-| Rate limiting | ⚠️ | Search, submissions, and magic-link are limited; push mutation endpoints are not, despite the baseline requiring it (P3-01). IP keys trust spoofable forwarding headers (P3-02). |
-| Private-data isolation in responses | ✅ | No email/token/endpoint leakage in user-facing API responses; admin-only responses expose reviewer email inside the gated admin surface only. |
-| Logging / redaction | ✅ | Allowlist log formatters plus pino redaction; request IDs regenerated server-side; raw path and error message never logged. |
+| Domain                              | Status | Summary                                                                                                                                                                          |
+| ----------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Authentication / session            | ✅     | Database sessions, secure cookies in prod, ownership always resolved from the session identity, admin gated by env allowlist + DB lookup.                                        |
+| Authorization / IDOR                | ✅     | Watchlist, notifications, push, and settings all scope Prisma queries by the session `userId`; identifiers are never taken from the request body.                                |
+| CSRF                                | ✅     | Every state-changing route verifies `Origin` + `Sec-Fetch-Site`; the magic-link POST additionally validates the NextAuth double-submit token with a constant-time compare.       |
+| SSRF (worker source fetch)          | ✅     | Approved-host allowlist, DNS pinning, private/reserved-range rejection (IPv4 + IPv6), redirect re-validation, no HTTPS→HTTP downgrade.                                           |
+| SSRF (web push delivery)            | ❌     | User-controlled push endpoint is sent from the worker with no DNS resolution or private-range check (P2-01).                                                                     |
+| Open redirect (auth)                | ❌     | `safeAuthRedirect` relative-URL guard is bypassable, yielding an external redirect (P2-02).                                                                                      |
+| Rate limiting                       | ⚠️     | Search, submissions, and magic-link are limited; push mutation endpoints are not, despite the baseline requiring it (P3-01). IP keys trust spoofable forwarding headers (P3-02). |
+| Private-data isolation in responses | ✅     | No email/token/endpoint leakage in user-facing API responses; admin-only responses expose reviewer email inside the gated admin surface only.                                    |
+| Logging / redaction                 | ✅     | Allowlist log formatters plus pino redaction; request IDs regenerated server-side; raw path and error message never logged.                                                      |
 
 ## Findings
 
@@ -95,8 +95,8 @@ the guard yet resolve to an external origin.
 
 Reproduced locally against `base = https://app.athenvia.com`:
 
-| Input (`callbackUrl`) | Passes guard | Resolved origin |
-| --------------------- | ------------ | --------------- |
+| Input (`callbackUrl`) | Passes guard | Resolved origin    |
+| --------------------- | ------------ | ------------------ |
 | `/\evil.com`          | yes          | `https://evil.com` |
 | `/\/evil.com`         | yes          | `https://evil.com` |
 | `/<TAB>/evil.com`     | yes          | `https://evil.com` |
