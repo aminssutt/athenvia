@@ -1,3 +1,25 @@
+/* Local copies of the shared motion primitives from app/globals.css — see the
+   note there: a CSS Module can only reference keyframes it declares itself. */
+@keyframes athenvia-rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 0.75rem, 0);
+  }
+}
+
+@keyframes athenvia-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.88);
+  }
+}
+
+@keyframes athenvia-spin {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
 .page,
 .loading {
   width: min(100%, 30rem);
@@ -26,15 +48,22 @@
   margin: 0;
 }
 
+/* Growing the active step vertically rather than horizontally keeps the
+   indicator on transform: a width change would relayout the header row on
+   every step, and scaleX would let the pill bleed into its 0.3rem gap. */
 .progress > span:not(.progressText) {
   width: 1.35rem;
   height: 0.28rem;
   border-radius: var(--radius-pill);
   background: var(--border-soft);
+  transition:
+    transform var(--duration-base) var(--ease-out),
+    background-color var(--duration-base) var(--ease-out);
 }
 
 .progress > span[data-current] {
   background: var(--chocolate-dark);
+  transform: scaleY(1.7);
 }
 
 .progressText {
@@ -57,12 +86,31 @@
   white-space: nowrap;
 }
 
+/* The section carries key={step} in onboarding-flow.tsx, so React remounts it
+   on every step change and this entrance replays — the step transition is the
+   mount animation, with no transition library and no extra state. */
 .screen {
   display: grid;
   min-height: 0;
   align-content: center;
   gap: clamp(2rem, 7vh, 3.5rem);
   padding: 1.5rem 0;
+}
+
+.screen > * {
+  animation: athenvia-rise var(--duration-slow) var(--ease-out) backwards;
+}
+
+.screen > *:nth-child(2) {
+  animation-delay: var(--stagger-step);
+}
+
+.screen > *:nth-child(3) {
+  animation-delay: calc(var(--stagger-step) * 2);
+}
+
+.screen > *:nth-child(n + 4) {
+  animation-delay: calc(var(--stagger-step) * 3);
 }
 
 .introIllustration {
@@ -86,6 +134,8 @@
   border-radius: var(--radius-md);
   background: var(--surface);
   box-shadow: 0 16px 36px rgb(95 64 50 / 10%);
+  animation: athenvia-pop var(--duration-slow) var(--ease-out) backwards;
+  animation-delay: calc(var(--stagger-step) * 2);
 }
 
 .calendar span {
@@ -102,6 +152,8 @@
   font-size: 2rem;
 }
 
+/* The tick lands after the calendar it belongs to — that ordering is the
+   whole story of the screen: a date, then a reminder about it. */
 .reminderDot {
   position: absolute;
   right: 18%;
@@ -116,6 +168,8 @@
   color: var(--chocolate-dark);
   font-size: 1.1rem;
   font-weight: 800;
+  animation: athenvia-pop var(--duration-base) var(--ease-emphasis) backwards;
+  animation-delay: calc(var(--stagger-step) * 6);
 }
 
 .copy {
@@ -183,6 +237,11 @@
   background: var(--surface);
   color: var(--text-primary);
   font: inherit;
+  transition: border-color var(--duration-fast) var(--ease-out);
+}
+
+.field select:hover {
+  border-color: var(--chocolate-light);
 }
 
 .field select[aria-invalid="true"] {
@@ -196,11 +255,14 @@
   line-height: 1.5;
 }
 
+/* Validation is the one message the user did not ask for, so it arrives
+   instead of appearing — the movement is what draws the eye to it. */
 .validationMessage {
   border-radius: var(--radius-sm);
   padding: 0.75rem;
   background: var(--danger-soft);
   color: var(--text-primary);
+  animation: athenvia-rise var(--duration-base) var(--ease-out);
 }
 
 .actions {
@@ -217,6 +279,17 @@
   font: inherit;
   font-weight: 750;
   cursor: pointer;
+  transition:
+    transform var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.primaryButton:active,
+.secondaryButton:active,
+.backButton:active {
+  transform: scale(0.97);
 }
 
 .primaryButton {
@@ -226,6 +299,7 @@
 }
 
 .primaryButton:hover {
+  border-color: var(--chocolate);
   background: var(--chocolate);
 }
 
@@ -236,7 +310,12 @@
 }
 
 .secondaryButton:hover {
+  border-color: var(--chocolate-light);
   background: var(--surface-soft);
+}
+
+.backButton:hover {
+  color: var(--chocolate-dark);
 }
 
 .backButton {
@@ -258,18 +337,27 @@
   border: 0.25rem solid var(--border-soft);
   border-top-color: var(--chocolate-dark);
   border-radius: 50%;
-  animation: onboarding-loading 0.8s linear infinite;
-}
-
-@keyframes onboarding-loading {
-  to {
-    transform: rotate(1turn);
-  }
+  animation: athenvia-spin 0.8s linear infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .loading span {
     border-top-color: var(--border-soft);
+    animation: none;
+  }
+
+  .progress > span:not(.progressText),
+  .field select,
+  .primaryButton,
+  .secondaryButton,
+  .backButton {
+    transition: none;
+  }
+
+  .screen > *,
+  .calendar,
+  .reminderDot,
+  .validationMessage {
     animation: none;
   }
 }

@@ -1,3 +1,18 @@
+/* Local copies of the shared motion primitives from app/globals.css — see the
+   note there: a CSS Module can only reference keyframes it declares itself. */
+@keyframes athenvia-rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 0.75rem, 0);
+  }
+}
+
+@keyframes athenvia-fade {
+  from {
+    opacity: 0;
+  }
+}
+
 .page {
   position: relative;
   min-height: 100vh;
@@ -24,6 +39,7 @@
   align-items: center;
   justify-content: space-between;
   padding-top: max(1.25rem, env(safe-area-inset-top));
+  animation: athenvia-fade var(--duration-slow) var(--ease-out) backwards;
 }
 
 .header :global(.brand) {
@@ -38,6 +54,7 @@
   font-size: 0.875rem;
   font-weight: 650;
   text-decoration: none;
+  transition: color var(--duration-fast) var(--ease-out);
 }
 
 .headerLink:hover {
@@ -56,6 +73,18 @@
   align-self: center;
 }
 
+/* Hero choreography.
+   The first screen is the only place in the product that gets a composed
+   entrance, and it reads top-to-bottom in the order the copy is meant to be
+   read: eyebrow, headline, promise, action, small print. Each element carries
+   its own delay rather than being wrapped in a container animation, so the
+   headline is legible ~200 ms in instead of waiting for the whole block.
+   Total choreography ends at 580 ms; nothing here delays interactivity, since
+   the CTA is a plain anchor that works from the first frame. */
+.heroCopy > * {
+  animation: athenvia-rise var(--duration-slow) var(--ease-out) backwards;
+}
+
 .eyebrow {
   margin: 0 0 1rem;
   color: var(--chocolate);
@@ -63,6 +92,10 @@
   font-weight: 800;
   letter-spacing: 0.11em;
   text-transform: uppercase;
+}
+
+.heroCopy .eyebrow {
+  animation-delay: 0ms;
 }
 
 .hero h1 {
@@ -73,6 +106,7 @@
   font-weight: 500;
   letter-spacing: -0.06em;
   line-height: 0.94;
+  animation-delay: calc(var(--stagger-step) * 1);
 }
 
 .intro {
@@ -81,6 +115,7 @@
   color: var(--text-secondary);
   font-size: clamp(1.05rem, 3vw, 1.2rem);
   line-height: 1.65;
+  animation-delay: calc(var(--stagger-step) * 2);
 }
 
 .primaryButton {
@@ -97,32 +132,46 @@
   color: white;
   font-weight: 750;
   text-decoration: none;
+  animation-delay: calc(var(--stagger-step) * 3);
   transition:
-    background-color 160ms ease,
-    box-shadow 160ms ease,
-    transform 160ms ease;
+    transform var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out);
 }
 
 .primaryButton:hover {
   background: #4f3429;
   box-shadow: 0 1rem 2.25rem rgb(95 64 50 / 24%);
-  transform: translateY(-2px);
+  transform: translate3d(0, -2px, 0);
 }
 
 .primaryButton:active {
-  transform: translateY(0);
+  transform: scale(0.97);
+}
+
+/* The chevron nudges toward the section the link scrolls to. */
+.primaryButton span {
+  transition: transform var(--duration-base) var(--ease-out);
+}
+
+.primaryButton:hover span {
+  transform: translate3d(0, 0.15rem, 0);
 }
 
 .ctaNote {
   margin: 0.75rem 0 0;
   color: var(--text-secondary);
   font-size: 0.78rem;
+  animation-delay: calc(var(--stagger-step) * 4);
 }
 
 .previewWrap {
   position: relative;
   width: min(100%, 24rem);
   justify-self: center;
+  /* The product shot lands last, once the promise has been read. */
+  animation: athenvia-rise var(--duration-slow) var(--ease-out) backwards;
+  animation-delay: calc(var(--stagger-step) * 5);
 }
 
 .previewGlow {
@@ -144,6 +193,16 @@
     0 2rem 5rem rgb(95 64 50 / 14%),
     inset 0 0 0 0.35rem rgb(255 255 255 / 55%);
   backdrop-filter: blur(1rem);
+  /* A 5px drift over 9 s: slow enough that it is felt rather than watched, and
+     cheap enough to be free — a composited transform on a single already
+     promoted layer, with no layout or paint per frame. */
+  animation: landing-float 9s var(--ease-in-out) infinite alternate;
+}
+
+@keyframes landing-float {
+  to {
+    transform: translate3d(0, -5px, 0);
+  }
 }
 
 .phoneTop {
@@ -208,7 +267,7 @@
   border-radius: 1.25rem;
   padding: 1rem;
   background: var(--surface);
-  box-shadow: 0 0.75rem 2.5rem rgb(95 64 50 / 8%);
+  box-shadow: var(--shadow-raised);
 }
 
 .secondaryCard {
@@ -403,7 +462,19 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .primaryButton {
+  .primaryButton,
+  .primaryButton span,
+  .headerLink {
     transition: none;
+  }
+
+  /* Belt and braces on top of the global kill switch in globals.css: the hero
+     is the first thing a visitor sees, so it must be fully composed on the
+     first frame with no delay, no drift and no perpetual float. */
+  .header,
+  .heroCopy > *,
+  .previewWrap,
+  .phone {
+    animation: none;
   }
 }

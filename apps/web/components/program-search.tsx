@@ -215,7 +215,10 @@ export function ProgramSearch() {
         <label className={styles.label} htmlFor="program-search">
           University or program
         </label>
-        <div className={styles.inputRow}>
+        {/* data-loading drives the in-flight bar in CSS. The state is already
+            announced by the button label and the aria-live region below, so
+            this attribute is purely presentational and carries no ARIA role. */}
+        <div className={styles.inputRow} data-loading={isLoading || undefined}>
           <span className={styles.searchIcon}>
             <SearchIcon />
           </span>

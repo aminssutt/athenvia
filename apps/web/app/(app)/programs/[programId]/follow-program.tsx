@@ -103,8 +103,13 @@ export function FollowProgram({ intakes, programId }: FollowProgramProps) {
           {/* aria-disabled (with the guard in followSelectedIntake) keeps the
               button focusable while the request runs, so keyboard focus is not
               dropped to <body> mid-operation (WCAG 2.4.3). */}
+          {/* data-phase drives the spinner and the confirmation tick in CSS.
+              Both are drawn with empty ::before content, so the button's
+              accessible name stays the label below and nothing here changes
+              what assistive technology reads. */}
           <button
             type="button"
+            data-phase={phase}
             onClick={() => void followSelectedIntake()}
             aria-disabled={phase === "optimistic" || phase === "followed"}
           >

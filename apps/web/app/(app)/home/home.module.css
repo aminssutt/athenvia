@@ -1,3 +1,12 @@
+/* Local copy of the shared motion primitive from app/globals.css — see the
+   note there: a CSS Module can only reference keyframes it declares itself. */
+@keyframes athenvia-rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 0.75rem, 0);
+  }
+}
+
 .appFrame {
   display: grid;
   width: min(100%, 30rem);
@@ -12,8 +21,15 @@
   padding: max(1.25rem, env(safe-area-inset-top)) 1.25rem 2rem;
 }
 
+/* Route entrance.
+   Each app route remounts its own <main>, so a mount animation doubles as a
+   page transition at zero runtime cost: no router hooks, no view-transition
+   API, no client JavaScript at all. The header leads and the content follows
+   one stagger step behind, which reads as the page settling rather than as
+   two separate things arriving. */
 .header {
   padding: 1rem 0 2.5rem;
+  animation: athenvia-rise var(--duration-base) var(--ease-out) backwards;
 }
 
 .headerBar {
@@ -31,6 +47,11 @@
   font-size: 0.875rem;
   font-weight: 700;
   text-underline-offset: 0.2rem;
+  transition: color var(--duration-fast) var(--ease-out);
+}
+
+.authLink:hover {
+  color: var(--chocolate);
 }
 
 .eyebrow {
@@ -65,6 +86,18 @@
 .section {
   display: grid;
   gap: 0.85rem;
+  animation: athenvia-rise var(--duration-base) var(--ease-out) backwards;
+  animation-delay: var(--stagger-step);
+}
+
+/* The watchlist is at most three sections; capping the stagger there keeps the
+   last one on screen inside 200 ms. */
+.section:nth-child(2) {
+  animation-delay: calc(var(--stagger-step) * 2);
+}
+
+.section:nth-child(n + 3) {
+  animation-delay: calc(var(--stagger-step) * 3);
 }
 
 .sectionHeading {
@@ -119,6 +152,9 @@
 }
 
 .addProgramLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border-radius: var(--radius-pill);
   padding: 0.65rem 1rem;
   background: var(--chocolate-dark);
@@ -126,15 +162,34 @@
   font-size: 0.875rem;
   font-weight: 750;
   text-decoration: none;
+  transition:
+    transform var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out);
 }
 
 .addProgramLink:hover {
   background: var(--chocolate);
 }
 
+.addProgramLink:active {
+  transform: scale(0.96);
+}
+
 @media (min-width: 40rem) {
   .main {
     padding-right: 1.5rem;
     padding-left: 1.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .header,
+  .section {
+    animation: none;
+  }
+
+  .addProgramLink,
+  .authLink {
+    transition: none;
   }
 }
