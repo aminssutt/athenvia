@@ -1,7 +1,11 @@
 {
   "$schema": "./seed.schema.json",
   "schemaVersion": 1,
-  "domains": [{ "slug": "computer-science", "name": "Computer Science" }],
+  "domains": [
+    { "slug": "computer-science", "name": "Computer Science" },
+    { "slug": "data-science", "name": "Data Science" },
+    { "slug": "machine-learning", "name": "Machine Learning" }
+  ],
   "universities": [
     {
       "key": "ucla",
@@ -57,6 +61,92 @@
                   "verification": "EXPECTED",
                   "sourceKey": "graduate-admissions",
                   "lastVerifiedAt": "2026-07-31T12:19:55.000Z"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "key": "msol-data-science-engineering",
+          "name": "Master of Science in Engineering with Certificate of Specialization in Data Science Engineering",
+          "degreeType": "MASTER",
+          "summary": {
+            "text": "A fully online, asynchronous Master of Science in Engineering offered through UCLA's online engineering master's programme with a Certificate of Specialization in Data Science Engineering. Students complete nine online courses totalling 36 units — five core courses and four electives — covering machine learning, deep learning, distributed computing, database design, natural language processing and responsible AI, in a format designed for working professionals with Fall and Spring admission.",
+            "sourceKey": "program-page"
+          },
+          "durationMonths": null,
+          "campus": null,
+          "language": null,
+          "officialUrl": "https://www.msol.ucla.edu/data-science-engineering/",
+          "domains": ["data-science", "machine-learning"],
+          "sources": [
+            {
+              "key": "program-page",
+              "url": "https://www.msol.ucla.edu/data-science-engineering/",
+              "sourceType": "PROGRAM_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-31T13:36:55.000Z"
+            }
+          ],
+          "intakes": [
+            {
+              "key": "2027-march",
+              "year": 2027,
+              "month": 3,
+              "status": "PLANNED",
+              "applicationWindows": [
+                {
+                  "key": "spring-admission",
+                  "roundName": null,
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "EXPECTED",
+                  "verification": "EXPECTED",
+                  "sourceKey": "program-page",
+                  "lastVerifiedAt": "2026-07-31T13:36:55.000Z"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "key": "master-of-applied-statistics-and-data-science",
+          "name": "Master of Applied Statistics and Data Science",
+          "degreeType": "MASTER",
+          "summary": {
+            "text": "An in-person evening master's programme for working professionals offered by UCLA's Department of Statistics and Data Science, comprising eleven four-unit courses (44 units): seven core courses covering probability, statistics, computing, data management and communication, four electives in topics such as forecasting and deep learning, and a thesis project. Students may take one, two or three courses per quarter as their schedule allows.",
+            "sourceKey": "program-page"
+          },
+          "durationMonths": null,
+          "campus": null,
+          "language": null,
+          "officialUrl": "https://master.stat.ucla.edu/",
+          "domains": ["data-science"],
+          "sources": [
+            {
+              "key": "program-page",
+              "url": "https://master.stat.ucla.edu/",
+              "sourceType": "PROGRAM_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-31T13:36:55.000Z"
+            }
+          ],
+          "intakes": [
+            {
+              "key": "2027-september",
+              "year": 2027,
+              "month": 9,
+              "status": "PLANNED",
+              "applicationWindows": [
+                {
+                  "key": "fall-admission",
+                  "roundName": null,
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "EXPECTED",
+                  "verification": "EXPECTED",
+                  "sourceKey": "program-page",
+                  "lastVerifiedAt": "2026-07-31T13:36:55.000Z"
                 }
               ]
             }

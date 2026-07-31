@@ -72,6 +72,56 @@
               ]
             }
           ]
+        },
+        {
+          "key": "sm-operations-research",
+          "name": "Master of Science in Operations Research",
+          "degreeType": "MASTER",
+          "summary": {
+            "text": "A two-year Master of Science offered by the MIT Operations Research Center in which students complete 66 credit units — seven graduate-level courses, with at least 42 units in advanced subjects — covering advanced analytical methods such as optimization, statistics, machine learning and applied probability. Each student writes a thesis based on independent research conducted under faculty guidance and presents the findings to the center's members before graduation, with an emphasis on practical, real-world applications of operations research.",
+            "sourceKey": "programme-page"
+          },
+          "durationMonths": 24,
+          "campus": null,
+          "language": null,
+          "officialUrl": "https://orc.mit.edu/academics/masters-operations-research/",
+          "domains": ["data-science", "machine-learning"],
+          "sources": [
+            {
+              "key": "programme-page",
+              "url": "https://orc.mit.edu/academics/masters-operations-research/",
+              "sourceType": "PROGRAM_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-31T13:36:55.000Z"
+            },
+            {
+              "key": "admissions-page",
+              "url": "https://orc.mit.edu/admissions/",
+              "sourceType": "ADMISSIONS_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-31T13:36:55.000Z"
+            }
+          ],
+          "intakes": [
+            {
+              "key": "2027-september",
+              "year": 2027,
+              "month": 9,
+              "status": "PLANNED",
+              "applicationWindows": [
+                {
+                  "key": "main-round",
+                  "roundName": null,
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "EXPECTED",
+                  "verification": "EXPECTED",
+                  "sourceKey": "admissions-page",
+                  "lastVerifiedAt": "2026-07-31T13:36:55.000Z"
+                }
+              ]
+            }
+          ]
         }
       ]
     }

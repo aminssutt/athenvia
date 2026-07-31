@@ -4,6 +4,7 @@
   "domains": [
     { "slug": "artificial-intelligence", "name": "Artificial Intelligence" },
     { "slug": "computer-science", "name": "Computer Science" },
+    { "slug": "data-science", "name": "Data Science" },
     { "slug": "machine-learning", "name": "Machine Learning" }
   ],
   "universities": [
@@ -68,6 +69,63 @@
                   "verification": "OFFICIAL",
                   "sourceKey": "international-graduate-admissions",
                   "lastVerifiedAt": "2026-07-30T00:00:00Z"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "key": "masters-data-science",
+          "name": "Master's Program in Data Science",
+          "degreeType": "MASTER",
+          "summary": {
+            "text": "The Graduate School of Data Science master's programme requires at least 33 credits, combining mandatory general courses with at least 21 elective credits and at least 9 research credits. Its curriculum follows the data science value chain from data collection, management and processing to analysis, modelling and real-world application, with courses such as Statistical Inference for Data Science and Machine Learning for Data Science.",
+            "sourceKey": "curriculum"
+          },
+          "durationMonths": null,
+          "campus": "Daejeon",
+          "language": null,
+          "officialUrl": "https://gsds.kaist.ac.kr/eng",
+          "domains": ["data-science", "machine-learning"],
+          "sources": [
+            {
+              "key": "programme-page",
+              "url": "https://gsds.kaist.ac.kr/eng",
+              "sourceType": "PROGRAM_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-31T13:37:32.000Z"
+            },
+            {
+              "key": "curriculum",
+              "url": "https://gsds.kaist.ac.kr/eng/education",
+              "sourceType": "PROGRAM_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-31T13:37:32.000Z"
+            },
+            {
+              "key": "admissions-timeline",
+              "url": "https://admission.kaist.ac.kr/intl-graduate/Admission/YearlyTimelines",
+              "sourceType": "ADMISSIONS_PAGE",
+              "isOfficial": true,
+              "lastCheckedAt": "2026-07-31T13:37:32.000Z"
+            }
+          ],
+          "intakes": [
+            {
+              "key": "2027-march",
+              "year": 2027,
+              "month": 3,
+              "status": "PLANNED",
+              "applicationWindows": [
+                {
+                  "key": "spring-application",
+                  "roundName": "Spring 2027 Admission",
+                  "opensAt": null,
+                  "closesAt": null,
+                  "publicStatus": "EXPECTED",
+                  "verification": "EXPECTED",
+                  "sourceKey": "admissions-timeline",
+                  "lastVerifiedAt": "2026-07-31T13:37:32.000Z"
                 }
               ]
             }
