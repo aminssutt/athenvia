@@ -33,7 +33,8 @@ export type IntakeMatchReason =
   | "CANDIDATE_REQUIRES_REVIEW"
   | "CONFLICTING_INTAKE_HINT"
   | "NO_ELIGIBLE_INTAKE"
-  | "OLD_INTAKE";
+  | "OLD_INTAKE"
+  | "STALE_CANDIDATE";
 
 export type IntakeDateMatch = Readonly<{
   applicationRoundId: string | null;
@@ -54,7 +55,10 @@ type DateParts = {
   year: number;
 };
 
-function parseIsoDate(value: string, field: string): DateParts & { day: number | null } {
+function parseIsoDate(
+  value: string,
+  field: string,
+): { day: number | null; month: number; year: number } {
   const match = ISO_DATE_PATTERN.exec(value);
   if (!match) {
     throw new TypeError(`${field} must be an ISO local date.`);
@@ -128,6 +132,38 @@ function candidateDateParts(candidate: DateCandidate): DateParts[] {
     }
   }
   return parts;
+}
+
+function isStaleCandidate(
+  candidate: DateCandidate,
+  asOf: { day: number; month: number; year: number },
+): boolean {
+  const values = candidate.localDate ? [candidate.localDate] : [...candidate.alternatives];
+  let comparable = false;
+  for (const value of values) {
+    const exact = ISO_DATE_PATTERN.exec(value);
+    const seasonal = exact ? null : /^(\d{4})-(?:SPRING|SUMMER|AUTUMN|FALL|WINTER)$/u.exec(value);
+    if (!exact && !seasonal) {
+      continue;
+    }
+    comparable = true;
+    const year = Number((exact ?? seasonal)![1]);
+    if (year > asOf.year) {
+      return false;
+    }
+    if (year === asOf.year) {
+      if (!exact) {
+        // A season within the as-of year is not provably in the past.
+        return false;
+      }
+      const month = Number(exact[2]);
+      const day = exact[3] ? Number(exact[3]) : null;
+      if (month > asOf.month || (month === asOf.month && (day === null || day >= asOf.day))) {
+        return false;
+      }
+    }
+  }
+  return comparable;
 }
 
 function matchesHint(intake: MatchableIntake, hint: IntakeHint): boolean {
@@ -326,6 +362,7 @@ export function matchDateCandidatesToIntakes(
   if (asOf.day === null) {
     throw new TypeError("asOfDate must include a calendar day.");
   }
+  const asOfDay = { day: asOf.day, month: asOf.month, year: asOf.year };
   assertInputs(evidence, intakes);
   const stableIntakes = [...intakes].sort((left, right) =>
     left.id < right.id ? -1 : Number(left.id > right.id),
@@ -340,6 +377,13 @@ export function matchDateCandidatesToIntakes(
     const derived = derivedIntakeHint(item);
     if (derived.conflicting) {
       return result(item.evidenceId, "REVIEW", [...reasons, "CONFLICTING_INTAKE_HINT"]);
+    }
+
+    // A candidate whose every date already lies before asOfDate and that carries no
+    // intake hint (explicit or derived) must never re-bind to a current intake: the
+    // stale value most likely belongs to a past cycle, so a human has to decide.
+    if (!derived.hint && isStaleCandidate(item.candidate, asOfDay)) {
+      return result(item.evidenceId, "REVIEW", [...reasons, "STALE_CANDIDATE"]);
     }
 
     const matching = derived.hint
