@@ -107,43 +107,48 @@ describe("public programme detail service", () => {
     expect(serialized).not.toContain("lastVerifiedAt");
   });
 
-  it("rejects unsafe or cross-program summary evidence", () => {
+  it("drops unsafe or cross-program summary evidence without hiding the programme", () => {
     const crossProgram = record();
     crossProgram.summary.source.programId = crypto.randomUUID();
-    expect(presentProgramDetail(crossProgram as never)).toBeNull();
+    const crossDetail = presentProgramDetail(crossProgram as never);
+    expect(crossDetail?.id).toBe(programId);
+    expect(crossDetail?.summary).toBeNull();
 
     const credentialed = record();
     credentialed.summary.source.url = "https://user:secret@example.edu/programme";
-    expect(presentProgramDetail(credentialed as never)).toBeNull();
+    const credentialedDetail = presentProgramDetail(credentialed as never);
+    expect(credentialedDetail?.id).toBe(programId);
+    expect(credentialedDetail?.summary).toBeNull();
   });
 
-  it("queries only active, sourced programmes with at least one intake", async () => {
+  it("keeps a programme public before its summary exists", () => {
+    const unsummarized = record();
+    (unsummarized as { summary: unknown }).summary = null;
+    const detail = presentProgramDetail(unsummarized as never);
+    expect(detail?.id).toBe(programId);
+    expect(detail?.summary).toBeNull();
+  });
+
+  it("queries only active programmes with at least one intake", async () => {
     const findFirst = vi.fn().mockResolvedValue(record());
 
     const result = await findPublicProgramDetail(programId, { program: { findFirst } } as never);
 
     expect(result?.id).toBe(programId);
-    expect(findFirst.mock.calls[0]?.[0]).toMatchObject({
-      where: {
-        id: programId,
-        intakes: { some: {} },
-        status: "ACTIVE",
-        summary: {
-          is: {
-            source: {
-              is: {
-                isOfficial: true,
-              },
-            },
-          },
-        },
-        university: {
-          is: {
-            status: "ACTIVE",
-          },
+    const where = findFirst.mock.calls[0]?.[0]?.where;
+    expect(where).toMatchObject({
+      id: programId,
+      intakes: { some: {} },
+      status: "ACTIVE",
+      university: {
+        is: {
+          status: "ACTIVE",
         },
       },
     });
+    // The summary gate must stay out of the query: a programme is public
+    // before its summary exists.
+    expect(where).not.toHaveProperty("summary");
   });
 
   it("preserves not-found for live IDs instead of falling back to mocks", async () => {

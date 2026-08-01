@@ -72,14 +72,6 @@ export async function searchCatalogue(
         FROM intakes AS intake
         WHERE intake.program_id = p.id
       )
-      AND EXISTS (
-        SELECT 1
-        FROM program_summaries AS summary
-        JOIN sources AS summary_source ON summary_source.id = summary.source_id
-        WHERE summary.program_id = p.id
-          AND summary_source.program_id = p.id
-          AND summary_source.is_official = TRUE
-      )
       AND (
         search_input.domain IS NULL
         OR EXISTS (

@@ -43,14 +43,6 @@ export async function searchUniversities(query: string): Promise<UniversitySearc
             FROM intakes AS intake
             WHERE intake.program_id = p.id
           )
-          AND EXISTS (
-            SELECT 1
-            FROM program_summaries AS summary
-            JOIN sources AS summary_source ON summary_source.id = summary.source_id
-            WHERE summary.program_id = p.id
-              AND summary_source.program_id = p.id
-              AND summary_source.is_official = TRUE
-          )
       ) AS program_count,
       GREATEST(
         similarity(public.immutable_unaccent(lower(u.name)), search_input.term)

@@ -116,7 +116,7 @@ export function presentProgramDetail(
       ? safeOfficialUrl(record.summary.source.url)
       : null;
 
-  if (!primaryIntake || !record.summary || !summarySourceUrl) {
+  if (!primaryIntake) {
     return null;
   }
 
@@ -133,10 +133,13 @@ export function presentProgramDetail(
     location: record.campus ?? record.university.city,
     name: record.name,
     nextWindow: toPublicApplicationWindow(selectNextWindow(primaryIntake, now), record.id),
-    summary: {
-      officialSourceUrl: summarySourceUrl,
-      text: record.summary.text,
-    },
+    summary:
+      record.summary && summarySourceUrl
+        ? {
+            officialSourceUrl: summarySourceUrl,
+            text: record.summary.text,
+          }
+        : null,
     university: {
       city: record.university.city,
       countryCode: record.university.countryCode,
@@ -156,15 +159,6 @@ export async function findPublicProgramDetail(
       id: programId,
       intakes: { some: {} },
       status: "ACTIVE",
-      summary: {
-        is: {
-          source: {
-            is: {
-              isOfficial: true,
-            },
-          },
-        },
-      },
       university: {
         is: {
           status: "ACTIVE",

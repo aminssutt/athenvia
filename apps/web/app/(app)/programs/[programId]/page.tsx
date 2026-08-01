@@ -87,7 +87,9 @@ export default async function ProgramPage({ params }: ProgramPageProps) {
 
   const applicationWindow = program.nextWindow;
   const applicationSource = safeOfficialSource(applicationWindow?.officialSourceUrl ?? null);
-  const summarySource = safeOfficialSource(program.summary.officialSourceUrl);
+  const summarySource = program.summary
+    ? safeOfficialSource(program.summary.officialSourceUrl)
+    : null;
   const publicStatus = applicationWindow?.publicStatus ?? "NOT_PUBLISHED";
   // A closed cycle keeps its real deadline, but calling a past date the "next"
   // one would be plainly wrong.
@@ -154,19 +156,29 @@ export default async function ProgramPage({ params }: ProgramPageProps) {
 
           <section className={styles.card} aria-labelledby="program-summary">
             <h2 id="program-summary">About this program</h2>
-            <p className={styles.summaryText}>{program.summary.text}</p>
-            {summarySource ? (
-              <a
-                className={styles.inlineSourceLink}
-                href={summarySource}
-                rel="noopener noreferrer"
-                target="_blank"
-              >
-                Read the official programme source
-                <span aria-hidden="true"> ↗</span>
-                <span className={styles.visuallyHidden}> (opens in a new tab)</span>
-              </a>
-            ) : null}
+            {program.summary ? (
+              <>
+                <p className={styles.summaryText}>{program.summary.text}</p>
+                {summarySource ? (
+                  <a
+                    className={styles.inlineSourceLink}
+                    href={summarySource}
+                    rel="noopener noreferrer"
+                    target="_blank"
+                  >
+                    Read the official programme source
+                    <span aria-hidden="true"> ↗</span>
+                    <span className={styles.visuallyHidden}> (opens in a new tab)</span>
+                  </a>
+                ) : null}
+              </>
+            ) : (
+              <p className={styles.summaryText}>
+                Athenvia has not verified a description from this university&rsquo;s official pages
+                yet. The programme is listed so you can follow it now; the description appears here
+                once it is sourced.
+              </p>
+            )}
           </section>
 
           <section className={styles.card} aria-labelledby="application-dates">
