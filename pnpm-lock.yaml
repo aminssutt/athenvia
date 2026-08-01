@@ -52,6 +52,9 @@ importers:
       "@tailwindcss/postcss":
         specifier: ^4.0.0
         version: 4.3.3
+      animejs:
+        specifier: ^4.5.0
+        version: 4.5.0
       ioredis:
         specifier: ^5.8.2
         version: 5.11.1(supports-color@7.2.0)
@@ -1627,6 +1630,20 @@ packages:
       {
         integrity: sha512-Thbli+OlOj+iMPYFBVBfJ3OmCAnaSyNn4M1vz9T6Gka5Jt9ba/HIR56joy65tY6kx/FCF5VXNB819Y7/GUrBGA==,
       }
+
+  animejs@4.5.0:
+    resolution:
+      {
+        integrity: sha512-NQimYX+lz8WaXonGS9zVVoviCIAjONeJayxacUditaivYLqyXgGjFKjuyl0aUUhFKm5MriX9ty1TGovNzoJQWA==,
+      }
+    peerDependencies:
+      "@types/three": ">=0.150.0"
+      three: ">=0.150.0"
+    peerDependenciesMeta:
+      "@types/three":
+        optional: true
+      three:
+        optional: true
 
   ansi-styles@4.3.0:
     resolution:
@@ -4185,6 +4202,8 @@ snapshots:
       fast-uri: 3.1.4
       json-schema-traverse: 1.0.0
       require-from-string: 2.0.2
+
+  animejs@4.5.0: {}
 
   ansi-styles@4.3.0:
     dependencies:

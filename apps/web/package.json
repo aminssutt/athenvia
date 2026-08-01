@@ -16,6 +16,7 @@
     "@athenvia/ui": "workspace:*",
     "@auth/prisma-adapter": "2.11.3",
     "@tailwindcss/postcss": "^4.0.0",
+    "animejs": "^4.5.0",
     "ioredis": "^5.8.2",
     "next": "^16.0.0",
     "next-auth": "4.24.15",

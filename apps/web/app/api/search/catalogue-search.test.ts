@@ -78,8 +78,10 @@ describe("live catalogue search presentation", () => {
       },
     });
     expect(mocks.findMany.mock.calls[0]?.[0]).not.toHaveProperty("include.sources");
+    // A programme is searchable before its summary exists; the query must not
+    // reintroduce the old summary gate.
     const sqlText = mocks.sql.mock.calls[0]?.[0].join(" ");
-    expect(sqlText).toContain("program_summaries");
-    expect(sqlText).toContain("summary_source.is_official = TRUE");
+    expect(sqlText).not.toContain("program_summaries");
+    expect(sqlText).toContain("FROM intakes");
   });
 });
