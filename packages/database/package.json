@@ -24,7 +24,8 @@
     "test:push-subscriptions:integration": "tsx tests/push-subscriptions.integration.ts",
     "test:source-snapshots:integration": "tsx tests/source-snapshots.integration.ts",
     "test:watchlists:integration": "tsx tests/watchlists.integration.ts",
-    "test:live-catalogue:integration": "tsx tests/live-catalogue.integration.ts"
+    "test:live-catalogue:integration": "tsx tests/live-catalogue.integration.ts",
+    "db:import:tmm": "tsx src/tmm.ts"
   },
   "dependencies": {
     "@prisma/client": "6.19.0",
