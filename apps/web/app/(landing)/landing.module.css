@@ -280,6 +280,45 @@
   filter: blur(3rem);
 }
 
+/* 3D product shot. The stage owns the hero column's height so the layout
+   never jumps: the CSS mock and the canvas overlap inside it and cross-fade
+   when the scene finishes loading. */
+.splineStage {
+  position: relative;
+  min-height: 30rem;
+}
+
+.splineFallback {
+  position: relative;
+  width: min(100%, 24rem);
+  margin-inline: auto;
+  transition: opacity calc(var(--duration-slow) * 2) var(--ease-out);
+}
+
+.splineCanvas {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  opacity: 0;
+  transition: opacity calc(var(--duration-slow) * 2) var(--ease-out);
+}
+
+.splineCanvas canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.splineStage[data-phase="ready"] .splineFallback {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.splineStage[data-phase="ready"] .splineCanvas {
+  opacity: 1;
+}
+
 .phone {
   position: relative;
   overflow: hidden;
@@ -936,12 +975,20 @@
 
 @media (min-width: 48rem) {
   .hero {
-    grid-template-columns: minmax(0, 1.05fr) minmax(19rem, 0.75fr);
+    grid-template-columns: minmax(0, 1fr) minmax(22rem, 0.95fr);
     align-items: center;
   }
 
   .hero h1 {
     font-size: clamp(4rem, 7.5vw, 5.2rem);
+  }
+
+  .previewWrap {
+    width: 100%;
+  }
+
+  .splineStage {
+    min-height: clamp(30rem, 60vh, 36rem);
   }
 
   .valueGrid {
@@ -1017,5 +1064,12 @@
   .marqueeTrack,
   .tickerTrack {
     animation: none;
+  }
+
+  /* The 3D scene never mounts under reduced motion (spline-phones.tsx), so
+     only the cross-fade needs neutralising here. */
+  .splineFallback,
+  .splineCanvas {
+    transition: none;
   }
 }
