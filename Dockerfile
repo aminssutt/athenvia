@@ -92,8 +92,12 @@ FROM node:22-bookworm-slim AS worker
 
 ENV NODE_ENV=production
 
+# unzip is for the registry import, which is run by an operator from this
+# container and extracts a zip archive GNU tar cannot read. Keeping it here
+# rather than in the migrate stage is what lets that import run from the
+# long-lived worker container, without a shell on the Docker host.
 RUN apt-get update \
-  && apt-get install --yes --no-install-recommends ca-certificates openssl \
+  && apt-get install --yes --no-install-recommends ca-certificates openssl unzip \
   && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -112,13 +116,6 @@ CMD ["./apps/worker/node_modules/.bin/tsx", "apps/worker/src/index.ts"]
 FROM worker AS migrate
 
 ENV NODE_ENV=production
-
-# The registry import extracts a zip archive, which GNU tar cannot read.
-USER root
-RUN apt-get update \
-  && apt-get install --yes --no-install-recommends unzip \
-  && rm -rf /var/lib/apt/lists/*
-USER node
 
 COPY --chown=node:node data/seed ./data/seed
 
