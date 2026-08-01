@@ -16,7 +16,7 @@ type RankedProgram = {
 export async function searchCatalogue(
   input: SearchRequest,
   offset: number,
-): Promise<SearchResponse> {
+): Promise<Omit<SearchResponse, "universities">> {
   const domainFilter = input.domain?.toLocaleLowerCase("en") ?? null;
   const rankedPrograms = await database.$queryRaw<RankedProgram[]>(Prisma.sql`
     WITH search_input AS (

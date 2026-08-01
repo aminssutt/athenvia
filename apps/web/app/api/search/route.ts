@@ -10,6 +10,7 @@ import { logRequestError } from "@/lib/observability";
 
 import { searchCatalogue } from "./catalogue-search";
 import { decodeSearchCursor } from "./cursor";
+import { searchUniversities } from "./university-search";
 import { checkSearchRateLimit, searchRateLimitHeaders } from "./rate-limit";
 
 export const dynamic = "force-dynamic";
@@ -85,8 +86,13 @@ export async function GET(request: Request): Promise<Response> {
   }
 
   try {
-    const results = await searchCatalogue(parsedInput.data, offset);
-    return Response.json(SearchResponseSchema.parse(results), { headers });
+    // Universities belong to the first results page only; later pages continue
+    // the programme listing without repeating the same university matches.
+    const [results, universities] = await Promise.all([
+      searchCatalogue(parsedInput.data, offset),
+      offset === 0 ? searchUniversities(parsedInput.data.query) : Promise.resolve([]),
+    ]);
+    return Response.json(SearchResponseSchema.parse({ ...results, universities }), { headers });
   } catch (error) {
     logRequestError(request, { code: "CATALOGUE_QUERY_FAILED", error, route: "/api/search" });
 
