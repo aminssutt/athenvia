@@ -54,6 +54,7 @@
 }
 
 .mobileNavigationLink {
+  position: relative;
   display: flex;
   min-width: var(--touch-target-min);
   min-height: 3.25rem;
@@ -89,7 +90,22 @@
 .mobileNavigationLink[data-current] {
   background: var(--surface-soft);
   color: var(--chocolate-dark);
-  text-decoration: underline;
+}
+
+/* The current tab is marked by a dot rather than an underline: with the icon
+   pop it reads as the tab being "docked". Shape plus background keep the
+   state legible without relying on colour alone (aria-current carries it for
+   assistive tech). */
+.mobileNavigationLink[data-current]::after {
+  content: "";
+  position: absolute;
+  bottom: 0.3rem;
+  width: 0.28rem;
+  height: 0.28rem;
+  border-radius: 50%;
+  background: currentColor;
+  animation: athenvia-pop var(--duration-base) var(--ease-emphasis) backwards;
+  animation-delay: var(--duration-instant);
 }
 
 .mobileNavigationIcon {
@@ -182,6 +198,13 @@
   font-size: 1.2rem;
 }
 
+/* A real mark sits on a white tile — crests and wordmarks are designed for
+   paper, and the beige monogram tile muddies their colours. :where() keeps
+   specificity level with the base rule. */
+.universityLogo:where(:has(.universityLogoImage)) {
+  background: var(--surface);
+}
+
 /* Remote logos are lazy-loaded, so they land after the card is already on
    screen. Fading them in stops the card from flickering between the monogram
    fallback and the real mark. */
@@ -192,6 +215,13 @@
   padding: 0.35rem;
   object-fit: contain;
   animation: athenvia-fade var(--duration-base) var(--ease-out);
+  transition: transform var(--duration-base) var(--ease-out);
+}
+
+/* The crest leans into the card's hover lift — one composited scale, no
+   repaint, and the padding keeps it clear of the tile's rounded corners. */
+.programCard:hover .universityLogoImage {
+  transform: scale(1.08);
 }
 
 .programCard {
@@ -346,6 +376,15 @@
   padding: 1rem;
   background: var(--surface);
   box-shadow: var(--shadow-raised);
+  transition:
+    transform var(--duration-base) var(--ease-out),
+    border-color var(--duration-base) var(--ease-out);
+}
+
+/* Same hover language as the programme card: transform only, shadow fixed. */
+.universityCard:hover {
+  border-color: var(--chocolate-light);
+  transform: translate3d(0, -2px, 0);
 }
 
 .universityCardTitle {
@@ -574,8 +613,14 @@
   .interfaceState,
   .interfaceStateIcon,
   .mobileNavigationLink[data-current] .mobileNavigationIcon,
+  .mobileNavigationLink[data-current]::after,
   .universityLogoImage {
     animation: none;
+  }
+
+  .universityCard,
+  .universityLogoImage {
+    transition: none;
   }
 }
 

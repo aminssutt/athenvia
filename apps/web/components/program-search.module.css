@@ -13,6 +13,13 @@
   }
 }
 
+@keyframes athenvia-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.88);
+  }
+}
+
 .search {
   min-width: 0;
   max-width: 100%;
@@ -273,6 +280,10 @@
   border-color: var(--chocolate-dark);
   background: var(--chocolate-dark);
   color: white;
+  /* Selection is the moment the user acted, so the chip confirms it with the
+     one emphasised curve in the system. Runs once per state change; the fill
+     itself still transitions, so unchecking stays calm. */
+  animation: athenvia-pop var(--duration-base) var(--ease-emphasis);
 }
 
 /* The focus ring is painted by the visible chip on behalf of its
@@ -478,7 +489,8 @@
   .suggestions,
   .resultsHeading,
   .results li,
-  .clearButton {
+  .clearButton,
+  .filterChip input:checked + span {
     animation: none;
   }
 

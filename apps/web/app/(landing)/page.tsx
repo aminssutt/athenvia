@@ -5,6 +5,7 @@ import { Fragment, type CSSProperties } from "react";
 
 import { Brand } from "@/components/brand";
 import { StandaloneRedirect } from "@/components/standalone-redirect";
+import { getUniversityLogoAsset } from "@/components/university-logo-assets";
 
 import styles from "./landing.module.css";
 import { ScrollReveal } from "./scroll-reveal";
@@ -123,14 +124,21 @@ function HomeIcon() {
 function MarqueeRow({ names, reverse }: { names: string[]; reverse?: boolean }) {
   const items = (hidden: boolean) => (
     <ul aria-hidden={hidden || undefined} className={styles.marqueeGroup}>
-      {names.map((name) => (
-        <li key={name} className={styles.marqueeItem}>
-          <span aria-hidden="true" className={styles.marqueeMark}>
-            {getUniversityMonogram(name)}
-          </span>
-          {name}
-        </li>
-      ))}
+      {names.map((name) => {
+        const logo = getUniversityLogoAsset(name);
+        return (
+          <li key={name} className={styles.marqueeItem}>
+            <span aria-hidden="true" className={styles.marqueeMark}>
+              {logo ? (
+                <img alt="" decoding="async" loading="lazy" src={logo} />
+              ) : (
+                getUniversityMonogram(name)
+              )}
+            </span>
+            {name}
+          </li>
+        );
+      })}
     </ul>
   );
 
@@ -226,7 +234,7 @@ export default function LandingPage() {
               <article className={styles.programCard}>
                 <div className={styles.programHeading}>
                   <span className={styles.universityMark} aria-hidden="true">
-                    N
+                    <img alt="" decoding="async" src="/university-logos/nus.png" />
                   </span>
                   <div>
                     <h2>MSc Venture Creation</h2>
@@ -244,7 +252,7 @@ export default function LandingPage() {
               <article className={`${styles.programCard} ${styles.secondaryCard}`}>
                 <div className={styles.programHeading}>
                   <span className={styles.universityMark} aria-hidden="true">
-                    E
+                    <img alt="" decoding="async" src="/university-logos/eth-zurich.png" />
                   </span>
                   <div>
                     <h2>MSc Data Science</h2>
