@@ -13,10 +13,39 @@
   }
 }
 
+/* Landing-only keyframes. All of them animate transform only, so every frame
+   is compositor work and the page never repaints while it moves. */
+@keyframes landing-float {
+  to {
+    transform: translate3d(0, -5px, 0);
+  }
+}
+
+/* Each headline word rises out of an overflow mask; the end state is the
+   word's natural position, so a dropped animation still reads perfectly. */
+@keyframes landing-word-rise {
+  from {
+    transform: translate3d(0, 115%, 0);
+  }
+}
+
+/* One shared loop for the university marquee and the ticker: the track holds
+   two identical copies, so sliding exactly half its width lands on a frame
+   indistinguishable from the first. */
+@keyframes landing-marquee {
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
 .page {
   position: relative;
+
+  /* clip, not hidden: the marquee and ticker bleed past the viewport edge and
+     must be cut without creating a scroll container — clip keeps the sticky
+     header working and the desktop overflow at zero. */
+  overflow-x: clip;
   min-height: 100vh;
-  overflow: hidden;
   background:
     radial-gradient(circle at 100% 0%, rgb(200 168 146 / 16%), transparent 30rem), var(--background);
 }
@@ -27,23 +56,39 @@
   }
 }
 
-.header,
 .mainContent,
-.footer {
+.footer,
+.headerInner {
   width: min(100% - 2.5rem, 68rem);
   margin-inline: auto;
 }
 
+/* Sticky header: a thin veil of the page colour so content sliding beneath it
+   stays legible without a hard app-bar edge. */
 .header {
+  position: sticky;
+  z-index: 20;
+  top: 0;
+  background: rgb(251 248 244 / 82%);
+  backdrop-filter: blur(0.75rem);
+  animation: athenvia-fade var(--duration-slow) var(--ease-out) backwards;
+}
+
+.headerInner {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-top: max(1.25rem, env(safe-area-inset-top));
-  animation: athenvia-fade var(--duration-slow) var(--ease-out) backwards;
+  padding: max(0.85rem, env(safe-area-inset-top)) 0 0.85rem;
 }
 
 .header :global(.brand) {
   text-decoration: none;
+}
+
+.headerNav {
+  display: flex;
+  align-items: center;
+  gap: clamp(1rem, 3vw, 1.75rem);
 }
 
 .headerLink {
@@ -63,10 +108,16 @@
   text-underline-offset: 0.25rem;
 }
 
+/* The in-page anchors are wayfinding sugar; on a phone the page is short
+   enough that they only crowd the header. */
+.headerNav a[href^="#"] {
+  display: none;
+}
+
 .hero {
   display: grid;
   gap: 2.75rem;
-  padding: clamp(3.5rem, 9vh, 6.5rem) 0 4.5rem;
+  padding: clamp(3rem, 8vh, 6rem) 0 4.5rem;
 }
 
 .heroCopy {
@@ -74,13 +125,10 @@
 }
 
 /* Hero choreography.
-   The first screen is the only place in the product that gets a composed
-   entrance, and it reads top-to-bottom in the order the copy is meant to be
-   read: eyebrow, headline, promise, action, small print. Each element carries
-   its own delay rather than being wrapped in a container animation, so the
-   headline is legible ~200 ms in instead of waiting for the whole block.
-   Total choreography ends at 580 ms; nothing here delays interactivity, since
-   the CTA is a plain anchor that works from the first frame. */
+   The headline leads: each word rises out of its own mask, left to right,
+   and the supporting copy follows once the promise is readable. Every element
+   carries its own delay so the sequence reads top-to-bottom; the CTA is a
+   plain anchor that works from the very first frame regardless. */
 .heroCopy > * {
   animation: athenvia-rise var(--duration-slow) var(--ease-out) backwards;
 }
@@ -105,8 +153,23 @@
   font-size: clamp(3.1rem, 14vw, 5.2rem);
   font-weight: 500;
   letter-spacing: -0.06em;
-  line-height: 0.94;
-  animation-delay: calc(var(--stagger-step) * 1);
+  line-height: 0.98;
+  animation: none;
+}
+
+/* The mask crops at the glyph box, so a hair of padding keeps descenders from
+   being shaved while the word is mid-rise. */
+.headlineWord {
+  display: inline-block;
+  overflow: hidden;
+  margin-bottom: -0.12em;
+  padding-bottom: 0.12em;
+  vertical-align: bottom;
+}
+
+.headlineWordInner {
+  display: inline-block;
+  animation: landing-word-rise calc(var(--duration-slow) * 1.7) var(--ease-out) backwards;
 }
 
 .intro {
@@ -115,7 +178,16 @@
   color: var(--text-secondary);
   font-size: clamp(1.05rem, 3vw, 1.2rem);
   line-height: 1.65;
-  animation-delay: calc(var(--stagger-step) * 2);
+  animation-delay: calc(var(--stagger-step) * 5);
+}
+
+.heroActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.85rem;
+  margin-top: 1.75rem;
+  animation-delay: calc(var(--stagger-step) * 6);
 }
 
 .primaryButton {
@@ -124,7 +196,6 @@
   align-items: center;
   justify-content: center;
   gap: 0.75rem;
-  margin-top: 1.75rem;
   border-radius: var(--radius-pill);
   padding: 0.75rem 1.5rem;
   background: var(--chocolate-dark);
@@ -132,7 +203,6 @@
   color: white;
   font-weight: 750;
   text-decoration: none;
-  animation-delay: calc(var(--stagger-step) * 3);
   transition:
     transform var(--duration-fast) var(--ease-out),
     background-color var(--duration-fast) var(--ease-out),
@@ -158,11 +228,39 @@
   transform: translate3d(0, 0.15rem, 0);
 }
 
+.secondaryButton {
+  display: inline-flex;
+  min-height: 3.5rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-pill);
+  padding: 0.75rem 1.5rem;
+  background: var(--surface);
+  color: var(--text-primary);
+  font-weight: 700;
+  text-decoration: none;
+  transition:
+    transform var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out);
+}
+
+.secondaryButton:hover {
+  border-color: var(--chocolate);
+  background: var(--background);
+  transform: translate3d(0, -2px, 0);
+}
+
+.secondaryButton:active {
+  transform: scale(0.97);
+}
+
 .ctaNote {
   margin: 0.75rem 0 0;
   color: var(--text-secondary);
   font-size: 0.78rem;
-  animation-delay: calc(var(--stagger-step) * 4);
+  animation-delay: calc(var(--stagger-step) * 7);
 }
 
 .previewWrap {
@@ -171,7 +269,7 @@
   justify-self: center;
   /* The product shot lands last, once the promise has been read. */
   animation: athenvia-rise var(--duration-slow) var(--ease-out) backwards;
-  animation-delay: calc(var(--stagger-step) * 5);
+  animation-delay: calc(var(--stagger-step) * 8);
 }
 
 .previewGlow {
@@ -197,12 +295,6 @@
      cheap enough to be free — a composited transform on a single already
      promoted layer, with no layout or paint per frame. */
   animation: landing-float 9s var(--ease-in-out) infinite alternate;
-}
-
-@keyframes landing-float {
-  to {
-    transform: translate3d(0, -5px, 0);
-  }
 }
 
 .phoneTop {
@@ -344,8 +436,342 @@
   white-space: nowrap;
 }
 
+/* Scroll entrances.
+   Elements tagged data-reveal keep their final styles here; scroll-reveal.tsx
+   flips a state attribute and this transition carries them in. Without
+   JavaScript the state attribute never exists and nothing is ever hidden. */
+.page [data-reveal] {
+  transition:
+    opacity calc(var(--duration-slow) * 1.6) var(--ease-out),
+    transform calc(var(--duration-slow) * 1.6) var(--ease-out);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+
+.page [data-reveal-state="hidden"] {
+  opacity: 0;
+  transform: translate3d(0, 1.75rem, 0);
+}
+
+.sectionHeading h2 {
+  max-width: 18ch;
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(2.2rem, 7vw, 3.25rem);
+  font-weight: 500;
+  letter-spacing: -0.045em;
+  line-height: 1.02;
+}
+
+.sectionIntro {
+  max-width: 34rem;
+  margin: 0.9rem 0 0;
+  color: var(--text-secondary);
+  line-height: 1.65;
+}
+
+.universities,
+.pricing,
 .install {
-  scroll-margin-top: 1rem;
+  /* Anchored sections stop below the sticky header instead of under it. */
+  scroll-margin-top: 5.5rem;
+}
+
+.universities {
+  padding-top: clamp(3rem, 8vh, 5rem);
+}
+
+.marqueeStack {
+  display: grid;
+  gap: 1rem;
+  margin-top: 2.5rem;
+}
+
+/* The strip fades at both edges so wordmarks materialise instead of popping
+   in at a hard border. */
+.marquee {
+  overflow: hidden;
+  mask-image: linear-gradient(to right, transparent, black 12%, black 88%, transparent);
+}
+
+.marqueeTrack {
+  display: flex;
+  width: max-content;
+  animation: landing-marquee 45s linear infinite;
+}
+
+/* Pausing on hover invites reading the names rather than watching them. */
+.marquee:hover .marqueeTrack {
+  animation-play-state: paused;
+}
+
+.marqueeReverse {
+  animation-direction: reverse;
+}
+
+.marqueeGroup {
+  display: flex;
+  gap: 1rem;
+  margin: 0;
+  padding: 0 1rem 0 0;
+  list-style: none;
+}
+
+.marqueeItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-pill);
+  padding: 0.55rem 1.1rem 0.55rem 0.6rem;
+  background: var(--surface);
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.marqueeMark {
+  display: grid;
+  width: 1.9rem;
+  height: 1.9rem;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--surface-soft);
+  color: var(--chocolate-dark);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.values {
+  padding-top: clamp(3.5rem, 9vh, 5.5rem);
+}
+
+.valueGrid {
+  display: grid;
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.valueCard {
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+  padding: 1.75rem;
+  background: var(--surface);
+  box-shadow: var(--shadow-raised);
+}
+
+.valueIndex {
+  color: var(--chocolate-light);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.valueCard h3 {
+  margin: 0.85rem 0 0;
+  font-size: 1.12rem;
+  letter-spacing: -0.02em;
+}
+
+.valueCard p {
+  margin: 0.5rem 0 0;
+  color: var(--text-secondary);
+  font-size: 0.925rem;
+  line-height: 1.6;
+}
+
+/* Oversized outlined wordmark drifting across the page — pure decoration,
+   hidden from assistive tech, clipped by the page. */
+.ticker {
+  overflow: hidden;
+  width: 100vw;
+  margin: clamp(4rem, 10vh, 6rem) calc(50% - 50vw) 0;
+  user-select: none;
+}
+
+.tickerTrack {
+  display: flex;
+  width: max-content;
+  animation: landing-marquee 30s linear infinite;
+  color: transparent;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(3.5rem, 11vw, 8rem);
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+  -webkit-text-stroke: 1px var(--chocolate-light);
+}
+
+.tickerTrack span {
+  padding-right: 0.35em;
+  white-space: nowrap;
+}
+
+.pricing {
+  padding-top: clamp(3.5rem, 9vh, 5.5rem);
+}
+
+.planGrid {
+  display: grid;
+  gap: 1.25rem;
+  margin-top: 2.5rem;
+}
+
+.plan {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+  padding: clamp(1.75rem, 5vw, 2.25rem);
+  background: var(--surface);
+  box-shadow: var(--shadow-raised);
+  transition:
+    transform var(--duration-base) var(--ease-out),
+    box-shadow var(--duration-base) var(--ease-out);
+}
+
+.plan:hover {
+  box-shadow: var(--shadow-floating);
+  transform: translate3d(0, -4px, 0);
+}
+
+.plan h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.planFeatured {
+  border-color: transparent;
+  background: var(--chocolate-dark);
+  box-shadow: var(--shadow-overlay);
+  color: white;
+}
+
+.planBadge {
+  position: absolute;
+  top: 1.4rem;
+  right: 1.4rem;
+  border-radius: var(--radius-pill);
+  padding: 0.35rem 0.7rem;
+  background: rgb(255 255 255 / 16%);
+  color: white;
+  font-size: 0.66rem;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.planPrice {
+  margin: 1rem 0 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(2.6rem, 8vw, 3.4rem);
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+.planPrice span {
+  color: var(--text-secondary);
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.9rem;
+  font-weight: 650;
+  letter-spacing: 0;
+}
+
+.planFeatured .planPrice span {
+  color: rgb(255 255 255 / 72%);
+}
+
+.planTagline {
+  margin: 0.75rem 0 0;
+  color: var(--text-secondary);
+  font-size: 0.925rem;
+  line-height: 1.6;
+}
+
+.planFeatured .planTagline {
+  color: rgb(255 255 255 / 82%);
+}
+
+.planFeatures {
+  display: grid;
+  gap: 0.6rem;
+  margin: 1.5rem 0 2rem;
+  padding: 0;
+  list-style: none;
+}
+
+.planFeatures li {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.planFeatures li::before {
+  color: var(--chocolate);
+  content: "✓";
+  font-weight: 800;
+}
+
+.planFeatured .planFeatures li {
+  color: rgb(255 255 255 / 84%);
+}
+
+.planFeatured .planFeatures li::before {
+  color: var(--chocolate-light);
+}
+
+.planCta,
+.planCtaFeatured {
+  display: inline-flex;
+  min-height: 3.25rem;
+  align-items: center;
+  justify-content: center;
+  margin-top: auto;
+  border-radius: var(--radius-pill);
+  font-weight: 750;
+  text-decoration: none;
+  transition:
+    transform var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out);
+}
+
+.planCta {
+  border: 1px solid var(--border-strong);
+  color: var(--chocolate-dark);
+}
+
+.planCta:hover {
+  background: var(--surface-soft);
+}
+
+.planCtaFeatured {
+  background: white;
+  color: var(--chocolate-dark);
+}
+
+.planCtaFeatured:hover {
+  background: var(--surface-soft);
+}
+
+.planCta:active,
+.planCtaFeatured:active {
+  transform: scale(0.97);
+}
+
+.install {
+  margin-top: clamp(3.5rem, 9vh, 5.5rem);
   border: 1px solid var(--border-soft);
   border-radius: var(--radius-lg);
   padding: clamp(1.5rem, 5vw, 2.5rem);
@@ -405,13 +831,60 @@
 }
 
 .footer {
-  display: flex;
+  display: grid;
+  justify-items: center;
+  padding-top: clamp(4rem, 10vh, 6.5rem);
+  padding-bottom: max(2.5rem, env(safe-area-inset-bottom));
+  text-align: center;
+}
+
+.footerLine {
+  max-width: 14ch;
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(2.4rem, 9vw, 4.25rem);
+  font-weight: 500;
+  letter-spacing: -0.05em;
+  line-height: 1.02;
+}
+
+.footerCta {
+  display: inline-flex;
+  min-height: 3.5rem;
   align-items: center;
   justify-content: center;
-  padding-top: 2.5rem;
-  padding-bottom: max(2rem, env(safe-area-inset-bottom));
+  margin-top: 1.75rem;
+  border-radius: var(--radius-pill);
+  padding: 0.75rem 1.75rem;
+  background: var(--chocolate-dark);
+  box-shadow: 0 0.75rem 2rem rgb(95 64 50 / 18%);
+  color: white;
+  font-weight: 750;
+  text-decoration: none;
+  transition:
+    transform var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out);
+}
+
+.footerCta:hover {
+  background: #4f3429;
+  transform: translate3d(0, -2px, 0);
+}
+
+.footerCta:active {
+  transform: scale(0.97);
+}
+
+.footerLegal {
+  margin-top: 2.5rem;
   color: var(--text-secondary);
   font-size: 0.8rem;
+}
+
+@media (min-width: 40rem) {
+  .headerNav a[href^="#"] {
+    display: inline-flex;
+  }
 }
 
 @media (min-width: 48rem) {
@@ -422,6 +895,14 @@
 
   .hero h1 {
     font-size: clamp(4rem, 7.5vw, 5.2rem);
+  }
+
+  .valueGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .planGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .install {
@@ -441,9 +922,9 @@
 }
 
 @media (max-width: 23rem) {
-  .header,
   .mainContent,
-  .footer {
+  .footer,
+  .headerInner {
     width: min(100% - 2rem, 68rem);
   }
 
@@ -451,7 +932,9 @@
     font-size: 2.8rem;
   }
 
-  .primaryButton {
+  .heroActions,
+  .primaryButton,
+  .secondaryButton {
     width: 100%;
   }
 
@@ -464,17 +947,25 @@
 @media (prefers-reduced-motion: reduce) {
   .primaryButton,
   .primaryButton span,
-  .headerLink {
+  .secondaryButton,
+  .headerLink,
+  .plan,
+  .planCta,
+  .planCtaFeatured,
+  .footerCta {
     transition: none;
   }
 
   /* Belt and braces on top of the global kill switch in globals.css: the hero
-     is the first thing a visitor sees, so it must be fully composed on the
-     first frame with no delay, no drift and no perpetual float. */
+     must be fully composed on the first frame, and the looping strips must
+     hold still instead of replaying their collapsed loop. */
   .header,
   .heroCopy > *,
+  .headlineWordInner,
   .previewWrap,
-  .phone {
+  .phone,
+  .marqueeTrack,
+  .tickerTrack {
     animation: none;
   }
 }
