@@ -187,21 +187,29 @@ roughly 2.5 GB of free memory; running that on every deploy would put an
 avoidable OOM risk on the deployment path. It is idempotent, so it is run
 manually once and again only when adopting a fresher registry release.
 
-From a shell on the host, against the deployed stack:
+Run it **inside the already-running `worker` container**, from Dokploy's
+terminal for that service or through `docker exec`. That container already
+holds the correct `DATABASE_URL` for the deployed database, which is what makes
+this the safe place to run it:
 
 ```bash
-docker compose -f docker-compose.dokploy.yml run --rm \
-  -e NODE_OPTIONS=--max-old-space-size=3072 \
-  migrate ./packages/database/node_modules/.bin/tsx packages/database/src/ror.ts
+NODE_OPTIONS=--max-old-space-size=3072 \
+  ./packages/database/node_modules/.bin/tsx packages/database/src/ror.ts
 ```
 
-Add `--dry-run` first to validate the mapping without writing. The command
+Append `--dry-run` first to validate the mapping without writing. The command
 reports how many universities, aliases and registry sources it created; a
 second run reports zero created rows.
 
 If the host has less than about 3 GB free, restrict the scope instead of
 importing the whole registry, for example
 `packages/database/src/ror.ts --countries FR,GB,DE,SG,US`.
+
+Do not run this through `docker compose run` from a host shell unless you are
+in Dokploy's own deployment directory with its project name. Compose otherwise
+treats the invocation as a new project, starts a second empty PostgreSQL, and
+imports into that throwaway database — the command reports a full successful
+import while the deployed catalogue stays empty.
 
 Dokploy's native domain configuration should manage TLS and Traefik routing:
 
