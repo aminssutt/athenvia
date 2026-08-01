@@ -16,6 +16,7 @@
     "db:migrate": "prisma migrate dev",
     "db:seed": "tsx src/seed.ts",
     "db:seed:check": "tsx src/seed.ts --dry-run",
+    "db:import:ror": "tsx src/ror.ts",
     "test:duplicate-detection:integration": "tsx tests/duplicate-detection.integration.ts",
     "test:program-submissions:integration": "tsx tests/program-submissions.integration.ts",
     "test:canonical-revisions:integration": "tsx tests/canonical-revisions.integration.ts",
