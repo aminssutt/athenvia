@@ -21,6 +21,7 @@
     "db:migrate": "node scripts/with-env.mjs --filter @athenvia/database db:migrate",
     "db:seed": "node scripts/with-env.mjs --filter @athenvia/database db:seed",
     "db:seed:check": "node scripts/with-env.mjs --filter @athenvia/database db:seed:check",
+    "db:import:ror": "node scripts/with-env.mjs --filter @athenvia/database db:import:ror",
     "vapid:generate": "web-push generate-vapid-keys"
   },
   "devDependencies": {
