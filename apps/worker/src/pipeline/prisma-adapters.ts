@@ -54,6 +54,7 @@ export async function loadParseableSnapshot(
         select: {
           program: {
             select: {
+              name: true,
               university: { select: { countryCode: true } },
               intakes: {
                 select: {
@@ -82,6 +83,7 @@ export async function loadParseableSnapshot(
     sourceId: snapshot.sourceId,
     storageKey: snapshot.storageKey,
     universityCountryCode: snapshot.source.program?.university.countryCode ?? null,
+    programName: snapshot.source.program?.name ?? null,
     intakes: snapshot.source.program?.intakes ?? [],
   };
 }

@@ -2,9 +2,11 @@ import type { Logger } from "pino";
 
 import { extractDateCandidates, extractSafeText } from "../parsing";
 import { matchDateCandidatesToIntakes } from "../verification";
+import { verifiedLlmEvidence } from "./llm-extraction";
 
 import type { DateCandidate } from "../parsing";
-import type { IntakeDateEvidence, MatchableIntake } from "../verification";
+import type { IntakeDateEvidence, IntakeDateMatch, MatchableIntake } from "../verification";
+import type { LlmDateExtractor } from "./llm-extraction";
 
 export type ParseableWindow = {
   id: string;
@@ -27,6 +29,7 @@ export type ParseableSnapshot = {
   storageKey: string;
   /** United States publications order numeric dates month-first. */
   universityCountryCode: string | null;
+  programName: string | null;
   intakes: readonly ParseableIntake[];
 };
 
@@ -45,6 +48,8 @@ export type ParseProcessorDependencies = {
     proposal: ProposedRevision,
   ) => Promise<{ outcome: "CONFLICT" | "PENDING" | "UNCHANGED"; revisionId: string | null }>;
   enqueueReview: (revisionId: string) => Promise<void>;
+  /** Optional citation-constrained LLM pass; absent means deterministic only. */
+  llmExtractor?: LlmDateExtractor;
   logger: Logger;
   now?: () => Date;
 };
@@ -156,58 +161,117 @@ export async function processParseJob(
   );
   const intakesById = new Map(snapshot.intakes.map((intake) => [intake.id, intake]));
 
-  let matched = 0;
-  let revisionsCreated = 0;
-  for (const match of matches) {
-    if (match.status !== "MATCHED" || !match.intakeId) {
-      continue;
-    }
-    matched += 1;
+  const proposeFromMatches = async (
+    matchList: readonly IntakeDateMatch[],
+    evidenceLookup: Map<string, IntakeDateEvidence>,
+  ): Promise<{ matched: number; revisionsCreated: number }> => {
+    let matched = 0;
+    let revisionsCreated = 0;
+    for (const match of matchList) {
+      if (match.status !== "MATCHED" || !match.intakeId) {
+        continue;
+      }
+      matched += 1;
 
-    const item = evidenceById.get(match.evidenceId);
-    if (!item) {
-      continue;
-    }
-    const instant = candidateInstant(item.candidate);
-    if (!instant) {
-      continue;
-    }
+      const item = evidenceLookup.get(match.evidenceId);
+      if (!item) {
+        continue;
+      }
+      const instant = candidateInstant(item.candidate);
+      if (!instant) {
+        continue;
+      }
 
-    const intake = intakesById.get(match.intakeId);
-    const window =
-      (match.applicationRoundId ? windowsById.get(match.applicationRoundId) : undefined) ??
-      (intake && intake.applicationWindows.length === 1 ? intake.applicationWindows[0] : undefined);
-    if (!window) {
+      const intake = intakesById.get(match.intakeId);
+      const window =
+        (match.applicationRoundId ? windowsById.get(match.applicationRoundId) : undefined) ??
+        (intake && intake.applicationWindows.length === 1
+          ? intake.applicationWindows[0]
+          : undefined);
+      if (!window) {
+        dependencies.logger.info({
+          event: "pipeline.parse_window_unresolved",
+          intakeId: match.intakeId,
+          sourceSnapshotId,
+        });
+        continue;
+      }
+
+      const fieldName = item.candidate.kind === "APPLICATION_DEADLINE" ? "closesAt" : "opensAt";
+      const currentDate = fieldName === "closesAt" ? window.closesAt : window.opensAt;
+      const proposal: ProposedRevision = {
+        currentValue: currentDate ? currentDate.toISOString() : null,
+        entityId: window.id,
+        fieldName,
+        proposedValue: instant,
+      };
+      if (proposal.currentValue === proposal.proposedValue) {
+        continue;
+      }
+
+      const revision = await dependencies.createRevision(snapshot, proposal);
+      if (revision.revisionId && revision.outcome !== "UNCHANGED") {
+        revisionsCreated += 1;
+        await dependencies.enqueueReview(revision.revisionId);
+      }
+    }
+    return { matched, revisionsCreated };
+  };
+
+  const deterministic = await proposeFromMatches(matches, evidenceById);
+  let { matched, revisionsCreated } = deterministic;
+  let llmClaims = 0;
+  let llmVerified = 0;
+
+  // The model is a last resort: it only runs when the deterministic pass
+  // published nothing, and every claim it makes is citation-checked and
+  // re-parsed deterministically before it can propose anything.
+  if (revisionsCreated === 0 && dependencies.llmExtractor && text.length > 0) {
+    try {
+      const claims = await dependencies.llmExtractor({
+        intakes: snapshot.intakes.map((intake) => ({ month: intake.month, year: intake.year })),
+        programName: snapshot.programName,
+        text,
+      });
+      llmClaims = claims.length;
+      const verified = verifiedLlmEvidence(claims, text, {
+        numericDateOrder: snapshot.universityCountryCode === "US" ? "MDY" : "DMY",
+        referenceDate,
+        timeZone: "UTC",
+      });
+      llmVerified = verified.evidence.length;
+      if (verified.evidence.length > 0) {
+        const llmEvidenceById = new Map(verified.evidence.map((item) => [item.evidenceId, item]));
+        const llmMatches = matchDateCandidatesToIntakes(verified.evidence, matchableIntakes, {
+          asOfDate: isoDay(referenceDate),
+        });
+        const llmResult = await proposeFromMatches(llmMatches, llmEvidenceById);
+        matched += llmResult.matched;
+        revisionsCreated += llmResult.revisionsCreated;
+      }
       dependencies.logger.info({
-        event: "pipeline.parse_window_unresolved",
-        intakeId: match.intakeId,
+        event: "pipeline.parse_llm_pass",
+        llmClaims,
+        llmVerified,
+        rejectedQuotes: verified.rejectedQuotes,
         sourceSnapshotId,
       });
-      continue;
-    }
-
-    const fieldName = item.candidate.kind === "APPLICATION_DEADLINE" ? "closesAt" : "opensAt";
-    const currentDate = fieldName === "closesAt" ? window.closesAt : window.opensAt;
-    const proposal: ProposedRevision = {
-      currentValue: currentDate ? currentDate.toISOString() : null,
-      entityId: window.id,
-      fieldName,
-      proposedValue: instant,
-    };
-    if (proposal.currentValue === proposal.proposedValue) {
-      continue;
-    }
-
-    const revision = await dependencies.createRevision(snapshot, proposal);
-    if (revision.revisionId && revision.outcome !== "UNCHANGED") {
-      revisionsCreated += 1;
-      await dependencies.enqueueReview(revision.revisionId);
+    } catch (error) {
+      // An unavailable model degrades to the deterministic result; the sweep
+      // retries the source on its normal cadence.
+      dependencies.logger.warn({
+        error,
+        event: "pipeline.parse_llm_failed",
+        sourceSnapshotId,
+      });
     }
   }
 
   dependencies.logger.info({
     candidates: relevant.length,
     event: "pipeline.parse_completed",
+    llmClaims,
+    llmVerified,
     matched,
     revisionsCreated,
     sourceSnapshotId,
