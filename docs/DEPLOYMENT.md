@@ -121,6 +121,26 @@ The three dedicated rate-limit salts are optional because `AUTH_SECRET` is the
 fallback. They can be independently generated later for easier secret
 rotation.
 
+### Verification pipeline
+
+All four values are optional and have working defaults; only the Gemini key
+changes behaviour.
+
+- `SOURCE_RECHECK_DAYS` (default `7`): an official programme source is
+  re-fetched once its last check is older than this.
+- `SOURCE_RECHECK_BATCH` (default `25`): politeness cap on how many sources one
+  sweep enqueues. The sweep runs every six hours.
+- `GEMINI_API_KEY`: enables the citation-constrained extraction pass. Without
+  it the pipeline stays fully deterministic and nothing else changes.
+- `GEMINI_MODEL` (default `gemini-2.5-flash`).
+
+`SNAPSHOT_STORAGE_DIR` is set by Compose to `/app/data/snapshots` and must not
+be overridden: it is the mount point of the `snapshot_data` volume. Immutable
+source snapshots are content-addressed files there, and `source_snapshots` rows
+reference them by storage key. Losing the volume while keeping the database
+leaves rows pointing at missing bytes, and every later parse job for those
+snapshots fails.
+
 ## Dokploy deployment
 
 Dokploy uses its own Compose file, `docker-compose.dokploy.yml`, not
@@ -156,6 +176,32 @@ private network and pinned image tags are the better setup.
    domain configuration changes.
 7. Verify `https://YOUR_DOMAIN/api/health`, the sign-in page, the worker logs
    and one push subscription.
+8. Import the university registry once, as described below. Until it runs, the
+   catalogue contains only the curated seed universities.
+
+### Importing the ROR university catalogue
+
+The registry import is deliberately **not** part of the `migrate` one-shot. It
+downloads a ~35 MB archive and parses a ~300 MB JSON document, which needs
+roughly 2.5 GB of free memory; running that on every deploy would put an
+avoidable OOM risk on the deployment path. It is idempotent, so it is run
+manually once and again only when adopting a fresher registry release.
+
+From a shell on the host, against the deployed stack:
+
+```bash
+docker compose -f docker-compose.dokploy.yml run --rm \
+  -e NODE_OPTIONS=--max-old-space-size=3072 \
+  migrate ./packages/database/node_modules/.bin/tsx packages/database/src/ror.ts
+```
+
+Add `--dry-run` first to validate the mapping without writing. The command
+reports how many universities, aliases and registry sources it created; a
+second run reports zero created rows.
+
+If the host has less than about 3 GB free, restrict the scope instead of
+importing the whole registry, for example
+`packages/database/src/ror.ts --countries FR,GB,DE,SG,US`.
 
 Dokploy's native domain configuration should manage TLS and Traefik routing:
 

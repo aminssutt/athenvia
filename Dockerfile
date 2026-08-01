@@ -100,6 +100,11 @@ WORKDIR /app
 
 COPY --from=worker-package --chown=node:node /app ./
 
+# Snapshot storage is a mount point, and Docker seeds a fresh named volume from
+# the image directory it covers. Creating it here as node:node is what makes the
+# volume writable by the unprivileged runtime user.
+RUN mkdir -p /app/data/snapshots && chown -R node:node /app/data
+
 USER node
 
 CMD ["./apps/worker/node_modules/.bin/tsx", "apps/worker/src/index.ts"]
@@ -107,6 +112,13 @@ CMD ["./apps/worker/node_modules/.bin/tsx", "apps/worker/src/index.ts"]
 FROM worker AS migrate
 
 ENV NODE_ENV=production
+
+# The registry import extracts a zip archive, which GNU tar cannot read.
+USER root
+RUN apt-get update \
+  && apt-get install --yes --no-install-recommends unzip \
+  && rm -rf /var/lib/apt/lists/*
+USER node
 
 COPY --chown=node:node data/seed ./data/seed
 
