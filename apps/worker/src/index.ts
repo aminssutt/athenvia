@@ -15,9 +15,35 @@ import {
   VERIFICATION_DEAD_LETTER_QUEUE_NAME,
 } from "./queue-contracts";
 import { attachVerificationDeadLetterRouting, createDeadLetterProcessor } from "./dead-letter";
-import { allQueues, redisConnection } from "./queues";
-import { notificationQueue } from "./queues";
-import { vapidConfiguration } from "./config";
+import { OfficialSourceFetcher } from "./fetch";
+import {
+  addParseJob,
+  addReviewJob,
+  allQueues,
+  fetchQueue,
+  notificationQueue,
+  redisConnection,
+} from "./queues";
+import {
+  verificationQueueContracts,
+  type FetchJobData,
+  type ParseJobData,
+  type ReviewJobData,
+} from "./queue-contracts";
+import { FilesystemSnapshotStore } from "./pipeline/filesystem-snapshot-store";
+import { processFetchJob } from "./pipeline/fetch-processor";
+import { processParseJob } from "./pipeline/parse-processor";
+import { processReviewJob } from "./pipeline/review-processor";
+import { runSourceRecheckSweep } from "./pipeline/recheck-sweep";
+import {
+  createWindowRevision,
+  findStaleOfficialSources,
+  loadFetchableSource,
+  loadParseableSnapshot,
+  loadReviewableRevision,
+  recordSourceCheck,
+} from "./pipeline/prisma-adapters";
+import { vapidConfiguration, workerEnvironment } from "./config";
 import { WebPushNotificationTransport } from "./web-push-transport";
 import {
   clearWorkerHeartbeat,
@@ -161,6 +187,116 @@ const reminderSweepInterval = setInterval(() => void sweepReminderSchedules(), 5
 reminderSweepInterval.unref();
 void sweepReminderSchedules();
 
+const snapshotStore = new FilesystemSnapshotStore(workerEnvironment.SNAPSHOT_STORAGE_DIR);
+
+const fetchWorker = new Worker<FetchJobData>(
+  verificationQueueContracts.fetch.queueName,
+  (job) =>
+    processFetchJob(job.data.sourceId, {
+      enqueueParse: async (sourceSnapshotId) => {
+        await addParseJob({ sourceSnapshotId });
+      },
+      // A fetcher per job trades cross-job rate-limiter state for a host
+      // allowlist scoped to exactly this source; the sweep's daily dedupe and
+      // the low concurrency keep the request rate polite regardless.
+      fetchOfficialSource: (url, approvedHosts) =>
+        new OfficialSourceFetcher({ approvedHosts }).fetch(url),
+      loadSource: loadFetchableSource,
+      logger: logger.child(jobCorrelationFields(verificationQueueContracts.fetch.queueName, job)),
+      objectStore: snapshotStore,
+      recordSourceCheck,
+    }),
+  { connection: redisConnection, concurrency: 2 },
+);
+
+const parseWorker = new Worker<ParseJobData>(
+  verificationQueueContracts.parse.queueName,
+  (job) =>
+    processParseJob(job.data.sourceSnapshotId, {
+      createRevision: createWindowRevision,
+      enqueueReview: async (revisionId) => {
+        await addReviewJob({ revisionId });
+      },
+      loadSnapshot: loadParseableSnapshot,
+      logger: logger.child(jobCorrelationFields(verificationQueueContracts.parse.queueName, job)),
+      readSnapshotBody: (storageKey) => snapshotStore.read(storageKey),
+    }),
+  { connection: redisConnection, concurrency: 2 },
+);
+
+const reviewWorker = new Worker<ReviewJobData>(
+  verificationQueueContracts.review.queueName,
+  (job) =>
+    processReviewJob(job.data.revisionId, {
+      loadRevision: loadReviewableRevision,
+      logger: logger.child(jobCorrelationFields(verificationQueueContracts.review.queueName, job)),
+    }),
+  { connection: redisConnection, concurrency: 5 },
+);
+
+for (const [stage, worker] of [
+  ["fetch", fetchWorker],
+  ["parse", parseWorker],
+  ["review", reviewWorker],
+] as const) {
+  worker.on("failed", (job, error) => {
+    logger.error(
+      {
+        ...(job ? jobCorrelationFields(stage, job, "settled") : {}),
+        error,
+        event: "worker.job_failed",
+        queue: stage,
+      },
+      "Verification pipeline job failed",
+    );
+  });
+  worker.on("error", (error) => {
+    logger.error(
+      { error, event: "worker.queue_error", queue: stage },
+      "Verification pipeline worker error",
+    );
+  });
+}
+
+let recheckSweepTask: Promise<void> | null = null;
+const sweepStaleSources = () => {
+  if (recheckSweepTask !== null) {
+    return recheckSweepTask;
+  }
+  recheckSweepTask = (async () => {
+    try {
+      await runSourceRecheckSweep(
+        {
+          batchSize: workerEnvironment.SOURCE_RECHECK_BATCH,
+          recheckDays: workerEnvironment.SOURCE_RECHECK_DAYS,
+        },
+        {
+          enqueueFetch: async (sourceId, dedupeKey) => {
+            await fetchQueue.add(
+              verificationQueueContracts.fetch.jobName,
+              { sourceId },
+              { jobId: dedupeKey },
+            );
+          },
+          findStaleSources: findStaleOfficialSources,
+          logger,
+        },
+      );
+    } catch (error) {
+      logger.error(
+        { errorName: error instanceof Error ? error.name : "UnknownError" },
+        "Source recheck sweep failed",
+      );
+    } finally {
+      recheckSweepTask = null;
+    }
+  })();
+  return recheckSweepTask;
+};
+const recheckSweepInterval = setInterval(() => void sweepStaleSources(), 6 * 60 * 60_000);
+recheckSweepInterval.unref();
+void sweepStaleSources();
+
 const deadLetterWorker = new Worker<VerificationJobData>(
   VERIFICATION_DEAD_LETTER_QUEUE_NAME,
   createDeadLetterProcessor(logger),
@@ -201,12 +337,20 @@ const shutdown = async (signal: string) => {
   logger.info({ event: "worker.shutdown", signal }, "Worker shutdown requested");
   clearInterval(dispatchInterval);
   clearInterval(reminderSweepInterval);
+  clearInterval(recheckSweepInterval);
   if (heartbeatInterval) {
     clearInterval(heartbeatInterval);
   }
-  await Promise.all([dispatchTask ?? Promise.resolve(), reminderSweepTask ?? Promise.resolve()]);
+  await Promise.all([
+    dispatchTask ?? Promise.resolve(),
+    reminderSweepTask ?? Promise.resolve(),
+    recheckSweepTask ?? Promise.resolve(),
+  ]);
   await Promise.all([
     notificationWorker.close(),
+    fetchWorker.close(),
+    parseWorker.close(),
+    reviewWorker.close(),
     deadLetterWorker.close(),
     deadLetterRouting.close(),
   ]);
@@ -232,6 +376,9 @@ process.on("unhandledRejection", (error) => {
 async function markWorkerReady(): Promise<void> {
   await Promise.all([
     notificationWorker.waitUntilReady(),
+    fetchWorker.waitUntilReady(),
+    parseWorker.waitUntilReady(),
+    reviewWorker.waitUntilReady(),
     deadLetterWorker.waitUntilReady(),
     deadLetterRouting.waitUntilReady(),
   ]);
