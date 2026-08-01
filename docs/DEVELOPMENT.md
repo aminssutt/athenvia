@@ -18,6 +18,10 @@
 
 Use `pnpm dev:web` when only the mocked frontend is needed.
 
+Stop `pnpm dev` before running `pnpm db:generate`. On Windows the running
+processes hold the Prisma query engine open, so regeneration fails partway with
+`EPERM` and leaves the generated client incomplete.
+
 The root commands load `.env` before they start a package. `DATABASE_URL` and
 `REDIS_URL` are derived from the PostgreSQL and Redis values for local host
 access, so package-level `.env` files are not needed.
