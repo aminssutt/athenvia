@@ -9,7 +9,6 @@ import { getUniversityLogoAsset } from "@/components/university-logo-assets";
 
 import styles from "./landing.module.css";
 import { ScrollReveal } from "./scroll-reveal";
-import { SplinePhones } from "./spline-phones";
 
 export const metadata: Metadata = {
   title: "University application reminders",
@@ -122,63 +121,6 @@ function HomeIcon() {
   );
 }
 
-/* Static mock of the watching screen — the hero's no-JS/reduced-motion/mobile
-   product shot, and the placeholder while the 3D scene loads. */
-function PhonePreview() {
-  return (
-    <div className={styles.phone}>
-      <div className={styles.phoneTop} aria-hidden="true">
-        <span>9:41</span>
-        <span className={styles.phonePill} />
-        <span>●●●</span>
-      </div>
-      <div className={styles.previewHeader}>
-        <div>
-          <p className={styles.previewKicker}>Your programs</p>
-          <p className={styles.previewTitle}>Watching</p>
-        </div>
-        <span className={styles.avatar} aria-hidden="true">
-          A
-        </span>
-      </div>
-
-      <article className={styles.programCard}>
-        <div className={styles.programHeading}>
-          <span className={styles.universityMark} aria-hidden="true">
-            <img alt="" decoding="async" src="/university-logos/nus.png" />
-          </span>
-          <div>
-            <h2>MSc Venture Creation</h2>
-            <p>National University of Singapore</p>
-          </div>
-        </div>
-        <div className={styles.dateRow}>
-          <span className={`${styles.status} ${styles.statusWaiting}`}>Not published yet</span>
-          <span className={styles.dateHint}>Checking for updates</span>
-        </div>
-      </article>
-
-      <article className={`${styles.programCard} ${styles.secondaryCard}`}>
-        <div className={styles.programHeading}>
-          <span className={styles.universityMark} aria-hidden="true">
-            <img alt="" decoding="async" src="/university-logos/eth-zurich.png" />
-          </span>
-          <div>
-            <h2>MSc Data Science</h2>
-            <p>ETH Zürich</p>
-          </div>
-        </div>
-        <div className={styles.dateRow}>
-          <span className={`${styles.status} ${styles.statusConfirmed}`}>
-            Confirmed by the university
-          </span>
-          <strong className={styles.dateHint}>30 Nov</strong>
-        </div>
-      </article>
-    </div>
-  );
-}
-
 function MarqueeRow({ names, reverse }: { names: string[]; reverse?: boolean }) {
   const items = (hidden: boolean) => (
     <ul aria-hidden={hidden || undefined} className={styles.marqueeGroup}>
@@ -273,7 +215,22 @@ export default function LandingPage() {
 
           <div className={styles.previewWrap} aria-label="Athenvia app preview">
             <div className={styles.previewGlow} aria-hidden="true" />
-            <SplinePhones fallback={<PhonePreview />} />
+            {/* Device-frame composite: the app capture sits behind the frame
+                asset, whose screen area is knocked out (transparent), so the
+                shot shows through exactly like a photographed phone. */}
+            <div className={styles.deviceFrame}>
+              <span className={styles.deviceScreen} aria-hidden="true">
+                <img alt="" decoding="async" src="/marketing/screen-search.png" />
+              </span>
+              <img
+                alt=""
+                className={styles.deviceChrome}
+                decoding="async"
+                height={1037}
+                src="/marketing/iphone-frame.webp"
+                width={520}
+              />
+            </div>
           </div>
         </section>
 

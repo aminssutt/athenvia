@@ -283,205 +283,65 @@
 /* 3D product shot. The stage owns the hero column's height so the layout
    never jumps: the CSS mock and the canvas overlap inside it and cross-fade
    when the scene finishes loading. */
-.splineStage {
+/* Device-frame product shot.
+   The frame asset's screen area is transparent, so the capture sits behind it
+   (z1) and shows through; the bezel then covers the capture's square corners.
+   Screen rectangle percentages are measured from the asset's alpha channel. */
+.deviceFrame {
   position: relative;
-  min-height: 30rem;
-}
-
-.splineFallback {
-  position: relative;
-  width: min(100%, 24rem);
+  width: min(100%, 21rem);
   margin-inline: auto;
-  transition: opacity calc(var(--duration-slow) * 2) var(--ease-out);
-}
-
-.splineCanvas {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  border-radius: var(--radius-lg);
-  opacity: 0;
-  transition: opacity calc(var(--duration-slow) * 2) var(--ease-out);
-}
-
-.splineCanvas canvas {
-  display: block;
-  width: 100% !important;
-  height: 100% !important;
-}
-
-.splineStage[data-phase="ready"] .splineFallback {
-  opacity: 0;
-  pointer-events: none;
-}
-
-.splineStage[data-phase="ready"] .splineCanvas {
-  opacity: 1;
-}
-
-.phone {
-  position: relative;
-  overflow: hidden;
-  border: 1px solid rgb(95 64 50 / 10%);
-  border-radius: 2.25rem;
-  padding: 0.65rem 1rem 1.25rem;
-  background: rgb(255 255 255 / 88%);
-  box-shadow:
-    0 2rem 5rem rgb(95 64 50 / 14%),
-    inset 0 0 0 0.35rem rgb(255 255 255 / 55%);
-  backdrop-filter: blur(1rem);
   /* A 5px drift over 9 s: slow enough that it is felt rather than watched, and
      cheap enough to be free — a composited transform on a single already
      promoted layer, with no layout or paint per frame. */
   animation: landing-float 9s var(--ease-in-out) infinite alternate;
 }
 
-.phoneTop {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  padding: 0 0.2rem;
-  color: var(--text-secondary);
-  font-size: 0.58rem;
-  font-weight: 700;
-}
-
-.phoneTop span:last-child {
-  justify-self: end;
-  font-size: 0.4rem;
-  letter-spacing: 0.12em;
-}
-
-.phonePill {
-  width: 4.4rem;
-  height: 1.25rem;
-  border-radius: var(--radius-pill);
-  background: var(--text-primary);
-}
-
-.previewHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1.5rem 0.2rem 1rem;
-}
-
-.previewKicker {
-  margin: 0 0 0.15rem;
-  color: var(--text-secondary);
-  font-size: 0.7rem;
-}
-
-.previewTitle {
-  margin: 0;
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: 1.65rem;
-  letter-spacing: -0.04em;
-}
-
-.avatar {
-  display: grid;
-  width: 2.25rem;
-  height: 2.25rem;
-  place-items: center;
-  border-radius: 50%;
-  background: var(--surface-soft);
-  color: var(--chocolate-dark);
-  font-size: 0.75rem;
-  font-weight: 800;
-}
-
-.programCard {
-  display: grid;
-  gap: 1rem;
-  border: 1px solid var(--border-soft);
-  border-radius: 1.25rem;
-  padding: 1rem;
-  background: var(--surface);
-  box-shadow: var(--shadow-raised);
-}
-
-.secondaryCard {
-  margin-top: 0.75rem;
-}
-
-.programHeading {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 0.75rem;
-  align-items: center;
-}
-
-.universityMark {
-  display: grid;
-  width: 2.6rem;
-  height: 2.6rem;
-  place-items: center;
-  overflow: hidden;
-  border: 1px solid var(--border-soft);
-  border-radius: 0.8rem;
-  background: var(--surface);
-  color: var(--chocolate-dark);
-  font-weight: 850;
-}
-
-.universityMark img {
+.deviceChrome {
+  position: relative;
+  z-index: 2;
+  display: block;
   width: 100%;
-  height: 100%;
-  padding: 0.3rem;
-  object-fit: contain;
+  height: auto;
+  pointer-events: none;
+  filter: drop-shadow(0 0.5rem 0.75rem rgb(95 64 50 / 10%))
+    drop-shadow(0 2.25rem 3.25rem rgb(95 64 50 / 20%));
 }
 
-.programHeading h2,
-.programHeading p {
-  margin: 0;
-}
-
-.programHeading h2 {
-  font-size: 0.86rem;
-  letter-spacing: -0.015em;
-}
-
-.programHeading p {
+.deviceScreen {
+  position: absolute;
+  z-index: 1;
+  top: 3.66%;
+  left: 7.31%;
   overflow: hidden;
-  margin-top: 0.2rem;
-  color: var(--text-secondary);
-  font-size: 0.68rem;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  width: 85.38%;
+  height: 92.67%;
+  background: var(--background);
 }
 
-.dateRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
+.deviceScreen img {
+  display: block;
+  width: 100%;
+  height: auto;
 }
 
-.status {
-  display: inline-flex;
-  width: fit-content;
-  border-radius: var(--radius-pill);
-  padding: 0.36rem 0.55rem;
-  font-size: 0.61rem;
-  font-weight: 750;
-  line-height: 1.2;
-}
-
-.statusWaiting {
-  background: var(--warning-soft);
-  color: var(--chocolate-dark);
-}
-
-.statusConfirmed {
-  background: var(--success-soft);
-  color: #355f3b;
-}
-
-.dateHint {
-  color: var(--text-secondary);
-  font-size: 0.61rem;
-  white-space: nowrap;
+/* Diagonal glare above the capture so the panel reads as glass rather than a
+   pasted screenshot. */
+.deviceFrame::after {
+  content: "";
+  position: absolute;
+  z-index: 3;
+  top: 3.66%;
+  left: 7.31%;
+  width: 85.38%;
+  height: 92.67%;
+  pointer-events: none;
+  background: linear-gradient(
+    122deg,
+    rgb(255 255 255 / 14%) 0%,
+    rgb(255 255 255 / 4%) 16%,
+    transparent 38%
+  );
 }
 
 /* Scroll entrances.
@@ -975,20 +835,12 @@
 
 @media (min-width: 48rem) {
   .hero {
-    grid-template-columns: minmax(0, 1fr) minmax(22rem, 0.95fr);
+    grid-template-columns: minmax(0, 1.05fr) minmax(19rem, 0.75fr);
     align-items: center;
   }
 
   .hero h1 {
     font-size: clamp(4rem, 7.5vw, 5.2rem);
-  }
-
-  .previewWrap {
-    width: 100%;
-  }
-
-  .splineStage {
-    min-height: clamp(30rem, 60vh, 36rem);
   }
 
   .valueGrid {
@@ -1031,11 +883,6 @@
   .secondaryButton {
     width: 100%;
   }
-
-  .dateRow {
-    align-items: flex-start;
-    flex-direction: column;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1060,16 +907,9 @@
   .heroCopy > *,
   .headlineWordInner,
   .previewWrap,
-  .phone,
+  .deviceFrame,
   .marqueeTrack,
   .tickerTrack {
     animation: none;
-  }
-
-  /* The 3D scene never mounts under reduced motion (spline-phones.tsx), so
-     only the cross-fade needs neutralising here. */
-  .splineFallback,
-  .splineCanvas {
-    transition: none;
   }
 }
