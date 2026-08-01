@@ -1,14 +1,14 @@
 import { getUniversityMonogram } from "@athenvia/ui";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Fragment, type CSSProperties } from "react";
+import { Fragment } from "react";
 
 import { Brand } from "@/components/brand";
 import { StandaloneRedirect } from "@/components/standalone-redirect";
 import { getUniversityLogoAsset } from "@/components/university-logo-assets";
 
 import styles from "./landing.module.css";
-import { ScrollReveal } from "./scroll-reveal";
+import { LandingMotion } from "./landing-motion";
 
 export const metadata: Metadata = {
   title: "University application reminders",
@@ -17,12 +17,6 @@ export const metadata: Metadata = {
 };
 
 const HEADLINE_WORDS = ["Never", "miss", "an", "application", "date."];
-
-/* Inline style helper for the staggered scroll reveals; the CSS module reads
-   the custom property as the element's transition delay. */
-function revealDelay(step: number): CSSProperties {
-  return { "--reveal-delay": `calc(${step} * var(--stagger-step) * 2)` } as CSSProperties;
-}
 
 /* Marketing wordmarks only: the live catalogue drives the real product pages,
    while this strip just names the calibre of universities inside it. */
@@ -121,7 +115,15 @@ function HomeIcon() {
   );
 }
 
-function MarqueeRow({ names, reverse }: { names: string[]; reverse?: boolean }) {
+function MarqueeRow({
+  names,
+  reverse,
+  slide,
+}: {
+  names: string[];
+  reverse?: boolean;
+  slide?: "left" | "right";
+}) {
   const items = (hidden: boolean) => (
     <ul aria-hidden={hidden || undefined} className={styles.marqueeGroup}>
       {names.map((name) => {
@@ -143,7 +145,7 @@ function MarqueeRow({ names, reverse }: { names: string[]; reverse?: boolean }) 
   );
 
   return (
-    <div className={styles.marquee}>
+    <div className={styles.marquee} data-slide={slide}>
       <div
         className={
           reverse ? `${styles.marqueeTrack} ${styles.marqueeReverse}` : styles.marqueeTrack
@@ -159,9 +161,9 @@ function MarqueeRow({ names, reverse }: { names: string[]; reverse?: boolean }) 
 
 export default function LandingPage() {
   return (
-    <main className={styles.page}>
+    <main className={styles.page} data-landing-root>
       <StandaloneRedirect />
-      <ScrollReveal />
+      <LandingMotion />
 
       <header className={styles.header}>
         <div className={styles.headerInner}>
@@ -202,7 +204,7 @@ export default function LandingPage() {
               Athenvia reminds you at the right time—before applications open or close.
             </p>
             <div className={styles.heroActions}>
-              <a className={styles.primaryButton} href="#install">
+              <a className={styles.primaryButton} data-magnetic href="#install">
                 Install Athenvia
                 <span aria-hidden="true">↓</span>
               </a>
@@ -213,12 +215,12 @@ export default function LandingPage() {
             <p className={styles.ctaNote}>Free to use · Made for your iPhone Home Screen</p>
           </div>
 
-          <div className={styles.previewWrap} aria-label="Athenvia app preview">
+          <div className={styles.previewWrap} aria-label="Athenvia app preview" data-phone-wrap>
             <div className={styles.previewGlow} aria-hidden="true" />
             {/* Device-frame composite: the app capture sits behind the frame
                 asset, whose screen area is knocked out (transparent), so the
                 shot shows through exactly like a photographed phone. */}
-            <div className={styles.deviceFrame}>
+            <div className={styles.deviceFrame} data-phone-frame>
               <span className={styles.deviceScreen} aria-hidden="true">
                 <img alt="" decoding="async" src="/marketing/screen-search.png" />
               </span>
@@ -243,25 +245,21 @@ export default function LandingPage() {
             <p className={styles.eyebrow}>The catalogue</p>
             <h2 id="universities-title">Programs from universities worth the wait.</h2>
             <p className={styles.sectionIntro}>
-              20+ universities and 50+ graduate programs, each date checked against the official
-              admissions page.
+              <span data-count-to="20">20</span>+ universities and{" "}
+              <span data-count-to="50">50</span>+ graduate programs, each date checked against the
+              official admissions page.
             </p>
           </div>
-          <div className={styles.marqueeStack} data-reveal style={revealDelay(1)}>
-            <MarqueeRow names={UNIVERSITY_ROWS[0]} />
-            <MarqueeRow names={UNIVERSITY_ROWS[1]} reverse />
+          <div className={styles.marqueeStack}>
+            <MarqueeRow names={UNIVERSITY_ROWS[0]} slide="left" />
+            <MarqueeRow names={UNIVERSITY_ROWS[1]} reverse slide="right" />
           </div>
         </section>
 
         <section className={styles.values} aria-label="Why Athenvia">
-          <ul className={styles.valueGrid}>
+          <ul className={styles.valueGrid} data-reveal-group>
             {VALUE_CARDS.map((card, index) => (
-              <li
-                key={card.title}
-                className={styles.valueCard}
-                data-reveal
-                style={revealDelay(index)}
-              >
+              <li key={card.title} className={styles.valueCard}>
                 <span aria-hidden="true" className={styles.valueIndex}>
                   {String(index + 1).padStart(2, "0")}
                 </span>
@@ -273,7 +271,7 @@ export default function LandingPage() {
         </section>
 
         <div aria-hidden="true" className={styles.ticker}>
-          <div className={styles.tickerTrack}>
+          <div className={styles.tickerTrack} data-ticker-track>
             <span>Follow · Verify · Remind · </span>
             <span>Follow · Verify · Remind · </span>
           </div>
@@ -287,13 +285,11 @@ export default function LandingPage() {
               Launch pricing preview — both plans are placeholders until launch day.
             </p>
           </div>
-          <div className={styles.planGrid}>
-            {PRICING_PLANS.map((plan, index) => (
+          <div className={styles.planGrid} data-reveal-group>
+            {PRICING_PLANS.map((plan) => (
               <article
                 key={plan.name}
                 className={plan.featured ? `${styles.plan} ${styles.planFeatured}` : styles.plan}
-                data-reveal
-                style={revealDelay(index)}
               >
                 {plan.featured ? <span className={styles.planBadge}>Early access</span> : null}
                 <h3>{plan.name}</h3>
@@ -324,7 +320,7 @@ export default function LandingPage() {
             <h2 id="install-title">Keep Athenvia one tap away.</h2>
             <p>No App Store needed. Install it directly from Safari.</p>
           </div>
-          <ol className={styles.steps} data-reveal style={revealDelay(1)}>
+          <ol className={styles.steps} data-reveal>
             <li>
               <ShareIcon />
               <span>

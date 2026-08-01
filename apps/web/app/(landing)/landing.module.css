@@ -344,20 +344,28 @@
   );
 }
 
-/* Scroll entrances.
-   Elements tagged data-reveal keep their final styles here; scroll-reveal.tsx
-   flips a state attribute and this transition carries them in. Without
-   JavaScript the state attribute never exists and nothing is ever hidden. */
-.page [data-reveal] {
-  transition:
-    opacity calc(var(--duration-slow) * 1.6) var(--ease-out),
-    transform calc(var(--duration-slow) * 1.6) var(--ease-out);
-  transition-delay: var(--reveal-delay, 0ms);
+/* Scroll entrances are driven by landing-motion.tsx (anime.js): elements are
+   only ever hidden from JavaScript after mount, so no-JS visitors and
+   reduced-motion users always see the page fully composed. When the motion
+   layer boots it stamps data-motion-active on the root and takes over the
+   looping pieces below, so CSS keyframes and inline JS transforms never
+   write to the same element. */
+.page[data-motion-active] .deviceFrame,
+.page[data-motion-active] .tickerTrack {
+  animation: none;
 }
 
-.page [data-reveal-state="hidden"] {
-  opacity: 0;
-  transform: translate3d(0, 1.75rem, 0);
+/* Depth for the cursor tilt on the hero phone. */
+.page[data-motion-active] .previewWrap {
+  perspective: 70rem;
+}
+
+/* The magnetic CTA is positioned by the motion layer; transitioning
+   transform here would double-smooth (and lag) its cursor follow. */
+.page[data-motion-active] .primaryButton {
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out);
 }
 
 .sectionHeading h2 {
