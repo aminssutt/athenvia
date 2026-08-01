@@ -27,11 +27,10 @@
 }
 
 .heading h1 {
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(2.3rem, 11vw, 3.2rem);
-  font-weight: 500;
-  letter-spacing: -0.05em;
-  line-height: 0.98;
+  font-size: clamp(1.9rem, 9vw, 2.6rem);
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 1.05;
 }
 
 .heading > p:last-child {
@@ -230,10 +229,9 @@
 }
 
 .confirmation h1 {
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: 2.4rem;
-  font-weight: 500;
-  letter-spacing: -0.045em;
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.035em;
 }
 
 .confirmation p {

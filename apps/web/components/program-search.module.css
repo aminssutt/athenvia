@@ -49,8 +49,9 @@
   align-items: center;
   min-height: 3.75rem;
   border: 1px solid var(--border-strong);
-  border-radius: 1.15rem;
-  background: var(--surface);
+  border-radius: var(--radius-md);
+  background: rgb(255 255 255 / 82%);
+  backdrop-filter: var(--glass-blur);
   box-shadow: var(--shadow-raised);
   transition:
     border-color var(--duration-fast) var(--ease-out),
@@ -322,9 +323,10 @@
 
 .suggestionList {
   overflow: hidden;
-  border: 1px solid var(--border-soft);
-  border-radius: var(--radius-lg);
-  background: var(--surface);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-md);
+  background: var(--surface-glass);
+  backdrop-filter: var(--glass-blur);
 }
 
 .suggestionList button {

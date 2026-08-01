@@ -8,9 +8,27 @@
   --text-primary: #2a211d;
   --text-secondary: #74645b;
   --border-soft: #e9ded6;
-  --success-soft: #e7f1e8;
-  --warning-soft: #f5ebd8;
-  --danger-soft: #f5e2df;
+
+  /* Semantic tints, deliberately close to neutral: state is always carried by
+     words and icons, so the wash only needs to whisper. */
+  --success-soft: #ebf1ec;
+  --warning-soft: #f4efe4;
+  --danger-soft: #f4e8e5;
+
+  /* Glass material for the app shell. Surfaces are translucent white over the
+     warm ambient background, blurred and slightly saturated so what scrolls
+     beneath reads as depth rather than noise. The hairline replaces opaque
+     borders on glass panels. */
+  --surface-glass: rgb(255 255 255 / 66%);
+  --surface-glass-strong: rgb(255 255 255 / 55%);
+  --border-glass: rgb(95 64 50 / 9%);
+  --glass-blur: blur(1.25rem) saturate(160%);
+
+  /* System-first type: SF Pro on Apple devices — the product's home turf —
+     with graceful equivalents elsewhere. No webfont (perf budget #102). */
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, ui-sans-serif, system-ui,
+    sans-serif;
   --focus-ring: #5f4032;
   --touch-target-min: 2.75rem;
   --radius-sm: 0.75rem;

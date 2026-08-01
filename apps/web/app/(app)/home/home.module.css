@@ -65,11 +65,10 @@
 
 .header h1 {
   margin: 0.45rem 0 0.5rem;
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: 2.5rem;
-  font-weight: 500;
-  letter-spacing: -0.045em;
-  line-height: 1.05;
+  font-size: 2.1rem;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 1.08;
 }
 
 .intro {
