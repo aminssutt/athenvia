@@ -1,3 +1,12 @@
+/* Local copy of the shared motion primitive from app/globals.css — see the
+   note there: a CSS Module can only reference keyframes it declares itself. */
+@keyframes athenvia-rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 0.75rem, 0);
+  }
+}
+
 .appFrame {
   display: grid;
   width: min(100%, 30rem);
@@ -12,8 +21,11 @@
   padding: max(1.25rem, env(safe-area-inset-top)) 1.25rem 2rem;
 }
 
+/* Route entrance — see the note in home.module.css: the remount doubles as a
+   page transition at zero runtime cost. */
 .header {
   padding: 1rem 0 2.5rem;
+  animation: athenvia-rise var(--duration-base) var(--ease-out) backwards;
 }
 
 .eyebrow {
@@ -46,6 +58,26 @@
   margin: 0;
   padding: 0;
   list-style: none;
+}
+
+/* Same capped stagger as home's watchlist and the search results. */
+.historyList > li {
+  --card-index: 0;
+
+  animation: athenvia-rise var(--duration-base) var(--ease-out) backwards;
+  animation-delay: calc((var(--card-index) + 1) * var(--stagger-step));
+}
+
+.historyList > li:nth-child(2) {
+  --card-index: 1;
+}
+
+.historyList > li:nth-child(3) {
+  --card-index: 2;
+}
+
+.historyList > li:nth-child(n + 4) {
+  --card-index: 3;
 }
 
 .historyCard {
@@ -172,5 +204,12 @@
   .main {
     padding-right: 1.5rem;
     padding-left: 1.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .header,
+  .historyList > li {
+    animation: none;
   }
 }

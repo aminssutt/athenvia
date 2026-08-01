@@ -4,6 +4,7 @@ import { getUniversityMonogram } from "@athenvia/ui";
 import { useState } from "react";
 
 import styles from "./product-components.module.css";
+import { getUniversityLogoAsset } from "./university-logo-assets";
 
 type UniversityLogoProps = {
   logoUrl: string | null;
@@ -13,7 +14,10 @@ type UniversityLogoProps = {
 
 export function UniversityLogo({ logoUrl, size = "medium", universityName }: UniversityLogoProps) {
   const [failedSource, setFailedSource] = useState<string | null>(null);
-  const showMonogram = !logoUrl || failedSource === logoUrl;
+  // A curated database URL always wins; the bundled launch-catalogue mark
+  // fills in while logo curation (#87) is still under way.
+  const source = logoUrl ?? getUniversityLogoAsset(universityName);
+  const showMonogram = !source || failedSource === source;
   const accessibleLabel = showMonogram ? `${universityName} monogram` : `${universityName} logo`;
 
   return (
@@ -29,12 +33,12 @@ export function UniversityLogo({ logoUrl, size = "medium", universityName }: Uni
         // A native image keeps approved remote assets independent of Next.js host configuration.
         <img
           className={styles.universityLogoImage}
-          src={logoUrl}
+          src={source}
           alt=""
           decoding="async"
           loading="lazy"
           referrerPolicy="no-referrer"
-          onError={() => setFailedSource(logoUrl)}
+          onError={() => setFailedSource(source)}
         />
       )}
     </span>

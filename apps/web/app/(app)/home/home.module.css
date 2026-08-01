@@ -129,6 +129,29 @@
   gap: 0.85rem;
 }
 
+/* Cards land one step behind their section, each a beat after the previous —
+   the same capped stagger the search results use, so lists read the same
+   everywhere. The cap keeps a long watchlist from taking longer to settle
+   than it took to render. */
+.programList > * {
+  --card-index: 0;
+
+  animation: athenvia-rise var(--duration-base) var(--ease-out) backwards;
+  animation-delay: calc((var(--card-index) + 2) * var(--stagger-step));
+}
+
+.programList > *:nth-child(2) {
+  --card-index: 1;
+}
+
+.programList > *:nth-child(3) {
+  --card-index: 2;
+}
+
+.programList > *:nth-child(n + 4) {
+  --card-index: 3;
+}
+
 .nextUsefulDate {
   margin: 0;
 }
@@ -184,7 +207,8 @@
 
 @media (prefers-reduced-motion: reduce) {
   .header,
-  .section {
+  .section,
+  .programList > * {
     animation: none;
   }
 
