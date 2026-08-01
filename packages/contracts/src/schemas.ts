@@ -124,8 +124,18 @@ export const SearchRequestSchema = z.object({
   cursor: z.string().trim().min(1).max(256).optional(),
 });
 
+export const UniversitySearchResultSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string().min(1),
+  countryCode: z.string().length(2),
+  city: z.string().nullable(),
+  officialWebsite: z.string().url().nullable(),
+  programCount: z.number().int().nonnegative(),
+});
+
 export const SearchResponseSchema = z.object({
   programs: z.array(ProgramSummarySchema),
+  universities: z.array(UniversitySearchResultSchema).default([]),
   nextCursor: z.string().nullable(),
 });
 
@@ -189,6 +199,7 @@ export type ProgramDetailSummary = z.infer<typeof ProgramDetailSummarySchema>;
 export type ProgramIntakeOption = z.infer<typeof ProgramIntakeOptionSchema>;
 export type ProgramDetail = z.infer<typeof ProgramDetailSchema>;
 export type SearchRequest = z.infer<typeof SearchRequestSchema>;
+export type UniversitySearchResult = z.infer<typeof UniversitySearchResultSchema>;
 export type SearchResponse = z.infer<typeof SearchResponseSchema>;
 export type SearchErrorCode = z.infer<typeof SearchErrorCodeSchema>;
 export type SearchErrorResponse = z.infer<typeof SearchErrorResponseSchema>;

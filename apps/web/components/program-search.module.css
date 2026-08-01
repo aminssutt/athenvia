@@ -433,6 +433,13 @@
   margin-top: 2.5rem;
 }
 
+.universitiesOnlyHint {
+  margin: 1.25rem 0 0;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
 .visuallyHidden {
   position: absolute;
   width: 1px;

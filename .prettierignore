@@ -1,0 +1,2 @@
+# Large local-only data caches; formatting a multi-hundred-megabyte dump aborts Prettier.
+data/ror-cache/

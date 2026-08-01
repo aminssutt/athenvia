@@ -1,16 +1,26 @@
 "use client";
 
-import { SearchResponseSchema, type ProgramSummary } from "@athenvia/contracts";
+import {
+  SearchResponseSchema,
+  type ProgramSummary,
+  type UniversitySearchResult,
+} from "@athenvia/contracts";
 import { type FormEvent, useEffect, useRef, useState } from "react";
 
 import { EmptyState, ErrorState, LoadingState } from "./interface-state";
 import { ProgramCard } from "./program-card";
 import styles from "./program-search.module.css";
+import { UniversityCard } from "./university-card";
 
 type SearchState =
   | { name: "idle" }
   | { name: "loading"; query: string }
-  | { name: "success"; query: string; programs: ProgramSummary[] }
+  | {
+      name: "success";
+      query: string;
+      programs: ProgramSummary[];
+      universities: UniversitySearchResult[];
+    }
   | { name: "error"; query: string; message: string };
 
 const SEARCH_EXAMPLES = ["NUS", "National University of Singapore", "MSc Venture Creation"];
@@ -157,6 +167,7 @@ export function ProgramSearch() {
         name: "success",
         query: normalizedQuery,
         programs,
+        universities: parsedResponse.data.universities,
       });
     } catch (error) {
       if (requestController.signal.aborted) {
@@ -203,7 +214,10 @@ export function ProgramSearch() {
 
   const isLoading = state.name === "loading";
   const hasResults = state.name === "success" && state.programs.length > 0;
-  const isEmpty = state.name === "success" && state.programs.length === 0;
+  const hasUniversities = state.name === "success" && state.universities.length > 0;
+  const isEmpty = state.name === "success" && state.programs.length === 0 && !hasUniversities;
+  const hasOnlyUniversities =
+    state.name === "success" && state.programs.length === 0 && hasUniversities;
 
   return (
     <section className={styles.search} aria-labelledby="search-form-title">
@@ -280,7 +294,10 @@ export function ProgramSearch() {
         {hasResults
           ? `${state.programs.length} ${state.programs.length === 1 ? "program" : "programs"} found`
           : null}
-        {isEmpty ? `No programs found for ${state.query}` : null}
+        {hasOnlyUniversities
+          ? `${state.universities.length} ${state.universities.length === 1 ? "university" : "universities"} found, no programs yet`
+          : null}
+        {isEmpty ? `No results found for ${state.query}` : null}
       </div>
 
       {state.name === "idle" ? (
@@ -306,6 +323,24 @@ export function ProgramSearch() {
         </div>
       ) : null}
 
+      {hasUniversities ? (
+        <div className={styles.results}>
+          <div className={styles.resultsHeading}>
+            <h2>Universities</h2>
+            <span>
+              {state.universities.length} {state.universities.length === 1 ? "result" : "results"}
+            </span>
+          </div>
+          <ul>
+            {state.universities.map((university) => (
+              <li key={university.id}>
+                <UniversityCard university={university} />
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
       {hasResults ? (
         <div className={styles.results}>
           <div className={styles.resultsHeading}>
@@ -324,6 +359,13 @@ export function ProgramSearch() {
         </div>
       ) : null}
 
+      {hasOnlyUniversities ? (
+        <p className={styles.universitiesOnlyHint}>
+          No tracked programs match this search yet. Open a university above to suggest the program
+          you were looking for.
+        </p>
+      ) : null}
+
       {isEmpty ? (
         <div className={styles.statePanel}>
           <EmptyState
@@ -333,7 +375,7 @@ export function ProgramSearch() {
               </button>
             }
             description={`We couldn’t find anything for “${state.query}”. Try a full university name, an alias, or the program title.`}
-            title="No programs found"
+            title="No results found"
           />
         </div>
       ) : null}

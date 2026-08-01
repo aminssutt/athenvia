@@ -41,6 +41,16 @@ export const mockProgramDetail: ProgramDetail = {
 
 export const mockSearchResponse: SearchResponse = {
   programs: [mockProgram],
+  universities: [
+    {
+      id: "c9502eb6-819b-4723-9a17-d503555eaead",
+      name: "National University of Singapore",
+      countryCode: "SG",
+      city: "Singapore",
+      officialWebsite: "https://nus.edu.sg/",
+      programCount: 1,
+    },
+  ],
   nextCursor: null,
 };
 
