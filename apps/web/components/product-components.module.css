@@ -32,6 +32,8 @@
   }
 }
 
+/* Frosted tab bar, iOS-style: the content scrolls beneath it and stays
+   legible as colour and light rather than detail. */
 .mobileNavigation {
   position: sticky;
   z-index: 20;
@@ -39,9 +41,9 @@
   width: min(100%, 30rem);
   margin: 0 auto;
   padding: 0.5rem 0.75rem max(0.5rem, env(safe-area-inset-bottom));
-  border-top: 1px solid var(--border-soft);
-  background: color-mix(in srgb, var(--surface) 94%, transparent);
-  backdrop-filter: blur(1rem);
+  border-top: 1px solid var(--border-glass);
+  background: var(--surface-glass-strong);
+  backdrop-filter: var(--glass-blur);
 }
 
 .mobileNavigationList {
@@ -228,10 +230,11 @@
   position: relative;
   display: grid;
   gap: 1rem;
-  border: 1px solid var(--border-soft);
-  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-md);
   padding: 1rem;
-  background: var(--surface);
+  background: var(--surface-glass);
+  backdrop-filter: var(--glass-blur);
   box-shadow: var(--shadow-raised);
   transition:
     transform var(--duration-base) var(--ease-out),
@@ -371,10 +374,11 @@
 .universityCard {
   display: grid;
   gap: 0.85rem;
-  border: 1px solid var(--border-soft);
-  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-md);
   padding: 1rem;
-  background: var(--surface);
+  background: var(--surface-glass);
+  backdrop-filter: var(--glass-blur);
   box-shadow: var(--shadow-raised);
   transition:
     transform var(--duration-base) var(--ease-out),
@@ -444,9 +448,10 @@
   align-content: center;
   gap: 1.15rem;
   border: 1px dashed var(--border-soft);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   padding: 1.75rem 1.5rem;
-  background: var(--surface);
+  background: var(--surface-glass);
+  backdrop-filter: var(--glass-blur);
   text-align: center;
   animation: athenvia-rise var(--duration-base) var(--ease-out) backwards;
 }

@@ -2,10 +2,11 @@
   display: grid;
   gap: 1rem;
   margin-top: 0.75rem;
-  border: 1px solid var(--border-soft);
-  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-md);
   padding: 1rem;
-  background: var(--surface);
+  background: var(--surface-glass);
+  backdrop-filter: var(--glass-blur);
   box-shadow: 0 14px 36px rgb(95 64 50 / 12%);
 }
 
@@ -21,10 +22,10 @@
 
 .copy h3 {
   color: var(--text-primary);
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: 1.25rem;
-  font-weight: 600;
-  line-height: 1.2;
+  font-size: 1.1rem;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
 }
 
 .copy > p:last-child {
