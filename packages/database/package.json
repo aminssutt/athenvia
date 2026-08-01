@@ -37,7 +37,7 @@
   },
   "devDependencies": {
     "@athenvia/config": "workspace:*",
-    "@types/node": "^24.0.0",
+    "@types/node": "^26.1.2",
     "typescript": "^5.9.0"
   }
 }
