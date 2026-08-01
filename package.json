@@ -22,7 +22,8 @@
     "db:seed": "node scripts/with-env.mjs --filter @athenvia/database db:seed",
     "db:seed:check": "node scripts/with-env.mjs --filter @athenvia/database db:seed:check",
     "db:import:ror": "node scripts/with-env.mjs --filter @athenvia/database db:import:ror",
-    "vapid:generate": "web-push generate-vapid-keys"
+    "vapid:generate": "web-push generate-vapid-keys",
+    "db:import:tmm": "node scripts/with-env.mjs --filter @athenvia/database db:import:tmm"
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",
