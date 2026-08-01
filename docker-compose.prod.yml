@@ -148,6 +148,17 @@ services:
       VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:?VAPID_PUBLIC_KEY is required}
       VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:?VAPID_PRIVATE_KEY is required}
       VAPID_SUBJECT: ${VAPID_SUBJECT:?VAPID_SUBJECT is required}
+      # Verification pipeline. The snapshot directory is the mount point of
+      # snapshot_data: source_snapshots rows reference these files by storage
+      # key, so losing them on redeploy would break every later parse job.
+      SNAPSHOT_STORAGE_DIR: /app/data/snapshots
+      SOURCE_RECHECK_DAYS: ${SOURCE_RECHECK_DAYS:-7}
+      SOURCE_RECHECK_BATCH: ${SOURCE_RECHECK_BATCH:-25}
+      # Optional. Without a key the pipeline stays fully deterministic.
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.5-flash}
+    volumes:
+      - snapshot_data:/app/data/snapshots
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -162,6 +173,7 @@ services:
 volumes:
   postgres_data:
   redis_data:
+  snapshot_data:
 
 networks:
   backend:
