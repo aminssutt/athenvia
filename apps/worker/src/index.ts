@@ -31,6 +31,7 @@ import {
   type ReviewJobData,
 } from "./queue-contracts";
 import { FilesystemSnapshotStore } from "./pipeline/filesystem-snapshot-store";
+import { createGeminiDateExtractor } from "./pipeline/llm-extraction";
 import { processFetchJob } from "./pipeline/fetch-processor";
 import { processParseJob } from "./pipeline/parse-processor";
 import { processReviewJob } from "./pipeline/review-processor";
@@ -189,6 +190,13 @@ void sweepReminderSchedules();
 
 const snapshotStore = new FilesystemSnapshotStore(workerEnvironment.SNAPSHOT_STORAGE_DIR);
 
+const llmExtractor = workerEnvironment.GEMINI_API_KEY
+  ? createGeminiDateExtractor({
+      apiKey: workerEnvironment.GEMINI_API_KEY,
+      model: workerEnvironment.GEMINI_MODEL,
+    })
+  : undefined;
+
 const fetchWorker = new Worker<FetchJobData>(
   verificationQueueContracts.fetch.queueName,
   (job) =>
@@ -217,6 +225,7 @@ const parseWorker = new Worker<ParseJobData>(
       enqueueReview: async (revisionId) => {
         await addReviewJob({ revisionId });
       },
+      llmExtractor,
       loadSnapshot: loadParseableSnapshot,
       logger: logger.child(jobCorrelationFields(verificationQueueContracts.parse.queueName, job)),
       readSnapshotBody: (storageKey) => snapshotStore.read(storageKey),

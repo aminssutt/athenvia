@@ -243,6 +243,7 @@ describe("processParseJob", () => {
     sourceId: "44444444-4444-4444-8444-444444444444",
     storageKey: "source-snapshots/x/y.bin",
     universityCountryCode: "SG",
+    programName: "MSc Example",
     intakes: [
       {
         id: "55555555-5555-4555-8555-555555555555",

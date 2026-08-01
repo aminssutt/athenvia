@@ -11,6 +11,9 @@ const WorkerEnvironmentSchema = z.object({
   SOURCE_RECHECK_DAYS: z.coerce.number().int().positive().default(7),
   /** Politeness cap: at most this many fetch jobs are enqueued per sweep. */
   SOURCE_RECHECK_BATCH: z.coerce.number().int().positive().default(25),
+  /** Optional: enables the citation-constrained LLM extraction pass. */
+  GEMINI_API_KEY: z.string().min(1).optional(),
+  GEMINI_MODEL: z.string().min(1).default("gemini-2.5-flash"),
 });
 
 export const workerEnvironment = WorkerEnvironmentSchema.parse(process.env);
