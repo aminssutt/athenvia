@@ -114,7 +114,9 @@ export const ProgramIntakeOptionSchema = z.object({
 });
 
 export const ProgramDetailSchema = ProgramSummarySchema.extend({
-  summary: ProgramDetailSummarySchema,
+  // Null until enrichment lands: a programme is public once its existence and
+  // intake are known, and the summary arrives from an official source later.
+  summary: ProgramDetailSummarySchema.nullable(),
   intakes: z.array(ProgramIntakeOptionSchema),
 });
 
