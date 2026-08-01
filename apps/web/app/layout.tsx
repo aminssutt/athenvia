@@ -33,7 +33,9 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
+    // data-scroll-behavior opts into Next's handling of CSS smooth scrolling
+    // during route transitions (globals.css sets it on <html>).
+    <html lang="en" data-scroll-behavior="smooth">
       <body>
         <Script id="standalone-route-gate" strategy="beforeInteractive">
           {`if (
