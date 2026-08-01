@@ -19,3 +19,4 @@ Thumbs.db
 
 packages/database/src/generated/
 data/ror-cache/
+data/snapshots/
