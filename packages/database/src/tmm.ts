@@ -3,7 +3,13 @@ import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { database } from "./client";
-import { importTmmRecords, mapTmmRecord, planTmmImport, type TmmRecord } from "./tmm-import";
+import {
+  importTmmRecords,
+  mapTmmRecord,
+  planTmmImport,
+  repairTmmUniversityDuplicates,
+  type TmmRecord,
+} from "./tmm-import";
 
 const repositoryRoot = fileURLToPath(new URL("../../../", import.meta.url));
 const cacheDirectory = join(repositoryRoot, "data", "tmm-cache");
@@ -111,10 +117,18 @@ try {
       ),
     );
   } else {
+    const repaired = await repairTmmUniversityDuplicates(database);
     const counts = await importTmmRecords(database, records, { intakeYear });
     console.log(
       JSON.stringify(
-        { mode: "import", file: dumpPath, campaign: latestYear, intakeYear, records: counts },
+        {
+          mode: "import",
+          file: dumpPath,
+          campaign: latestYear,
+          intakeYear,
+          repaired,
+          records: counts,
+        },
         null,
         2,
       ),

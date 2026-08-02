@@ -143,6 +143,44 @@ export type TmmImportPlan = {
 };
 
 /**
+ * TMM names French universities by their historical numbered identities while
+ * ROR carries the current display names. Normalized matching cannot bridge
+ * these, and fuzzy matching must never try: Paris-X and Paris-XII are
+ * different universities with nearly identical trigrams. Every entry below was
+ * verified by hand against the catalogue; the key is the normalized TMM name,
+ * the value the canonical display name as imported from ROR.
+ */
+export const TMM_UNIVERSITY_VARIANTS: ReadonlyMap<string, string> = new Map([
+  ["universite sorbonne universite", "Sorbonne Université"],
+  ["universite paris i", "Université Paris 1 Panthéon-Sorbonne"],
+  ["universite paris ii", "Université Paris-Panthéon-Assas"],
+  ["universite paris viii", "Université Paris 8"],
+  ["universite paris x", "Université Paris Nanterre"],
+  ["universite paris xii", "Université Paris-Est Créteil"],
+  ["universite paris xiii", "Université Sorbonne Paris Nord"],
+  ["universite rennes i", "Université de Rennes"],
+  ["universite rennes ii", "Université Rennes 2"],
+  ["universite toulouse i", "Université Toulouse Capitole"],
+  ["universite toulouse ii", "Université Toulouse - Jean Jaurès"],
+  ["universite lyon iii", "Université Jean Moulin Lyon III"],
+  ["universite montpellier iii", "Université de Montpellier Paul-Valéry"],
+  ["universite bordeaux iii", "Université Bordeaux Montaigne"],
+  ["universite d amiens", "Université de Picardie Jules Verne"],
+  ["universite de dijon", "Université Bourgogne Europe"],
+  ["universite de reims", "Université de Reims Champagne-Ardenne"],
+  ["universite de pau", "Université de Pau et des Pays de l'Adour"],
+  ["universite du mans", "Le Mans Université"],
+  ["universite de mulhouse", "Université de Haute-Alsace"],
+  ["universite du littoral", "Université du littoral côte d'opale"],
+  ["universite d avignon", "Université d'Avignon et des Pays de Vaucluse"],
+]);
+
+export function canonicalNormalizedUniversityName(normalizedName: string): string {
+  const canonicalDisplay = TMM_UNIVERSITY_VARIANTS.get(normalizedName);
+  return canonicalDisplay ? normalizeCatalogueName(canonicalDisplay) : normalizedName;
+}
+
+/**
  * Universities are matched onto the existing catalogue by normalized name or
  * alias within France; unmatched establishments are created. Programmes are
  * deduplicated on their (university, normalized name) natural key.
@@ -165,9 +203,8 @@ export function planTmmImport(
   );
 
   for (const candidate of ordered) {
-    let universityId =
-      byName.get(candidate.normalizedUniversityName) ??
-      aliasIndex.get(candidate.normalizedUniversityName);
+    const lookupName = canonicalNormalizedUniversityName(candidate.normalizedUniversityName);
+    let universityId = byName.get(lookupName) ?? aliasIndex.get(lookupName);
     if (universityId) {
       matched.add(universityId);
     } else {
@@ -181,7 +218,7 @@ export function planTmmImport(
           city: candidate.city,
         });
       }
-      byName.set(candidate.normalizedUniversityName, universityId);
+      byName.set(lookupName, universityId);
     }
 
     const programKey = `${universityId}|${candidate.normalizedProgramName}`;
@@ -318,7 +355,25 @@ export async function importTmmRecords(
         createdPrograms += result.count;
       }
 
-      const domainLinks = plan.programs.flatMap((program) =>
+      // A programme may already exist under its natural key with a different
+      // identity — notably after a duplicate-university merge. Everything that
+      // references programmes must use the identities actually in the table.
+      const storedPrograms = await transaction.program.findMany({
+        where: {
+          universityId: { in: [...new Set(plan.programs.map((p) => p.universityId))] },
+          degreeType: "MASTER",
+        },
+        select: { id: true, universityId: true, normalizedName: true },
+      });
+      const realProgramIds = new Map(
+        storedPrograms.map((p) => [`${p.universityId}|${p.normalizedName}`, p.id]),
+      );
+      const resolvedPrograms = plan.programs.flatMap((program) => {
+        const realId = realProgramIds.get(`${program.universityId}|${program.normalizedName}`);
+        return realId ? [{ ...program, id: realId }] : [];
+      });
+
+      const domainLinks = resolvedPrograms.flatMap((program) =>
         program.domainSlug && domainIds.has(program.domainSlug)
           ? [{ programId: program.id, domainId: domainIds.get(program.domainSlug)! }]
           : [],
@@ -328,7 +383,7 @@ export async function importTmmRecords(
       }
 
       let createdSources = 0;
-      const sourceRows = plan.programs.flatMap((program) =>
+      const sourceRows = resolvedPrograms.flatMap((program) =>
         program.officialUrl
           ? [
               {
@@ -353,7 +408,7 @@ export async function importTmmRecords(
 
       let createdIntakes = 0;
       let createdWindows = 0;
-      const intakeRows = plan.programs.map((program) => ({
+      const intakeRows = resolvedPrograms.map((program) => ({
         id: stableSeedUuid(`tmm:intake:${program.id}:${options.intakeYear}-09`),
         programId: program.id,
         year: options.intakeYear,
@@ -392,6 +447,84 @@ export async function importTmmRecords(
         createdSources,
         skippedDuplicates: plan.skippedDuplicates,
       };
+    },
+    { timeout: TMM_IMPORT_TRANSACTION_TIMEOUT_MS },
+  );
+}
+
+export type TmmRepairCounts = {
+  mergedUniversities: number;
+  movedPrograms: number;
+  movedSources: number;
+};
+
+/**
+ * Merges duplicate universities that an earlier import created before the
+ * variant table existed: programmes and sources move onto the canonical
+ * university, the variant name becomes an alias so any future import matches
+ * directly, and the emptied duplicate is archived out of the public
+ * catalogue. Idempotent — once a duplicate is archived and empty, a re-run
+ * touches nothing.
+ */
+export async function repairTmmUniversityDuplicates(
+  database: PrismaClient,
+): Promise<TmmRepairCounts> {
+  return database.$transaction(
+    async (transaction) => {
+      await transaction.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${TMM_IMPORT_LOCK_KEY}, 0))`;
+      let mergedUniversities = 0;
+      let movedPrograms = 0;
+      let movedSources = 0;
+
+      for (const [variantNormalized, canonicalDisplay] of TMM_UNIVERSITY_VARIANTS) {
+        const canonicalNormalized = normalizeCatalogueName(canonicalDisplay);
+        const duplicate = await transaction.university.findFirst({
+          where: { countryCode: "FR", normalizedName: variantNormalized, status: "ACTIVE" },
+          select: { id: true, name: true },
+        });
+        const canonical = await transaction.university.findFirst({
+          where: {
+            countryCode: "FR",
+            normalizedName: canonicalNormalized,
+            status: "ACTIVE",
+            id: { not: duplicate?.id ?? undefined },
+          },
+          select: { id: true },
+        });
+        if (!duplicate || !canonical) {
+          continue;
+        }
+
+        const programs = await transaction.program.updateMany({
+          where: { universityId: duplicate.id },
+          data: { universityId: canonical.id },
+        });
+        const sources = await transaction.source.updateMany({
+          where: { universityId: duplicate.id },
+          data: { universityId: canonical.id },
+        });
+        await transaction.universityAlias.createMany({
+          data: [
+            {
+              id: stableSeedUuid(`tmm:alias:${canonical.id}:${variantNormalized}`),
+              universityId: canonical.id,
+              alias: duplicate.name,
+              normalizedAlias: variantNormalized,
+            },
+          ],
+          skipDuplicates: true,
+        });
+        await transaction.university.update({
+          where: { id: duplicate.id },
+          data: { status: "ARCHIVED" },
+        });
+
+        mergedUniversities += 1;
+        movedPrograms += programs.count;
+        movedSources += sources.count;
+      }
+
+      return { mergedUniversities, movedPrograms, movedSources };
     },
     { timeout: TMM_IMPORT_TRANSACTION_TIMEOUT_MS },
   );
