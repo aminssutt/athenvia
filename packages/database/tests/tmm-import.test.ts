@@ -1,7 +1,12 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { mapTmmRecord, planTmmImport, type TmmRecord } from "../src/tmm-import";
+import {
+  mapTmmRecord,
+  planTmmImport,
+  TMM_UNIVERSITY_VARIANTS,
+  type TmmRecord,
+} from "../src/tmm-import";
 
 function record(overrides: Partial<TmmRecord> = {}): TmmRecord {
   return {
@@ -91,5 +96,33 @@ describe("planTmmImport", () => {
     assert.equal(planA.programs.length, 1);
     assert.equal(planA.skippedDuplicates, 1);
     assert.equal(planA.programs[0]!.id, planB.programs[0]!.id);
+  });
+});
+
+describe("TMM university variants", () => {
+  it("matches historical numbered names onto their canonical universities", () => {
+    const nanterre = mapTmmRecord(
+      record({ etab_uai: "0921204J", etab_nom: "Université Paris-X", parc_intitule: "Histoire" }),
+    );
+    assert.ok(nanterre);
+    const plan = planTmmImport(
+      [nanterre],
+      [
+        { id: "33333333-3333-4333-8333-333333333333", normalizedName: "universite paris nanterre" },
+        { id: "44444444-4444-4444-8444-444444444444", normalizedName: "universite paris xii" },
+      ],
+      new Map(),
+    );
+    assert.equal(plan.newUniversities.length, 0);
+    assert.equal(plan.programs[0]!.universityId, "33333333-3333-4333-8333-333333333333");
+  });
+
+  it("never maps distinct numbered universities onto each other", () => {
+    assert.equal(
+      TMM_UNIVERSITY_VARIANTS.get("universite paris xii"),
+      "Université Paris-Est Créteil",
+    );
+    assert.equal(TMM_UNIVERSITY_VARIANTS.get("universite toulouse iii"), undefined);
+    assert.equal(TMM_UNIVERSITY_VARIANTS.get("universite de besancon"), undefined);
   });
 });
