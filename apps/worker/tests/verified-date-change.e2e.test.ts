@@ -693,11 +693,11 @@ describe("verified date change end to end", () => {
     });
 
     it("rejects an approved revision that was never applied to the canonical window", async () => {
-      // Documents the current integration gap: the admin approval path
-      // (apps/web/app/api/admin/reviews/service.ts) marks the revision
-      // APPROVED but never writes newValue to ApplicationWindow. Until a
-      // publication step applies the canonical value, planning must treat the
-      // revision as stale rather than notify about a date users cannot see.
+      // The admin approval path (apps/web/app/api/admin/reviews/service.ts)
+      // applies newValue to ApplicationWindow in the same transaction, but if
+      // a revision is ever approved without that publication step, planning
+      // must treat it as stale rather than notify about a date users cannot
+      // see.
       const { dateChangeRepository, world } = createHarness();
       world.revisions.set(REVISION_ID, approvedRevisionRow());
       // world.window.opensAt intentionally still OLD_OPENS_AT.
@@ -717,11 +717,10 @@ describe("verified date change end to end", () => {
         "apps/worker or apps/web), so the verified-change history chain cannot start in production",
     );
 
-    it.todo(
-      "MISSING LINK: the admin approval flow does not atomically apply newValue to the " +
-        "ApplicationWindow nor invoke planDateChangeNotifications " +
-        "(apps/worker/src/notifications/README.md documents this intentional gap)",
-    );
+    // The former approval gap is closed: the web admin decision applies
+    // newValue to the ApplicationWindow atomically (service.ts) and the
+    // worker's runDateChangePlanningSweep feeds approved revisions to
+    // planDateChangeNotifications (apps/worker/src/notifications/README.md).
   });
 
   describe("criterion 2: pending reminders are recalculated onto the new date", () => {

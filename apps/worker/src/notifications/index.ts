@@ -28,6 +28,13 @@ export {
   type ValidatedDateChange,
 } from "./date-change-notifications";
 export {
+  listApprovedWindowRevisionIds,
+  runDateChangePlanningSweep,
+  type DateChangePlanningSweepDependencies,
+  type DateChangePlanningSweepOptions,
+  type DateChangePlanningSweepResult,
+} from "./date-change-sweep";
+export {
   DeadlineReminderPreparationError,
   parseDeadlineReminderDedupeKey,
   prepareDeadlineReminderJob,
