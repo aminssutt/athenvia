@@ -68,6 +68,7 @@ const STRING_FIELDS = new Set([
 const NUMBER_FIELDS = new Set([
   "attempt",
   "attemptsMade",
+  "cancelledStale",
   "candidates",
   "created",
   "enqueued",
@@ -82,7 +83,9 @@ const NUMBER_FIELDS = new Set([
   "quarantinedCount",
   "queuedCount",
   "recoveredCount",
+  "rejected",
   "rescheduled",
+  "revisions",
   "revisionsCreated",
   "revokedCount",
   "scannedCount",

@@ -26,6 +26,13 @@ export class AdminReviewConflictError extends Error {
   }
 }
 
+export class AdminReviewApplyError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "AdminReviewApplyError";
+  }
+}
+
 export class AdminReviewNotFoundError extends Error {
   constructor() {
     super("The pending revision no longer exists.");
@@ -99,6 +106,98 @@ export async function listPendingAdminReviews(): Promise<AdminReviewItem[]> {
   }));
 }
 
+const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/u;
+const ISO_INSTANT_PATTERN =
+  /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d{1,9})?)?(?:Z|[+-]\d{2}:\d{2})$/u;
+
+function parseApprovedWindowDate(value: Prisma.JsonValue | null): Date | null {
+  if (value === null) {
+    return null;
+  }
+  if (typeof value !== "string") {
+    throw new AdminReviewApplyError("The approved value is not a date and cannot be applied.");
+  }
+  // A day-precision deadline is stored at noon UTC: the same calendar day in
+  // every timezone, never after an end-of-day cutoff.
+  const instant = ISO_DATE_PATTERN.test(value)
+    ? new Date(`${value}T12:00:00.000Z`)
+    : ISO_INSTANT_PATTERN.test(value)
+      ? new Date(value)
+      : null;
+  if (instant === null || !Number.isFinite(instant.getTime())) {
+    throw new AdminReviewApplyError(
+      "The approved value is not a valid date and cannot be applied.",
+    );
+  }
+  return instant;
+}
+
+type ApplicationWindowDateRevision = {
+  entityId: string;
+  fieldName: "opensAt" | "closesAt";
+  newValue: Prisma.JsonValue | null;
+  sourceId: string | null;
+  sourceLastCheckedAt: Date | null;
+};
+
+/**
+ * Applies an approved application-window date to the canonical row in the
+ * same transaction as the review decision. The evidence trigger demands an
+ * official source and a verification instant no later than that source's
+ * last check, so the source's `lastCheckedAt` becomes the new
+ * `lastVerifiedAt`; a re-verification that would move the instant backwards
+ * is refused instead of silently approving without publishing.
+ */
+async function applyApplicationWindowDate(
+  transaction: Pick<Prisma.TransactionClient, "applicationWindow">,
+  revision: ApplicationWindowDateRevision,
+): Promise<void> {
+  const approvedDate = parseApprovedWindowDate(revision.newValue);
+  const window = await transaction.applicationWindow.findUnique({
+    where: { id: revision.entityId },
+    select: { closesAt: true, id: true, lastVerifiedAt: true, opensAt: true, publicStatus: true },
+  });
+  if (!window) {
+    throw new AdminReviewApplyError("The application window for this revision no longer exists.");
+  }
+
+  const currentDate = revision.fieldName === "opensAt" ? window.opensAt : window.closesAt;
+  const nextOpensAt = revision.fieldName === "opensAt" ? approvedDate : window.opensAt;
+  const nextClosesAt = revision.fieldName === "closesAt" ? approvedDate : window.closesAt;
+  const nextStatus = nextOpensAt === null && nextClosesAt === null ? "NOT_PUBLISHED" : "CONFIRMED";
+  if (
+    (currentDate?.getTime() ?? null) === (approvedDate?.getTime() ?? null) &&
+    window.publicStatus === nextStatus
+  ) {
+    return;
+  }
+
+  if (revision.sourceId === null || revision.sourceLastCheckedAt === null) {
+    throw new AdminReviewApplyError(
+      "This revision has no checked official source, so the application window cannot be updated.",
+    );
+  }
+  if (
+    window.lastVerifiedAt !== null &&
+    revision.sourceLastCheckedAt.getTime() <= window.lastVerifiedAt.getTime()
+  ) {
+    throw new AdminReviewApplyError(
+      "The window was verified after this revision's evidence was collected. Re-run verification, then review the fresh revision.",
+    );
+  }
+
+  await transaction.applicationWindow.update({
+    where: { id: window.id },
+    data: {
+      [revision.fieldName]: approvedDate,
+      lastVerifiedAt: revision.sourceLastCheckedAt,
+      publicStatus: nextStatus,
+      sourceId: revision.sourceId,
+      verification: "OFFICIAL",
+    },
+  });
+}
+
 export async function decideAdminReview(
   revisionId: string,
   reviewerId: string,
@@ -123,6 +222,8 @@ export async function decideAdminReviewWith(
         fieldName: true,
         hasConflict: true,
         id: true,
+        newValue: true,
+        source: { select: { lastCheckedAt: true } },
         sourceId: true,
         sourceSnapshotId: true,
       },
@@ -142,6 +243,20 @@ export async function decideAdminReviewWith(
       if (competitors > 0) {
         throw new AdminReviewConflictError();
       }
+    }
+
+    if (
+      decision === "APPROVE" &&
+      revision.entityType === "APPLICATION_WINDOW" &&
+      (revision.fieldName === "opensAt" || revision.fieldName === "closesAt")
+    ) {
+      await applyApplicationWindowDate(transaction, {
+        entityId: revision.entityId,
+        fieldName: revision.fieldName,
+        newValue: revision.newValue,
+        sourceId: revision.sourceId,
+        sourceLastCheckedAt: revision.source?.lastCheckedAt ?? null,
+      });
     }
 
     const changeStatus = decision === "APPROVE" ? "APPROVED" : "REJECTED";

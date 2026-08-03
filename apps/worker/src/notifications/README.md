@@ -154,12 +154,17 @@ The due-reader runs one transaction per batch and memoizes hydration by
 revision ID, so several deliveries from one revision cause one revision
 revalidation read rather than one transaction per recipient.
 
-There is an intentional integration gap outside this directory: the current
-admin approval path marks `DataRevision` approved but does not apply
-`newValue` to the canonical `ApplicationWindow`, and it does not call or queue
-this planner. Until a follow-up change atomically applies the canonical value
-and invokes this branch from the approval/publication flow, planning correctly
-rejects the revision as stale. Delivery claiming and Web Push sending likewise
+The approval flow is wired in two halves. The web admin approval applies
+`newValue` to the canonical `ApplicationWindow` atomically with the review
+decision (`apps/web/app/api/admin/reviews/service.ts`), satisfying the
+evidence trigger by adopting the revision's source and its `lastCheckedAt` as
+the new verification instant. The worker cannot be called synchronously from
+the web app, so `runDateChangePlanningSweep` (`date-change-sweep.ts`) re-scans
+recently approved application-window revisions every minute and feeds each one
+to `planDateChangeNotifications`; replanning is idempotent thanks to the
+deterministic dedupe keys and the planner's own staleness checks. Deadline and
+opening reminders need no extra wiring: the reminder schedule sweep reconciles
+them from the updated canonical window. Delivery claiming and Web Push sending
 remain sender-worker responsibilities.
 
 ## PostgreSQL integration test

@@ -2,7 +2,12 @@ import { NextResponse } from "next/server";
 
 import { logRequestError } from "@/lib/observability";
 
-import { AdminReviewConflictError, AdminReviewNotFoundError, decideAdminReview } from "../service";
+import {
+  AdminReviewApplyError,
+  AdminReviewConflictError,
+  AdminReviewNotFoundError,
+  decideAdminReview,
+} from "../service";
 import { isTrustedAdminWrite, resolveAdminAccess } from "../security";
 
 type RouteContext = { params: Promise<{ revisionId: string }> };
@@ -43,7 +48,7 @@ export async function POST(request: Request, context: RouteContext) {
     await decideAdminReview(revisionId, access.principal.id, decision);
     return json({ status: decision === "APPROVE" ? "APPROVED" : "REJECTED" });
   } catch (error) {
-    if (error instanceof AdminReviewConflictError) {
+    if (error instanceof AdminReviewConflictError || error instanceof AdminReviewApplyError) {
       return json({ error: error.message }, 409);
     }
     if (error instanceof AdminReviewNotFoundError) {

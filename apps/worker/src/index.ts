@@ -7,7 +7,7 @@ import {
   prismaClaimedNotificationPreparer,
   prismaNotificationDeliveryRepository,
 } from "./notification-delivery";
-import { runReminderScheduleSweep } from "./notifications";
+import { runDateChangePlanningSweep, runReminderScheduleSweep } from "./notifications";
 import type { VerificationJobData } from "./queue-contracts";
 import {
   notificationDeliveryQueueContract,
@@ -188,6 +188,42 @@ const reminderSweepInterval = setInterval(() => void sweepReminderSchedules(), 5
 reminderSweepInterval.unref();
 void sweepReminderSchedules();
 
+let dateChangeSweepTask: Promise<void> | null = null;
+const sweepDateChangePlans = () => {
+  if (dateChangeSweepTask !== null) {
+    return dateChangeSweepTask;
+  }
+  dateChangeSweepTask = (async () => {
+    try {
+      const result = await runDateChangePlanningSweep();
+      if (result.revisions > 0) {
+        logger.info(
+          {
+            cancelledStale: result.cancelledStale,
+            created: result.created,
+            event: "worker.date_change_sweep_completed",
+            planned: result.planned,
+            rejected: result.rejected,
+            revisions: result.revisions,
+          },
+          "Date-change planning sweep completed",
+        );
+      }
+    } catch (error) {
+      logger.error(
+        { errorName: error instanceof Error ? error.name : "UnknownError" },
+        "Date-change planning sweep failed",
+      );
+    } finally {
+      dateChangeSweepTask = null;
+    }
+  })();
+  return dateChangeSweepTask;
+};
+const dateChangeSweepInterval = setInterval(() => void sweepDateChangePlans(), 60_000);
+dateChangeSweepInterval.unref();
+void sweepDateChangePlans();
+
 const snapshotStore = new FilesystemSnapshotStore(workerEnvironment.SNAPSHOT_STORAGE_DIR);
 
 const llmExtractor = workerEnvironment.GEMINI_API_KEY
@@ -346,6 +382,7 @@ const shutdown = async (signal: string) => {
   logger.info({ event: "worker.shutdown", signal }, "Worker shutdown requested");
   clearInterval(dispatchInterval);
   clearInterval(reminderSweepInterval);
+  clearInterval(dateChangeSweepInterval);
   clearInterval(recheckSweepInterval);
   if (heartbeatInterval) {
     clearInterval(heartbeatInterval);
@@ -353,6 +390,7 @@ const shutdown = async (signal: string) => {
   await Promise.all([
     dispatchTask ?? Promise.resolve(),
     reminderSweepTask ?? Promise.resolve(),
+    dateChangeSweepTask ?? Promise.resolve(),
     recheckSweepTask ?? Promise.resolve(),
   ]);
   await Promise.all([
