@@ -13,6 +13,8 @@ vi.mock("@athenvia/database", () => ({
     $queryRaw: mocks.queryRaw,
   },
   Prisma: {
+    empty: { strings: [""], values: [] },
+    join: vi.fn((values: unknown[], separator: string) => ({ separator, values })),
     sql: mocks.sql,
   },
 }));
