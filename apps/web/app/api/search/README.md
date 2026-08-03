@@ -12,8 +12,14 @@ with its university and domain names.
 | `cursor`  | No       | Opaque cursor returned by the previous response | `eyJvZmZzZXQiOjIwfQ`                         |
 
 University aliases, university names, program names, domain names and common
-misspellings are matched accent-insensitively. Results are ranked
-deterministically. A page contains at most 20 programs.
+misspellings are matched accent-insensitively. The query is split into
+tokens and every token must match independently — as a word start or, for
+tokens of four characters or more, a close word (typo tolerance) — somewhere
+in the programme name, university name, alias or domain. Substring-anywhere
+matching is intentionally not offered: against the full university registry
+it surfaced entries that merely shared a letter run with the query. Results
+are ranked deterministically by word similarity with exact and prefix
+bonuses. A page contains at most 20 programs.
 
 ## Success response
 

@@ -17,6 +17,8 @@ vi.mock("@athenvia/database", () => ({
     },
   },
   Prisma: {
+    empty: { strings: [""], values: [] },
+    join: vi.fn((values: unknown[], separator: string) => ({ separator, values })),
     sql: mocks.sql,
   },
 }));
@@ -80,7 +82,7 @@ describe("live catalogue search presentation", () => {
     expect(mocks.findMany.mock.calls[0]?.[0]).not.toHaveProperty("include.sources");
     // A programme is searchable before its summary exists; the query must not
     // reintroduce the old summary gate.
-    const sqlText = mocks.sql.mock.calls[0]?.[0].join(" ");
+    const sqlText = mocks.sql.mock.calls.map((call) => call[0].join(" ")).join(" ");
     expect(sqlText).not.toContain("program_summaries");
     expect(sqlText).toContain("FROM intakes");
   });

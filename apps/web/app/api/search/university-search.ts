@@ -2,9 +2,12 @@ import { database, Prisma } from "@athenvia/database";
 
 import { UniversitySearchResultSchema } from "@athenvia/contracts";
 
+import { searchQueryTokens } from "./tokens";
+
 import type { UniversitySearchResult } from "@athenvia/contracts";
 
 const UNIVERSITY_RESULT_LIMIT = 5;
+const FUZZY_TOKEN_LENGTH = 4;
 
 type RankedUniversity = {
   id: string;
@@ -17,12 +20,58 @@ type RankedUniversity = {
 };
 
 /**
+ * Every query token must match the university independently — as a word start
+ * in the name or an alias, or (for tokens long enough to make trigram
+ * similarity meaningful) as a close word via `<%`. Substring-anywhere and
+ * whole-string trigram matching are deliberately absent: against the full ROR
+ * registry they filled the suggestions with universities that merely shared a
+ * common word or letter run with the query.
+ */
+function universityTokenFilter(token: string): Prisma.Sql {
+  const wordStart = `\\m${token}`;
+  const fuzzyName =
+    token.length >= FUZZY_TOKEN_LENGTH
+      ? Prisma.sql` OR ${token} <% public.immutable_unaccent(lower(m.name))`
+      : Prisma.empty;
+  const fuzzyAlias =
+    token.length >= FUZZY_TOKEN_LENGTH
+      ? Prisma.sql` OR ${token} <% public.immutable_unaccent(lower(ua.alias))`
+      : Prisma.empty;
+  return Prisma.sql`u.id IN (
+    SELECT m.id
+    FROM universities AS m
+    WHERE public.immutable_unaccent(lower(m.name)) ~ ${wordStart}${fuzzyName}
+    UNION
+    SELECT ua.university_id
+    FROM university_aliases AS ua
+    WHERE public.immutable_unaccent(lower(ua.alias)) ~ ${wordStart}${fuzzyAlias}
+  )`;
+}
+
+/**
  * Finds universities matching the search term by name or alias. Universities
  * appear in search even before any of their programs is tracked; the count
  * only includes programs that are visible in the catalogue, so the product
  * never advertises programs it would then refuse to show.
  */
 export async function searchUniversities(query: string): Promise<UniversitySearchResult[]> {
+  const tokens = searchQueryTokens(query);
+  // A query with no latin tokens (e.g. a native-script name) falls back to
+  // exact substring matching against names and aliases.
+  const matchClause =
+    tokens.length > 0
+      ? Prisma.join(tokens.map(universityTokenFilter), " AND ")
+      : Prisma.sql`(
+          position(search_input.term IN public.immutable_unaccent(lower(u.name))) > 0
+          OR EXISTS (
+            SELECT 1
+            FROM university_aliases AS matching_alias
+            WHERE matching_alias.university_id = u.id
+              AND position(
+                search_input.term IN public.immutable_unaccent(lower(matching_alias.alias))
+              ) > 0
+          )
+        )`;
   const rankedUniversities = await database.$queryRaw<RankedUniversity[]>(Prisma.sql`
     WITH search_input AS (
       SELECT public.immutable_unaccent(lower(${query})) AS term
@@ -45,7 +94,7 @@ export async function searchUniversities(query: string): Promise<UniversitySearc
           )
       ) AS program_count,
       GREATEST(
-        similarity(public.immutable_unaccent(lower(u.name)), search_input.term)
+        word_similarity(search_input.term, public.immutable_unaccent(lower(u.name)))
           + CASE
               WHEN public.immutable_unaccent(lower(u.name)) = search_input.term THEN 2
               WHEN position(search_input.term IN public.immutable_unaccent(lower(u.name))) = 1
@@ -55,7 +104,7 @@ export async function searchUniversities(query: string): Promise<UniversitySearc
         COALESCE(
           (
             SELECT MAX(
-              similarity(public.immutable_unaccent(lower(ua.alias)), search_input.term)
+              word_similarity(search_input.term, public.immutable_unaccent(lower(ua.alias)))
                 + CASE
                     WHEN public.immutable_unaccent(lower(ua.alias)) = search_input.term THEN 2
                     ELSE 0
@@ -70,22 +119,15 @@ export async function searchUniversities(query: string): Promise<UniversitySearc
     FROM universities AS u
     CROSS JOIN search_input
     WHERE u.status = 'ACTIVE'
-      AND (
-        public.immutable_unaccent(lower(u.name)) % search_input.term
-        OR position(search_input.term IN public.immutable_unaccent(lower(u.name))) > 0
-        OR EXISTS (
-          SELECT 1
-          FROM university_aliases AS matching_alias
-          WHERE matching_alias.university_id = u.id
-            AND (
-              public.immutable_unaccent(lower(matching_alias.alias)) % search_input.term
-              OR position(
-                search_input.term IN public.immutable_unaccent(lower(matching_alias.alias))
-              ) > 0
-            )
-        )
-      )
-    ORDER BY relevance DESC, program_count DESC, u.normalized_name ASC, u.id ASC
+      AND ${matchClause}
+    ORDER BY
+      relevance DESC,
+      program_count DESC,
+      -- Among equal matches the shortest name is the most canonical entry:
+      -- "Harvard University" before "Harvard Global Health Institute".
+      length(u.normalized_name) ASC,
+      u.normalized_name ASC,
+      u.id ASC
     LIMIT ${UNIVERSITY_RESULT_LIMIT}
   `);
 
